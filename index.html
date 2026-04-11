@@ -5,66 +5,107 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>شجرة عائلة محمد بن حميد المجيني</title>
   <style>
+    :root{
+      --main:#0f4c81;
+      --main2:#1f6aa5;
+      --gold:#c8a96b;
+      --bg:#f3f4f6;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --card:#ffffff;
+      --line:#dbe4ee;
+    }
+
+    * { box-sizing: border-box; }
+
     body {
       margin: 0;
       padding: 14px;
-      background: #f3f4f6;
+      background: var(--bg);
       font-family: Tahoma, Arial, sans-serif;
-      color: #1f2937;
+      color: var(--text);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before{
+      content:"";
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(rgba(255,255,255,0.92), rgba(255,255,255,0.92)),
+        url("bg-mujaini.jpg") center center / cover no-repeat;
+      opacity: 0.18;
+      pointer-events: none;
+      z-index: -1;
     }
 
     .box {
-      max-width: 980px;
+      max-width: 1020px;
       margin: auto;
     }
 
     .header {
-      background: linear-gradient(135deg, #0f4c81, #1f6aa5);
+      background: linear-gradient(135deg, rgba(15,76,129,0.96), rgba(31,106,165,0.93));
       color: white;
-      padding: 22px 18px;
-      border-radius: 18px;
+      padding: 24px 18px;
+      border-radius: 20px;
       margin-bottom: 14px;
       text-align: center;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+      border: 1px solid rgba(255,255,255,0.18);
+      backdrop-filter: blur(3px);
     }
 
     .header h1 {
       margin: 0 0 8px 0;
-      font-size: 25px;
+      font-size: 27px;
+      letter-spacing: 0.2px;
     }
 
     .header p {
       margin: 0;
-      line-height: 1.9;
+      line-height: 1.95;
       font-size: 14px;
-      opacity: 0.96;
+      opacity: 0.98;
+    }
+
+    .search-box,
+    .title,
+    .info-box,
+    .footer,
+    .about-box {
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(2px);
     }
 
     .search-box {
-      background: white;
       padding: 12px;
-      border-radius: 16px;
+      border-radius: 18px;
       margin-bottom: 12px;
       box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+      border: 1px solid var(--line);
     }
 
     .search-box input {
       width: 100%;
-      padding: 13px 14px;
+      padding: 14px 14px;
       font-size: 16px;
       border: 1px solid #d1d5db;
       border-radius: 12px;
       box-sizing: border-box;
       outline: none;
+      background: white;
     }
 
     .search-box input:focus {
-      border-color: #0f4c81;
+      border-color: var(--main);
+      box-shadow: 0 0 0 3px rgba(15,76,129,0.08);
     }
 
     .tools {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 8px;
       margin-bottom: 12px;
     }
@@ -73,10 +114,11 @@
       border: none;
       border-radius: 12px;
       padding: 12px;
-      background: #0f4c81;
+      background: var(--main);
       color: white;
       font-size: 14px;
       cursor: pointer;
+      box-shadow: 0 4px 10px rgba(15,76,129,0.14);
     }
 
     .tools button.secondary {
@@ -84,15 +126,15 @@
     }
 
     .title {
-      background: white;
-      padding: 16px;
-      border-radius: 16px;
+      padding: 18px;
+      border-radius: 18px;
       margin-bottom: 10px;
-      font-size: 21px;
+      font-size: 22px;
       font-weight: bold;
-      color: #0f4c81;
+      color: var(--main);
       text-align: center;
       box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+      border: 1px solid var(--line);
     }
 
     .breadcrumb {
@@ -106,53 +148,56 @@
       border: none;
       border-radius: 20px;
       background: #dbeafe;
-      color: #0f4c81;
+      color: var(--main);
       cursor: pointer;
       font-size: 13px;
     }
 
     .info-box {
-      background: white;
-      padding: 14px;
-      border-radius: 16px;
+      padding: 15px;
+      border-radius: 18px;
       margin-bottom: 12px;
       line-height: 2;
-      border-right: 5px solid #0f4c81;
+      border-right: 5px solid var(--main);
       box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+      border-left: 1px solid var(--line);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
     }
 
     .cards {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
+      gap: 12px;
     }
 
     .card {
-      background: white;
-      padding: 14px;
-      border-radius: 16px;
+      background: rgba(255,255,255,0.96);
+      padding: 15px;
+      border-radius: 18px;
       cursor: pointer;
       box-shadow: 0 4px 14px rgba(0,0,0,0.05);
       transition: transform 0.15s ease, box-shadow 0.15s ease;
+      border: 1px solid var(--line);
     }
 
     .card:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+      box-shadow: 0 10px 22px rgba(0,0,0,0.08);
     }
 
     .card-has-children {
-      border-top: 4px solid #0f4c81;
+      border-top: 4px solid var(--main);
     }
 
     .card-no-children {
       border-top: 4px solid #9ca3af;
-      background: #fcfcfc;
+      background: rgba(252,252,252,0.98);
     }
 
     .name-row {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
       gap: 8px;
       margin-bottom: 8px;
@@ -162,7 +207,7 @@
       font-size: 18px;
       font-weight: bold;
       color: #111827;
-      line-height: 1.5;
+      line-height: 1.6;
     }
 
     .generation-badge {
@@ -173,12 +218,13 @@
       padding: 5px 9px;
       border-radius: 999px;
       white-space: nowrap;
+      border: 1px solid #dbeafe;
     }
 
     .meta {
       font-size: 13px;
-      color: #6b7280;
-      line-height: 1.8;
+      color: var(--muted);
+      line-height: 1.9;
     }
 
     .tag {
@@ -191,50 +237,78 @@
       color: #1d4ed8;
     }
 
-    #treePanel {
-      background: white;
-      padding: 14px;
-      border-radius: 16px;
-      margin-top: 12px;
-      line-height: 2;
-      display: none;
+    .about-box {
+      padding: 18px;
+      border-radius: 18px;
+      line-height: 2.1;
       box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+      grid-column: 1 / -1;
+      border: 1px solid var(--line);
     }
 
-    #treePanel.active {
-      display: block;
+    .about-box h2 {
+      color: var(--main);
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-size: 24px;
     }
 
-    #treePanel details {
+    .about-box h3 {
+      color: var(--main2);
+      margin-top: 18px;
       margin-bottom: 8px;
-      padding-right: 10px;
+      font-size: 18px;
     }
 
-    #treePanel summary {
-      cursor: pointer;
-      font-weight: bold;
+    .about-box p {
+      margin: 0 0 12px 0;
+      font-size: 15px;
+    }
+
+    .about-box ul {
+      margin: 0 0 12px 0;
+      padding-right: 20px;
+    }
+
+    .about-box li {
+      margin-bottom: 6px;
+      font-size: 15px;
     }
 
     .footer {
-      background: white;
       padding: 16px;
-      border-radius: 16px;
-      margin-top: 14px;
+      border-radius: 18px;
+      margin-top: 16px;
       text-align: center;
       line-height: 2;
       box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+      border: 1px solid var(--line);
     }
 
+    .footer .line0,
     .footer .line1,
     .footer .line2 {
-      font-size: 16px;
-      font-weight: bold;
-      color: #0f4c81;
+      color: var(--main);
     }
 
-    @media (max-width: 700px) {
+    .footer .line0 {
+      font-size: 15px;
+      font-weight: bold;
+    }
+
+    .footer .line1 {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .footer .line2 {
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    @media (max-width: 760px) {
       .tools {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr;
       }
 
       .name {
@@ -244,6 +318,10 @@
       .generation-badge {
         font-size: 10px;
       }
+
+      .header h1 {
+        font-size: 23px;
+      }
     }
   </style>
 </head>
@@ -251,28 +329,28 @@
   <div class="box">
     <div class="header">
       <h1>شجرة عائلة محمد بن حميد المجيني</h1>
-      <p>اضغط على اسم أي أب لعرض أبنائه، وإذا كانت البيانات غير مكتملة سيتم تحويلك إلى واتساب لطلب الإضافة أو التعديل.</p>
+      <p>اضغط على اسم أي أب لعرض أبنائه، ويمكنك استخدام البحث للوصول إلى الأسماء القريبة حتى لو كان الاسم مختلفًا أو ناقصًا.</p>
     </div>
 
     <div class="search-box">
-      <input type="text" id="searchInput" placeholder="ابحث عن اسم..." />
+      <input type="text" id="searchInput" placeholder="ابحث عن اسم ثلاثي أو رباعي أو خماسي..." />
     </div>
 
     <div class="tools">
+      <button onclick="showAbout()">نبذة عن قبيلة المجيني</button>
       <button onclick="goRoot()">الرجوع للجذر</button>
       <button onclick="goBack()">رجوع خطوة</button>
-      <button onclick="openAllTree()">فتح الكل</button>
-      <button onclick="closeAllTree()" class="secondary">طي الكل</button>
     </div>
 
     <div class="title" id="title">محمد بن حميد المجيني</div>
     <div class="breadcrumb" id="breadcrumb"></div>
     <div id="infoBar"></div>
     <div class="cards" id="content"></div>
-    <div id="treePanel"></div>
 
     <div class="footer">
-      <div class="line1">إعداد محمد علي حسن المجيني</div>
+      <div class="line0">إعداد هذا العمل</div>
+      <div class="line1">محمد علي المجيني</div>
+      <div class="line2">اللهم اغفر لأحيائنا وأمواتنا وارحمهم برحمتك الواسعة</div>
     </div>
   </div>
 
@@ -734,14 +812,72 @@
 
     function normalizeArabic(text) {
       return String(text || "")
+        .normalize("NFC")
         .replace(/[أإآ]/g, "ا")
         .replace(/ة/g, "ه")
         .replace(/ى/g, "ي")
         .replace(/ؤ/g, "و")
         .replace(/ئ/g, "ي")
+        .replace(/[ًٌٍَُِّْـ]/g, "")
         .replace(/\s+/g, " ")
         .trim()
         .toLowerCase();
+    }
+
+    function levenshtein(a, b) {
+      a = normalizeArabic(a);
+      b = normalizeArabic(b);
+      var matrix = [];
+      var i, j;
+
+      for (i = 0; i <= b.length; i++) matrix[i] = [i];
+      for (j = 0; j <= a.length; j++) matrix[0][j] = j;
+
+      for (i = 1; i <= b.length; i++) {
+        for (j = 1; j <= a.length; j++) {
+          if (b.charAt(i - 1) === a.charAt(j - 1)) {
+            matrix[i][j] = matrix[i - 1][j - 1];
+          } else {
+            matrix[i][j] = Math.min(
+              matrix[i - 1][j - 1] + 1,
+              matrix[i][j - 1] + 1,
+              matrix[i - 1][j] + 1
+            );
+          }
+        }
+      }
+      return matrix[b.length][a.length];
+    }
+
+    function similarityScore(query, target) {
+      query = normalizeArabic(query);
+      target = normalizeArabic(target);
+
+      if (!query || !target) return 0;
+      if (target.indexOf(query) !== -1) return 100;
+
+      var queryParts = query.split(" ").filter(Boolean);
+      var targetParts = target.split(" ").filter(Boolean);
+
+      var partHits = 0;
+      for (var i = 0; i < queryParts.length; i++) {
+        for (var j = 0; j < targetParts.length; j++) {
+          if (
+            targetParts[j].indexOf(queryParts[i]) !== -1 ||
+            queryParts[i].indexOf(targetParts[j]) !== -1
+          ) {
+            partHits++;
+            break;
+          }
+        }
+      }
+
+      var partScore = (partHits / Math.max(queryParts.length, 1)) * 70;
+      var distance = levenshtein(query, target);
+      var maxLen = Math.max(query.length, target.length) || 1;
+      var editScore = Math.max(0, 30 - (distance / maxLen) * 30);
+
+      return partScore + editScore;
     }
 
     function hasChildren(id) {
@@ -811,8 +947,7 @@
     }
 
     function getCardClass(id) {
-      if (hasChildren(id)) return "card card-has-children";
-      return "card card-no-children";
+      return hasChildren(id) ? "card card-has-children" : "card card-no-children";
     }
 
     function openWhatsApp(name) {
@@ -894,8 +1029,6 @@
       for (var i = 0; i < children.length; i++) {
         var childId = children[i];
         var child = people[childId];
-        var directCount = getChildrenCount(childId);
-        var descendants = getDescendantsCount(childId);
         var note = child.note ? "<br><strong>ملاحظة:</strong> " + child.note : "";
 
         html += '<div class="' + getCardClass(childId) + '" onclick="handleClick(\'' + childId + '\')">';
@@ -903,8 +1036,8 @@
         html += '<div class="name">' + child.name + '</div>';
         html += '<div class="generation-badge">' + generationLabelShort(getGeneration(childId)) + '</div>';
         html += '</div>';
-        html += '<div class="meta">عدد الأبناء المباشرين: ' + directCount + note + '</div>';
-        html += '<div class="meta">إجمالي الأشخاص تحت الفرع: ' + descendants + '</div>';
+        html += '<div class="meta">عدد الأبناء المباشرين: ' + getChildrenCount(childId) + note + '</div>';
+        html += '<div class="meta">إجمالي الأشخاص تحت الفرع: ' + getDescendantsCount(childId) + '</div>';
         html += '<div class="tag">' + (hasChildren(childId) ? "اضغط لعرض الفرع" : "اضغط لطلب الإضافة") + '</div>';
         html += '</div>';
       }
@@ -928,36 +1061,54 @@
     }
 
     function renderSearchResults(keyword) {
-      var normalizedKeyword = normalizeArabic(keyword);
       var results = [];
 
       for (var key in people) {
         var person = people[key];
-        var nameMatch = normalizeArabic(person.name).indexOf(normalizedKeyword) !== -1;
-        var noteMatch = normalizeArabic(person.note || "").indexOf(normalizedKeyword) !== -1;
-        if (nameMatch || noteMatch) {
-          results.push(key);
+        var scoreName = similarityScore(keyword, person.name);
+        var scoreNote = similarityScore(keyword, person.note || "");
+        var finalScore = Math.max(scoreName, scoreNote);
+
+        if (finalScore >= 35) {
+          results.push({ id: key, score: finalScore });
         }
       }
 
+      results.sort(function(a, b) {
+        return b.score - a.score;
+      });
+
       document.getElementById("title").innerHTML = "نتائج البحث";
       document.getElementById("breadcrumb").innerHTML = "";
-      document.getElementById("infoBar").innerHTML = "";
+
+      var infoHtml = '<div class="info-box">عدد النتائج: <strong>' + results.length + '</strong>';
+      if (results.length > 0 && results[0].score < 100) {
+        infoHtml += '<br>هل تقصد: <strong>' + people[results[0].id].name + '</strong>';
+      }
+      infoHtml += '</div>';
+      document.getElementById("infoBar").innerHTML = infoHtml;
 
       var html = "";
       if (results.length === 0) {
         html = '<div class="card"><div class="meta">لا توجد نتائج مطابقة.</div></div>';
       } else {
         for (var i = 0; i < results.length; i++) {
-          var id = results[i];
-          html += '<div class="' + getCardClass(id) + '" onclick="' + (hasChildren(id) ? "handleClick('" + id + "')" : "openWhatsApp('" + people[id].name.replace(/'/g, "\\'") + "')") + '">';
+          var id = results[i].id;
+
+          html += '<div class="' + getCardClass(id) + '" onclick="' +
+            (hasChildren(id)
+              ? "handleClick('" + id + "')"
+              : "openWhatsApp('" + people[id].name.replace(/'/g, "\\'") + "')") +
+            '">';
+
           html += '<div class="name-row">';
           html += '<div class="name">' + people[id].name + '</div>';
           html += '<div class="generation-badge">' + generationLabelShort(getGeneration(id)) + '</div>';
           html += '</div>';
+
           html += '<div class="meta">التسلسل: ' + getLineageText(id) + '</div>';
           html += '<div class="meta">عدد الأبناء المباشرين: ' + getChildrenCount(id) + '</div>';
-          html += '<div class="meta">إجمالي الأشخاص تحت الفرع: ' + getDescendantsCount(id) + '</div>';
+          html += '<div class="meta">درجة التقارب: ' + Math.round(results[i].score) + '%</div>';
           html += '<div class="tag">' + (hasChildren(id) ? "اضغط للدخول" : "اضغط لطلب الإضافة") + '</div>';
           html += '</div>';
         }
@@ -966,33 +1117,64 @@
       document.getElementById("content").innerHTML = html;
     }
 
-    function buildFullTree(id) {
-      var node = people[id];
-      if (!node) return "";
+    function showAbout() {
+      document.getElementById("title").innerHTML = "نبذة عن قبيلة المجيني";
+      document.getElementById("breadcrumb").innerHTML = "";
+      document.getElementById("infoBar").innerHTML = "";
 
-      var html = '<details open>';
-      html += '<summary>' + node.name + ' <span style="font-size:11px;color:#2563eb;">(' + generationLabelShort(getGeneration(id)) + ')</span></summary>';
+      document.getElementById("content").innerHTML = `
+        <div class="about-box">
+          <h2>تاريخ وأمجاد قبيلة المجيني: أسياد التجارة الدولية وفرضة ودام الساحل</h2>
 
-      if (node.children && node.children.length > 0) {
-        for (var i = 0; i < node.children.length; i++) {
-          html += buildFullTree(node.children[i]);
-        }
-      }
+          <h3>المقدمة والجذور</h3>
+          <p>
+            تُعد قبيلة المجيني (المجانية) من أعرق القبائل العمانية القحطانية، وينتهي نسبهم إلى قضاعة،
+            وهي قبيلة عُرفت تاريخياً بالأنفة، والمروءة، والريادة. وقد شكل المجانية ركناً أساسياً في
+            الاستقرار الاجتماعي والسياسي على ساحل الباطنة، متميزين بحكمة الإدارة وسعة الأفق، مما جعلهم
+            محل تقدير وثقة عبر الأزمان.
+          </p>
 
-      html += '</details>';
-      return html;
-    }
+          <h3>المعقل والسيادة: ودام الساحل بالمصنعة</h3>
+          <p>
+            تعتبر ودام الساحل في ولاية المصنعة هي المركز التاريخي والسيادي للقبيلة. ولم تكن ودام مجرد
+            حاضرة سكنية، بل كانت "فرضة" تجارية وجمركية رسمية معتمدة من قبل سلاطين عمان؛ حيث كانت السفن
+            الدولية تقصدها لتبادل البضائع تحت إشراف وأمن رجال القبيلة، مما جعلها شرياناً اقتصادياً
+            حيوياً للدولة ومركزاً لرفع راية السلطنة.
+          </p>
 
-    function openAllTree() {
-      var panel = document.getElementById("treePanel");
-      panel.innerHTML = buildFullTree(currentPerson);
-      panel.classList.add("active");
-    }
+          <h3>الإرث الملاحي: رواد التجارة العابرة للقارات</h3>
+          <p>برع المجانية في التجارة البحرية البعيدة، وامتلكوا أسطولاً من السفن الكبيرة التي طافت المحيطات. كانت خطوطهم التجارية تصل إلى:</p>
+          <ul>
+            <li>شرق أفريقيا (زنجبار، ممباسا، لامو): نقلوا الثقافة العمانية والتمور، وعادوا بخيرات أفريقيا من توابل وأخشاب.</li>
+            <li>شبه القارة الهندية (بومباي وكراتشي): لاستيراد المنسوجات الفاخرة والأرز.</li>
+            <li>الخليج العربي عامة: كانت سفنهم حلقة الوصل بين موانئ البصرة والكويت والمنامة والدمام.</li>
+          </ul>
 
-    function closeAllTree() {
-      var panel = document.getElementById("treePanel");
-      panel.innerHTML = "";
-      panel.classList.remove("active");
+          <h3>أعلام ورموز تاريخية</h3>
+          <p>ضمت القبيلة الكثير من الشخصيات البارزة التي أثرت في البلد والمنطقة قديماً وحديثاً، ومن أهم رموزها:</p>
+          <ul>
+            <li><strong>النوخذه أحمد بن جابر المجيني:</strong> القامة التاريخية والرمز الذي ارتبط اسمه بالوجاهة والتأثير والسيادة. عُرف كنوخذه صاحب اسم رنان ومشهور في "ساحل عمان"، قاد السفن في أصعب الظروف والموانئ الدولية، وكان مرجعاً في القيادة والخبرة البحرية.</li>
+            <li><strong>الشيخ علي بن عبدالله المجيني:</strong> الذي يُعد مرجعاً تاريخياً وثقافياً كبيراً، ساهم بحكمته ورؤيته في الحفاظ على موروث القبيلة وتوثيق أمجاد "الفرضة" والنشاط التجاري لودام الساحل.</li>
+          </ul>
+
+          <h3>الجيل الحديث: مواصلة العطاء (رجالاً ونساءً)</h3>
+          <p>لم يتوقف طموح المجانية عند حدود البحر، بل انتقل مع النهضة المباركة إلى آفاق العلم والعمل، حيث برزت شخصيات حديثة أثرت في مسيرة بناء الوطن:</p>
+          <ul>
+            <li>في السلك الدبلوماسي والعسكري: يخدم العديد من أبناء القبيلة كقادة وضباط في مختلف الأجهزة العسكرية، وسفراء يمثلون سلطنة عمان بوقار واقتدار.</li>
+            <li>في التعليم والطب والهندسة: برزت نساء القبيلة كطبيبات، مهندسات، وأكاديميات، حيث وضعن بصماتهن في التعليم العالي والقطاعات الصحية، مساهمات بفعالية في النهضة الاجتماعية.</li>
+            <li>الابتكار وريادة الأعمال: يقود الشباب من آل المجيني اليوم مشاريع تقنية واقتصادية كبرى، محافظين على روح "التاجر الأول" ومواكبين لرؤية عمان المستقبلية.</li>
+          </ul>
+
+          <h3>المراجع والاستنادات التاريخية</h3>
+          <ul>
+            <li>الموسوعة العمانية: المرجع الرسمي لوزارة التراث والثقافة، والذي يوثق نسب القبيلة وتواجدها الراسخ في المصنعة والسويق.</li>
+            <li>السجلات الجمركية السلطانية القديمة: التي تثبت اعتماد "ودام الساحل" كفرضة رسمية (ميناء تجاري) للدولة.</li>
+            <li>الأرشيف البحري العماني: الذي يحفظ أسماء النواخذة الكبار وأساطيل السفن، ومن ضمنها سفن النوخذه أحمد بن جابر المجيني.</li>
+            <li>كتاب "عرب الخليج" (ب. ج. سلوت): الذي يتناول الموانئ التجارية العمانية والرسوم الجمركية وتاريخ "ودام" كمركز نشط.</li>
+            <li>الروايات الشفوية والتوثيق الميداني: المستمد من أعيان القبيلة (وعلى رأسهم الشيخ علي بن عبدالله المجيني) والآثار القائمة مثل "حصن ودام الساحل".</li>
+          </ul>
+        </div>
+      `;
     }
 
     document.getElementById("searchInput").onkeyup = function() {
