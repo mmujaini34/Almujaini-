@@ -4,16 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>شجرة عائلة محمد بن حميد المجيني</title>
+
   <style>
     :root{
-      --main:#0f4c81;
-      --main2:#1f6aa5;
-      --gold:#c8a96b;
-      --bg:#f3f4f6;
+      --main:#123c69;
+      --main2:#2a5d84;
+      --gold:#b8924a;
+      --bg:#eef2f5;
       --text:#1f2937;
-      --muted:#6b7280;
-      --card:#ffffff;
-      --line:#dbe4ee;
+      --muted:#5f6b7a;
+      --card:rgba(255,255,255,0.95);
+      --line:#d7e0e8;
     }
 
     * { box-sizing: border-box; }
@@ -33,9 +34,9 @@
       position: fixed;
       inset: 0;
       background:
-        linear-gradient(rgba(255,255,255,0.92), rgba(255,255,255,0.92)),
-        url("bg-mujaini.jpg") center center / cover no-repeat;
-      opacity: 0.18;
+        linear-gradient(rgba(255,255,255,0.82), rgba(255,255,255,0.82)),
+        url("./bg-mujaini.jpg") center center / cover no-repeat;
+      opacity: 0.42;
       pointer-events: none;
       z-index: -1;
     }
@@ -46,21 +47,19 @@
     }
 
     .header {
-      background: linear-gradient(135deg, rgba(15,76,129,0.96), rgba(31,106,165,0.93));
+      background: linear-gradient(135deg, rgba(18,60,105,0.95), rgba(42,93,132,0.93));
       color: white;
       padding: 24px 18px;
       border-radius: 20px;
       margin-bottom: 14px;
       text-align: center;
       box-shadow: 0 10px 24px rgba(0,0,0,0.08);
-      border: 1px solid rgba(255,255,255,0.18);
-      backdrop-filter: blur(3px);
+      border: 1px solid rgba(255,255,255,0.15);
     }
 
     .header h1 {
       margin: 0 0 8px 0;
       font-size: 27px;
-      letter-spacing: 0.2px;
     }
 
     .header p {
@@ -75,7 +74,7 @@
     .info-box,
     .footer,
     .about-box {
-      background: rgba(255,255,255,0.95);
+      background: var(--card);
       backdrop-filter: blur(2px);
     }
 
@@ -91,7 +90,7 @@
       width: 100%;
       padding: 14px 14px;
       font-size: 16px;
-      border: 1px solid #d1d5db;
+      border: 1px solid #cfd8e3;
       border-radius: 12px;
       box-sizing: border-box;
       outline: none;
@@ -100,7 +99,7 @@
 
     .search-box input:focus {
       border-color: var(--main);
-      box-shadow: 0 0 0 3px rgba(15,76,129,0.08);
+      box-shadow: 0 0 0 3px rgba(18,60,105,0.08);
     }
 
     .tools {
@@ -118,11 +117,11 @@
       color: white;
       font-size: 14px;
       cursor: pointer;
-      box-shadow: 0 4px 10px rgba(15,76,129,0.14);
+      box-shadow: 0 4px 10px rgba(18,60,105,0.14);
     }
 
-    .tools button.secondary {
-      background: #4b5563;
+    .tools button:hover {
+      background: var(--main2);
     }
 
     .title {
@@ -147,7 +146,7 @@
       padding: 8px 12px;
       border: none;
       border-radius: 20px;
-      background: #dbeafe;
+      background: #e8f0f7;
       color: var(--main);
       cursor: pointer;
       font-size: 13px;
@@ -158,7 +157,7 @@
       border-radius: 18px;
       margin-bottom: 12px;
       line-height: 2;
-      border-right: 5px solid var(--main);
+      border-right: 5px solid var(--gold);
       box-shadow: 0 4px 14px rgba(0,0,0,0.05);
       border-left: 1px solid var(--line);
       border-top: 1px solid var(--line);
@@ -191,7 +190,7 @@
     }
 
     .card-no-children {
-      border-top: 4px solid #9ca3af;
+      border-top: 4px solid var(--gold);
       background: rgba(252,252,252,0.98);
     }
 
@@ -213,12 +212,12 @@
     .generation-badge {
       flex-shrink: 0;
       font-size: 11px;
-      background: #eff6ff;
-      color: #1d4ed8;
+      background: #f5ecd9;
+      color: #8a6a2b;
       padding: 5px 9px;
       border-radius: 999px;
       white-space: nowrap;
-      border: 1px solid #dbeafe;
+      border: 1px solid #ead9b0;
     }
 
     .meta {
@@ -233,8 +232,8 @@
       padding: 6px 10px;
       border-radius: 20px;
       font-size: 12px;
-      background: #eef2ff;
-      color: #1d4ed8;
+      background: #edf4fb;
+      color: var(--main);
     }
 
     .about-box {
@@ -254,7 +253,7 @@
     }
 
     .about-box h3 {
-      color: var(--main2);
+      color: var(--gold);
       margin-top: 18px;
       margin-bottom: 8px;
       font-size: 18px;
@@ -366,12 +365,13 @@
       "p4": { name: "عائشة بنت محمد", note: "", children: [] },
       "p5": { name: "فاطمة بنت محمد", note: "", children: [] },
 
-      "p6": { name: "حسن بن محمد", note: "", children: ["p11","p12","p13","p14","p15"] },
+      "p6": { name: "حسن بن محمد", note: "", children: ["p11","p12","p13","p14","p15","p15a"] },
       "p11": { name: "علي", note: "", children: [] },
       "p12": { name: "محمد", note: "", children: [] },
       "p13": { name: "سعيد", note: "", children: [] },
       "p14": { name: "فاطمه", note: "", children: [] },
       "p15": { name: "امنه", note: "", children: [] },
+      "p15a": { name: "خديجه", note: "", children: [] },
 
       "p7": { name: "يوسف بن محمد", note: "", children: ["p16","p17"] },
       "p16": { name: "محمد", note: "", children: [] },
@@ -950,9 +950,21 @@
       return hasChildren(id) ? "card card-has-children" : "card card-no-children";
     }
 
-    function openWhatsApp(name) {
-      var message = encodeURIComponent("السلام عليكم، أرغب في إضافة أو تعديل بيانات في شجرة العائلة بخصوص: " + name);
-      window.location.href = "https://wa.me/" + contactNumber + "?text=" + message;
+    function openWhatsApp(id) {
+      var fullLineage = getLineageText(id);
+      var message = "السلام عليكم، أرغب في إضافة أو تعديل بيانات في شجرة العائلة بخصوص: " + fullLineage;
+
+      var number = contactNumber.replace(/[^\d]/g, "");
+      var waLink = "https://wa.me/" + number + "?text=" + encodeURIComponent(message);
+      var fallbackLink = "https://api.whatsapp.com/send?phone=" + number + "&text=" + encodeURIComponent(message);
+
+      var isAndroid = /Android/i.test(navigator.userAgent);
+
+      if (isAndroid) {
+        window.location.href = fallbackLink;
+      } else {
+        window.location.href = waLink;
+      }
     }
 
     function handleClick(id) {
@@ -962,7 +974,7 @@
         render(id);
       } else {
         var ok = confirm("لا توجد بيانات كافية لهذا الاسم حاليا.\n\nهل تريد فتح واتساب لإضافة أو تعديل البيانات؟");
-        if (ok) openWhatsApp(people[id].name);
+        if (ok) openWhatsApp(id);
       }
     }
 
@@ -1098,7 +1110,7 @@
           html += '<div class="' + getCardClass(id) + '" onclick="' +
             (hasChildren(id)
               ? "handleClick('" + id + "')"
-              : "openWhatsApp('" + people[id].name.replace(/'/g, "\\'") + "')") +
+              : "openWhatsApp('" + id + "')") +
             '">';
 
           html += '<div class="name-row">';
