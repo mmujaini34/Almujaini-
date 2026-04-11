@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>شجرة عائلة محمد بن حميد المجيني</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 14px;
+      background: #f3f4f6;
+      font-family: Tahoma, Arial, sans-serif;
+      color: #1f2937;
+    }
+
+    .box {
+      max-width: 980px;
+      margin: auto;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #0f4c81, #1f6aa5);
+      color: white;
+      padding: 22px 18px;
+      border-radius: 18px;
+      margin-bottom: 14px;
+      text-align: center;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    }
+
+    .header h1 {
+      margin: 0 0 8px 0;
+      font-size: 25px;
+    }
+
+    .header p {
+      margin: 0;
+      line-height: 1.9;
+      font-size: 14px;
+      opacity: 0.96;
+    }
+
+    .search-box {
+      background: white;
+      padding: 12px;
+      border-radius: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 13px 14px;
+      font-size: 16px;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      box-sizing: border-box;
+      outline: none;
+    }
+
+    .search-box input:focus {
+      border-color: #0f4c81;
+    }
+
+    .tools {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .tools button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px;
+      background: #0f4c81;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .tools button.secondary {
+      background: #4b5563;
+    }
+
+    .title {
+      background: white;
+      padding: 16px;
+      border-radius: 16px;
+      margin-bottom: 10px;
+      font-size: 21px;
+      font-weight: bold;
+      color: #0f4c81;
+      text-align: center;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+    }
+
+    .breadcrumb {
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .breadcrumb button {
+      margin: 4px;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 20px;
+      background: #dbeafe;
+      color: #0f4c81;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .info-box {
+      background: white;
+      padding: 14px;
+      border-radius: 16px;
+      margin-bottom: 12px;
+      line-height: 2;
+      border-right: 5px solid #0f4c81;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 10px;
+    }
+
+    .card {
+      background: white;
+      padding: 14px;
+      border-radius: 16px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    }
+
+    .card-has-children {
+      border-top: 4px solid #0f4c81;
+    }
+
+    .card-no-children {
+      border-top: 4px solid #9ca3af;
+      background: #fcfcfc;
+    }
+
+    .name-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .name {
+      font-size: 18px;
+      font-weight: bold;
+      color: #111827;
+      line-height: 1.5;
+    }
+
+    .generation-badge {
+      flex-shrink: 0;
+      font-size: 11px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      padding: 5px 9px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .meta {
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.8;
+    }
+
+    .tag {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 6px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      background: #eef2ff;
+      color: #1d4ed8;
+    }
+
+    #treePanel {
+      background: white;
+      padding: 14px;
+      border-radius: 16px;
+      margin-top: 12px;
+      line-height: 2;
+      display: none;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+    }
+
+    #treePanel.active {
+      display: block;
+    }
+
+    #treePanel details {
+      margin-bottom: 8px;
+      padding-right: 10px;
+    }
+
+    #treePanel summary {
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .footer {
+      background: white;
+      padding: 16px;
+      border-radius: 16px;
+      margin-top: 14px;
+      text-align: center;
+      line-height: 2;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+    }
+
+    .footer .line1,
+    .footer .line2 {
+      font-size: 16px;
+      font-weight: bold;
+      color: #0f4c81;
+    }
+
+    @media (max-width: 700px) {
+      .tools {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .name {
+        font-size: 16px;
+      }
+
+      .generation-badge {
+        font-size: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="header">
+      <h1>شجرة عائلة محمد بن حميد المجيني</h1>
+      <p>اضغط على اسم أي أب لعرض أبنائه، وإذا كانت البيانات غير مكتملة سيتم تحويلك إلى واتساب لطلب الإضافة أو التعديل.</p>
+    </div>
+
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="ابحث عن اسم..." />
+    </div>
+
+    <div class="tools">
+      <button onclick="goRoot()">الرجوع للجذر</button>
+      <button onclick="goBack()">رجوع خطوة</button>
+      <button onclick="openAllTree()">فتح الكل</button>
+      <button onclick="closeAllTree()" class="secondary">طي الكل</button>
+    </div>
+
+    <div class="title" id="title">محمد بن حميد المجيني</div>
+    <div class="breadcrumb" id="breadcrumb"></div>
+    <div id="infoBar"></div>
+    <div class="cards" id="content"></div>
+    <div id="treePanel"></div>
+
+    <div class="footer">
+      <div class="line1">إعداد محمد علي حسن المجيني</div>
+    </div>
+  </div>
+
+  <script>
+    var contactNumber = "96896040406";
+    var rootId = "p1";
+
+    var people = {
+      "p1": { name: "محمد بن حميد المجيني", note: "", children: ["p2","p3","p4","p5","p6","p7","p8","p9","p10"] },
+
+      "p2": { name: "صالحة بنت محمد", note: "", children: [] },
+      "p3": { name: "شمسة بنت محمد", note: "", children: [] },
+      "p4": { name: "عائشة بنت محمد", note: "", children: [] },
+      "p5": { name: "فاطمة بنت محمد", note: "", children: [] },
+
+      "p6": { name: "حسن بن محمد", note: "", children: ["p11","p12","p13","p14","p15"] },
+      "p11": { name: "علي", note: "", children: [] },
+      "p12": { name: "محمد", note: "", children: [] },
+      "p13": { name: "سعيد", note: "", children: [] },
+      "p14": { name: "فاطمه", note: "", children: [] },
+      "p15": { name: "امنه", note: "", children: [] },
+
+      "p7": { name: "يوسف بن محمد", note: "", children: ["p16","p17"] },
+      "p16": { name: "محمد", note: "", children: [] },
+      "p17": { name: "خديه", note: "", children: [] },
+
+      "p8": { name: "حميد بن محمد", note: "", children: [] },
+      "p9": { name: "يونس بن محمد", note: "", children: [] },
+
+      "p10": { name: "جابر بن محمد", note: "الفرع الرئيسي", children: ["p18","p19","p20","p21","p22","p23","p24","p25"] },
+
+      "p19": { name: "حميد بن جابر", note: "", children: ["p26","p27","p28","p29"] },
+      "p26": { name: "مريم", note: "", children: [] },
+      "p27": { name: "صالحة", note: "", children: [] },
+      "p28": { name: "شيخة", note: "", children: [] },
+      "p29": { name: "فاطمة", note: "", children: [] },
+
+      "p20": { name: "محمد بن جابر", note: "", children: ["p30","p31","p32"] },
+      "p30": { name: "خديجة", note: "", children: [] },
+      "p31": { name: "مريم", note: "", children: [] },
+      "p32": { name: "حميد", note: "", children: [] },
+
+      "p21": { name: "سليمان بن جابر", note: "أمه من قوم الباش", children: ["p33","p34"] },
+      "p33": { name: "عبدالله بن سليمان", note: "", children: ["p35","p36","p37","p38"] },
+      "p35": { name: "محمد", note: "", children: [] },
+      "p36": { name: "سليمان", note: "", children: [] },
+      "p37": { name: "شيخة", note: "", children: [] },
+      "p38": { name: "مريم", note: "", children: [] },
+
+      "p34": { name: "محمد بن سليمان", note: "", children: ["p39","p40"] },
+      "p39": { name: "سعيد", note: "", children: [] },
+      "p40": { name: "صالح", note: "", children: [] },
+
+      "p22": { name: "علي بن جابر", note: "أمه من ضيان", children: ["p41","p42"] },
+
+      "p41": { name: "حمود بن علي", note: "", children: ["p43","p44","p45","p46","p47","p48","p49","p50","p51","p52","p53","p54"] },
+
+      "p43": { name: "أحمد", note: "", children: [] },
+
+      "p44": { name: "بدر", note: "", children: ["p44_1","p44_2","p44_3"] },
+      "p44_1": { name: "هاجر", note: "", children: [] },
+      "p44_2": { name: "وصايف", note: "", children: [] },
+      "p44_3": { name: "عبدالله", note: "", children: [] },
+
+      "p45": { name: "محمد", note: "", children: ["p45_1","p45_2","p45_3","p45_4","p45_5"] },
+      "p45_1": { name: "ميثه", note: "", children: [] },
+      "p45_2": { name: "خديجه", note: "", children: [] },
+      "p45_3": { name: "قصايد", note: "", children: [] },
+      "p45_4": { name: "فراس", note: "", children: [] },
+      "p45_5": { name: "احمد", note: "", children: [] },
+
+      "p46": { name: "علي", note: "", children: ["p46_1","p46_2","p46_3","p46_4","p46_5"] },
+      "p46_1": { name: "هشام", note: "", children: ["p46_1a","p46_1b"] },
+      "p46_1a": { name: "عبدالرحمن", note: "", children: [] },
+      "p46_1b": { name: "احمد", note: "", children: [] },
+      "p46_2": { name: "حمود", note: "", children: [] },
+      "p46_3": { name: "عالية", note: "", children: [] },
+      "p46_4": { name: "عائشه", note: "", children: [] },
+      "p46_5": { name: "مريم", note: "", children: [] },
+
+      "p47": { name: "هشام", note: "", children: ["p47_1","p47_2"] },
+      "p47_1": { name: "عبدالرحمن", note: "", children: [] },
+      "p47_2": { name: "احمد", note: "", children: [] },
+
+      "p48": { name: "جابر", note: "", children: ["p48_1","p48_2","p48_3","p48_4"] },
+      "p48_1": { name: "حمود", note: "", children: [] },
+      "p48_2": { name: "عائشه", note: "", children: [] },
+      "p48_3": { name: "مريم", note: "", children: [] },
+      "p48_4": { name: "سماء", note: "", children: [] },
+
+      "p49": { name: "هيثم", note: "", children: [] },
+
+      "p50": { name: "فهد", note: "", children: ["p50_1"] },
+      "p50_1": { name: "خالد", note: "", children: [] },
+
+      "p51": { name: "مريم", note: "", children: ["p51_1","p51_2","p51_3","p51_4","p51_5"] },
+      "p51_1": { name: "ايمان", note: "", children: [] },
+      "p51_2": { name: "فاطمه", note: "", children: [] },
+      "p51_3": { name: "سعيد", note: "", children: [] },
+      "p51_4": { name: "احمد", note: "", children: [] },
+      "p51_5": { name: "محمد", note: "", children: ["p51_5a"] },
+      "p51_5a": { name: "علي", note: "", children: [] },
+
+      "p52": { name: "علياء", note: "", children: ["p52_1","p52_2"] },
+      "p52_1": { name: "خديجه", note: "", children: ["p52_1a","p52_1b"] },
+      "p52_2": { name: "صفيه", note: "", children: ["p52_2a","p52_2b","p52_2c"] },
+      "p52_2a": { name: "لمى", note: "", children: [] },
+      "p52_2b": { name: "ريم", note: "", children: [] },
+      "p52_2c": { name: "سلطان", note: "", children: [] },
+
+      "p52_1a": { name: "محمد", note: "", children: ["p52_1a1","p52_1a2"] },
+      "p52_1a1": { name: "ذياب", note: "", children: [] },
+      "p52_1a2": { name: "عذبه", note: "", children: [] },
+
+      "p52_1b": { name: "مريم", note: "", children: ["p52_1b1","p52_1b2"] },
+      "p52_1b1": { name: "جابر", note: "", children: [] },
+      "p52_1b2": { name: "ملاذ", note: "", children: [] },
+
+      "p53": { name: "بلقيس", note: "", children: ["p53_1"] },
+      "p53_1": { name: "عبدالله", note: "", children: [] },
+
+      "p54": { name: "كوثر", note: "", children: ["p54_1"] },
+      "p54_1": { name: "محمد", note: "", children: [] },
+
+      "p42": { name: "فاطمة بنت علي", note: "", children: ["p55","p56"] },
+
+      "p55": { name: "عائشه", note: "", children: ["p55_1","p55_2","p55_3","p55_4","p55_5","p55_6","p55_7","p55_8","p55_9","p55_10","p55_11","p55_12","p55_13"] },
+
+      "p55_1": { name: "جابر", note: "", children: ["p55_1a","p55_1b","p55_1c","p55_1d"] },
+      "p55_1a": { name: "سعيد", note: "", children: [] },
+      "p55_1b": { name: "يوسف", note: "", children: [] },
+      "p55_1c": { name: "سجى", note: "", children: [] },
+      "p55_1d": { name: "شذى", note: "", children: [] },
+
+      "p55_2": { name: "علي", note: "", children: ["p55_2a","p55_2b","p55_2c","p55_2d"] },
+      "p55_2a": { name: "محمد", note: "", children: [] },
+      "p55_2b": { name: "فيصل", note: "", children: [] },
+      "p55_2c": { name: "خالد", note: "", children: [] },
+      "p55_2d": { name: "ريماس", note: "", children: [] },
+
+      "p55_3": { name: "احمد", note: "", children: ["p55_3a","p55_3b","p55_3c"] },
+      "p55_3a": { name: "سعيد", note: "", children: [] },
+      "p55_3b": { name: "علي", note: "", children: [] },
+      "p55_3c": { name: "شيم", note: "", children: [] },
+
+      "p55_4": { name: "عبدالله", note: "", children: ["p55_4a","p55_4b"] },
+      "p55_4a": { name: "محمد", note: "", children: [] },
+      "p55_4b": { name: "عائشه", note: "", children: [] },
+
+      "p55_5": { name: "يوسف", note: "", children: ["p55_5a","p55_5b"] },
+      "p55_5a": { name: "سعيد", note: "", children: [] },
+      "p55_5b": { name: "ساره", note: "", children: [] },
+
+      "p55_6": { name: "سليمان", note: "", children: ["p55_6a"] },
+      "p55_6a": { name: "سعيد", note: "", children: [] },
+
+      "p55_7": { name: "امينه", note: "", children: ["p55_7a","p55_7b","p55_7c"] },
+      "p55_7a": { name: "هاجر", note: "", children: [] },
+      "p55_7b": { name: "وصايف", note: "", children: [] },
+      "p55_7c": { name: "عبدالله", note: "", children: [] },
+
+      "p55_8": { name: "مريم", note: "", children: ["p55_8a","p55_8b"] },
+      "p55_8a": { name: "عبدالرحمن", note: "", children: [] },
+      "p55_8b": { name: "احمد", note: "", children: [] },
+
+      "p55_9": { name: "نعيمه", note: "", children: [] },
+
+      "p55_10": { name: "عليا", note: "", children: ["p55_10a"] },
+      "p55_10a": { name: "محمد", note: "", children: [] },
+
+      "p55_11": { name: "صالحه", note: "", children: ["p55_11a","p55_11b","p55_11c"] },
+      "p55_11a": { name: "ريما", note: "", children: [] },
+      "p55_11b": { name: "محمد", note: "", children: [] },
+      "p55_11c": { name: "يوسف", note: "", children: [] },
+
+      "p55_12": { name: "فاطمه", note: "", children: ["p55_12a","p55_12b"] },
+      "p55_12a": { name: "ليان", note: "", children: [] },
+      "p55_12b": { name: "رتان", note: "", children: [] },
+
+      "p55_13": { name: "مريم", note: "", children: ["p55_13a"] },
+      "p55_13a": { name: "عائشه", note: "", children: ["p55_13a1","p55_13a2","p55_13a3"] },
+      "p55_13a1": { name: "طارق", note: "", children: [] },
+      "p55_13a2": { name: "فاطمه", note: "", children: [] },
+      "p55_13a3": { name: "مريم", note: "", children: [] },
+
+      "p56": { name: "مريم", note: "", children: [] },
+
+      "p23": { name: "مريم بنت جابر", note: "", children: ["p57"] },
+      "p57": { name: "عبدالله بن علي", note: "", children: [] },
+
+      "p24": { name: "عبدالله بن جابر", note: "أمه من الخضراء", children: [] },
+
+      "p25": { name: "سعيد بن جابر", note: "أمه من شناص", children: ["p58","p59","p60","p61"] },
+
+      "p58": { name: "محمد بن سعيد", note: "", children: ["p62","p63","p64","p65"] },
+      "p62": { name: "سعيد", note: "", children: [] },
+      "p63": { name: "عائشة", note: "", children: [] },
+      "p64": { name: "مريم", note: "", children: [] },
+      "p65": { name: "آمنة", note: "", children: [] },
+
+      "p59": { name: "جابر بن سعيد", note: "", children: ["p66","p67","p68","p69"] },
+      "p66": { name: "خالد", note: "", children: [] },
+      "p67": { name: "أحمد", note: "", children: [] },
+      "p68": { name: "سعيد", note: "", children: [] },
+      "p69": { name: "حميد", note: "", children: [] },
+
+      "p60": { name: "يوسف بن سعيد", note: "", children: [] },
+      "p61": { name: "مريم بنت سعيد", note: "", children: [] },
+
+      "p18": { name: "أحمد بن جابر", note: "", children: ["p70","p71","p72","p73","p74","p75","p76","p77","p78","p79"] },
+
+      "p70": { name: "حسن بن أحمد", note: "", children: ["p80","p81","p82","p83","p84","p85","p86","p87","p88","p89"] },
+
+      "p80": { name: "علي", note: "", children: ["p80a","p80b","p80c","p80d","p80e"] },
+      "p80a": { name: "ايمان", note: "", children: [] },
+      "p80b": { name: "فاطمه", note: "", children: [] },
+      "p80c": { name: "سعيد", note: "", children: [] },
+      "p80d": { name: "احمد", note: "", children: [] },
+      "p80e": { name: "محمد", note: "", children: ["p80e1"] },
+      "p80e1": { name: "علي", note: "", children: [] },
+
+      "p81": { name: "أحمد", note: "", children: ["p81a","p81b","p81c","p81d","p81e"] },
+      "p81a": { name: "سلطان", note: "", children: [] },
+      "p81b": { name: "حمود", note: "", children: [] },
+      "p81c": { name: "بشاير", note: "", children: [] },
+      "p81d": { name: "امنه", note: "", children: [] },
+      "p81e": { name: "محمد", note: "", children: ["p81e1"] },
+      "p81e1": { name: "احمد", note: "", children: [] },
+
+      "p82": { name: "جابر", note: "", children: ["p82a","p82b","p82c","p82d","p82e"] },
+      "p82a": { name: "احمد", note: "", children: [] },
+      "p82b": { name: "عبدالله", note: "", children: [] },
+      "p82c": { name: "شهد", note: "", children: [] },
+      "p82d": { name: "مريم", note: "", children: [] },
+      "p82e": { name: "امنه", note: "", children: [] },
+
+      "p83": { name: "حمد", note: "", children: ["p83a","p83b","p83c","p83d","p83e"] },
+      "p83a": { name: "احمد", note: "", children: [] },
+      "p83b": { name: "شهاب", note: "", children: [] },
+      "p83c": { name: "علي", note: "", children: [] },
+      "p83d": { name: "اروى", note: "", children: [] },
+      "p83e": { name: "عائشه", note: "", children: [] },
+
+      "p84": { name: "محمد", note: "", children: ["p84a","p84b","p84c"] },
+      "p84a": { name: "احمد", note: "", children: [] },
+      "p84b": { name: "لولوه", note: "", children: [] },
+      "p84c": { name: "دانة", note: "", children: [] },
+
+      "p85": { name: "سليمان", note: "", children: ["p85a"] },
+      "p85a": { name: "محمد", note: "", children: [] },
+
+      "p86": { name: "عبدالله", note: "", children: ["p86a","p86b","p86c"] },
+      "p86a": { name: "حسن", note: "", children: [] },
+      "p86b": { name: "امنه", note: "", children: [] },
+      "p86c": { name: "احمد", note: "", children: [] },
+
+      "p87": { name: "عائشة", note: "", children: ["p87a","p87b","p87c","p87d"] },
+      "p87a": { name: "محمود", note: "", children: [] },
+      "p87b": { name: "مريم", note: "", children: [] },
+      "p87c": { name: "زمزم", note: "", children: [] },
+      "p87d": { name: "فاطمة الزهراء", note: "", children: [] },
+
+      "p88": { name: "فاطمة", note: "", children: ["p88a","p88b","p88c","p88d","p88e"] },
+      "p88a": { name: "حنين", note: "", children: [] },
+      "p88b": { name: "حور", note: "", children: [] },
+      "p88c": { name: "حلا", note: "", children: [] },
+      "p88d": { name: "حصه", note: "", children: [] },
+      "p88e": { name: "ليث", note: "", children: [] },
+
+      "p89": { name: "خديجة", note: "", children: [] },
+
+      "p71": { name: "يوسف بن أحمد", note: "", children: ["p90","p91","p92","p93","p94","p95","p96","p97","p98"] },
+
+      "p90": { name: "أحمد", note: "", children: ["p90a","p90b","p90c","p90d"] },
+      "p90a": { name: "محمود", note: "", children: [] },
+      "p90b": { name: "مريم", note: "", children: [] },
+      "p90c": { name: "زمزم", note: "", children: [] },
+      "p90d": { name: "فاطمة الزهراء", note: "", children: [] },
+
+      "p91": { name: "سعيد", note: "", children: ["p91a","p91b","p91c","p91d","p91e","p91f","p91g"] },
+      "p91a": { name: "خلود", note: "", children: ["p91a1","p91a2","p91a3"] },
+      "p91a1": { name: "سعيد", note: "", children: [] },
+      "p91a2": { name: "مريم", note: "", children: [] },
+      "p91a3": { name: "حمزه", note: "", children: [] },
+      "p91b": { name: "يوسف", note: "", children: ["p91b1"] },
+      "p91b1": { name: "سعيد", note: "", children: [] },
+      "p91c": { name: "محمد", note: "", children: ["p91c1","p91c2","p91c3","p91c4"] },
+      "p91c1": { name: "سعيد", note: "", children: [] },
+      "p91c2": { name: "فاطمه", note: "", children: [] },
+      "p91c3": { name: "مريم", note: "", children: [] },
+      "p91c4": { name: "امنه", note: "", children: [] },
+      "p91d": { name: "عاليه", note: "", children: ["p91d1","p91d2","p91d3"] },
+      "p91d1": { name: "علي", note: "", children: [] },
+      "p91d2": { name: "جمان", note: "", children: [] },
+      "p91d3": { name: "صالح", note: "", children: [] },
+      "p91e": { name: "فاطمه", note: "", children: [] },
+      "p91f": { name: "خالد", note: "", children: [] },
+      "p91g": { name: "صالح", note: "", children: [] },
+
+      "p92": { name: "سليمان", note: "", children: ["p92a","p92b","p92c","p92d","p92e"] },
+      "p92a": { name: "نوف", note: "", children: [] },
+      "p92b": { name: "شيخه", note: "", children: [] },
+      "p92c": { name: "يوسف", note: "", children: [] },
+      "p92d": { name: "فاطمه", note: "", children: [] },
+      "p92e": { name: "محمد", note: "", children: [] },
+
+      "p93": { name: "محمد", note: "", children: ["p93a","p93b","p93c","p93d"] },
+      "p93a": { name: "سندس", note: "", children: [] },
+      "p93b": { name: "عاشه", note: "", children: [] },
+      "p93c": { name: "فيصل", note: "", children: [] },
+      "p93d": { name: "يوسف", note: "", children: [] },
+
+      "p94": { name: "علي", note: "", children: ["p94a","p94b","p94c","p94d"] },
+      "p94a": { name: "يوسف", note: "", children: [] },
+      "p94b": { name: "تميم", note: "", children: [] },
+      "p94c": { name: "يزن", note: "", children: [] },
+      "p94d": { name: "روح", note: "", children: [] },
+
+      "p95": { name: "مريم", note: "", children: [] },
+
+      "p96": { name: "شيخة", note: "", children: ["p96a","p96b","p96c","p96d","p96e"] },
+      "p96a": { name: "سلطان", note: "", children: [] },
+      "p96b": { name: "حمود", note: "", children: [] },
+      "p96c": { name: "بشاير", note: "", children: [] },
+      "p96d": { name: "امنه", note: "", children: [] },
+      "p96e": { name: "محمد", note: "", children: ["p96e1"] },
+      "p96e1": { name: "احمد", note: "", children: [] },
+
+      "p97": { name: "علياء", note: "", children: ["p97a","p97b","p97c","p97d","p97e"] },
+      "p97a": { name: "يوسف", note: "", children: [] },
+      "p97b": { name: "احمد", note: "", children: [] },
+      "p97c": { name: "محمد", note: "", children: [] },
+      "p97d": { name: "فاطمه", note: "", children: [] },
+      "p97e": { name: "حليمه", note: "", children: [] },
+
+      "p98": { name: "خديجة", note: "", children: [] },
+
+      "p72": { name: "محمد بن أحمد", note: "", children: ["p99","p100","p101","p102","p103","p104","p105","p106","p107"] },
+      "p99": { name: "أحمد", note: "", children: [] },
+      "p100": { name: "جابر", note: "", children: [] },
+      "p101": { name: "خالد", note: "", children: [] },
+      "p102": { name: "آمنة", note: "", children: [] },
+      "p103": { name: "مريم", note: "", children: [] },
+      "p104": { name: "نعيمة", note: "", children: [] },
+      "p105": { name: "عائشة", note: "", children: [] },
+      "p106": { name: "فاطمة", note: "", children: [] },
+      "p107": { name: "أمل", note: "", children: [] },
+
+      "p73": { name: "علي بن أحمد", note: "", children: ["p108","p109","p110","p111","p112","p113","p114","p115","p116"] },
+      "p108": { name: "يونس", note: "", children: [] },
+      "p109": { name: "عبدالله", note: "", children: [] },
+      "p110": { name: "محمد", note: "", children: [] },
+      "p111": { name: "حميد", note: "", children: [] },
+      "p112": { name: "عائشة", note: "", children: [] },
+      "p113": { name: "صالحة", note: "", children: [] },
+      "p114": { name: "علياء", note: "", children: [] },
+      "p115": { name: "شيخة", note: "", children: [] },
+      "p116": { name: "فاطمة", note: "", children: [] },
+
+      "p74": { name: "حمود بن أحمد", note: "", children: [] },
+
+      "p75": { name: "شيخة بنت أحمد", note: "", children: ["p117","p118","p119"] },
+      "p117": { name: "سعيد", note: "", children: [] },
+      "p118": { name: "خالد", note: "", children: [] },
+      "p119": { name: "أحمد", note: "", children: [] },
+
+      "p76": { name: "خديجة بنت أحمد", note: "", children: ["p120"] },
+      "p120": { name: "صالح", note: "", children: [] },
+
+      "p77": { name: "عبدالله بن أحمد", note: "", children: ["p121","p122","p123"] },
+      "p121": { name: "أحمد", note: "", children: [] },
+      "p122": { name: "محمد", note: "", children: [] },
+      "p123": { name: "يوسف", note: "", children: [] },
+
+      "p78": { name: "فاطمة بنت أحمد", note: "", children: [] },
+
+      "p79": { name: "جابر بن أحمد", note: "", children: ["p124","p125","p126","p127","p128","p129","p130","p131","p132","p133","p134","p135","p136","p137","p138","p139","p140","p141","p142","p143","p144","p145","p146","p147","p148","p149"] },
+      "p124": { name: "أحمد", note: "", children: ["p124a","p124b","p124c","p124d"] },
+      "p124a": { name: "جابر", note: "", children: [] },
+      "p124b": { name: "طه", note: "", children: [] },
+      "p124c": { name: "هبه", note: "", children: [] },
+      "p124d": { name: "علي", note: "", children: [] },
+
+      "p125": { name: "محمد", note: "", children: ["p125a"] },
+      "p125a": { name: "فاطمه", note: "", children: [] },
+
+      "p126": { name: "يونس", note: "", children: ["p126a","p126b","p126c","p126d","p126e"] },
+      "p126a": { name: "خديجه", note: "", children: [] },
+      "p126b": { name: "يوسف", note: "", children: [] },
+      "p126c": { name: "شيخه", note: "", children: [] },
+      "p126d": { name: "مروى", note: "", children: [] },
+      "p126e": { name: "ريم", note: "", children: [] },
+
+      "p127": { name: "عبدالله", note: "", children: ["p127a","p127b","p127c","p127d"] },
+      "p127a": { name: "جابر", note: "", children: [] },
+      "p127b": { name: "محمد", note: "", children: [] },
+      "p127c": { name: "حوراء", note: "", children: [] },
+      "p127d": { name: "رؤى", note: "", children: [] },
+
+      "p128": { name: "علي", note: "", children: ["p128a","p128b","p128c"] },
+      "p128a": { name: "مريم", note: "", children: [] },
+      "p128b": { name: "تميم", note: "", children: [] },
+      "p128c": { name: "جابر", note: "", children: [] },
+
+      "p129": { name: "سليمان", note: "", children: ["p129a","p129b"] },
+      "p129a": { name: "ملاذ", note: "", children: [] },
+      "p129b": { name: "جابر", note: "", children: [] },
+
+      "p130": { name: "إبراهيم", note: "", children: [] },
+
+      "p131": { name: "حميد", note: "", children: ["p131a","p131b"] },
+      "p131a": { name: "محمد", note: "", children: [] },
+      "p131b": { name: "مريم", note: "", children: [] },
+
+      "p132": { name: "سعيد", note: "", children: ["p132a","p132b","p132c"] },
+      "p132a": { name: "شيخه", note: "", children: [] },
+      "p132b": { name: "جابر", note: "", children: [] },
+      "p132c": { name: "فاطمه", note: "", children: [] },
+
+      "p133": { name: "حسن", note: "", children: ["p133a"] },
+      "p133a": { name: "شيخه", note: "", children: [] },
+
+      "p134": { name: "عبدالرحمن", note: "", children: [] },
+      "p135": { name: "يوسف", note: "", children: [] },
+
+      "p136": { name: "حمود", note: "", children: ["p136a","p136b"] },
+      "p136a": { name: "جابر", note: "", children: [] },
+      "p136b": { name: "شيخه", note: "", children: [] },
+
+      "p137": { name: "لقمان", note: "", children: [] },
+      "p138": { name: "عبدالعزيز", note: "", children: [] },
+      "p139": { name: "أيوب", note: "", children: [] },
+
+      "p140": { name: "صالحة", note: "", children: ["p140a","p140b","p140c","p140d"] },
+      "p140a": { name: "احمد", note: "", children: [] },
+      "p140b": { name: "امجد", note: "", children: [] },
+      "p140c": { name: "ايمن", note: "", children: [] },
+      "p140d": { name: "اسماء", note: "", children: [] },
+
+      "p141": { name: "مريم", note: "", children: [] },
+
+      "p142": { name: "فاطمة", note: "", children: ["p142a"] },
+      "p142a": { name: "سليمان", note: "", children: [] },
+
+      "p143": { name: "سعيدة", note: "", children: [] },
+      "p144": { name: "شيخة", note: "", children: [] },
+      "p145": { name: "أمينة", note: "", children: [] },
+      "p146": { name: "زينب", note: "", children: [] },
+
+      "p147": { name: "عائشة", note: "", children: ["p147a"] },
+      "p147a": { name: "شموخ", note: "", children: [] },
+
+      "p148": { name: "نعيمة", note: "", children: [] },
+      "p149": { name: "علياء", note: "", children: [] }
+    };
+
+    var currentPerson = rootId;
+    var historyStack = [rootId];
+
+    function normalizeArabic(text) {
+      return String(text || "")
+        .replace(/[أإآ]/g, "ا")
+        .replace(/ة/g, "ه")
+        .replace(/ى/g, "ي")
+        .replace(/ؤ/g, "و")
+        .replace(/ئ/g, "ي")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
+    }
+
+    function hasChildren(id) {
+      return people[id] && people[id].children && people[id].children.length > 0;
+    }
+
+    function getChildrenCount(id) {
+      return people[id] ? people[id].children.length : 0;
+    }
+
+    function getDescendantsCount(id) {
+      if (!people[id] || !people[id].children) return 0;
+      var total = 0;
+      for (var i = 0; i < people[id].children.length; i++) {
+        var childId = people[id].children[i];
+        total += 1 + getDescendantsCount(childId);
+      }
+      return total;
+    }
+
+    function getGeneration(id) {
+      function walk(nodeId, depth) {
+        if (nodeId === id) return depth;
+        var node = people[nodeId];
+        if (!node || !node.children) return null;
+        for (var i = 0; i < node.children.length; i++) {
+          var found = walk(node.children[i], depth + 1);
+          if (found !== null) return found;
+        }
+        return null;
+      }
+      return walk(rootId, 1) || 1;
+    }
+
+    function generationLabelShort(n) {
+      return "ج" + n;
+    }
+
+    function getLineage(id) {
+      var path = [];
+
+      function walk(nodeId, currentPath) {
+        var nextPath = currentPath.concat(nodeId);
+        if (nodeId === id) {
+          path = nextPath;
+          return true;
+        }
+        var node = people[nodeId];
+        if (!node || !node.children) return false;
+        for (var i = 0; i < node.children.length; i++) {
+          if (walk(node.children[i], nextPath)) return true;
+        }
+        return false;
+      }
+
+      walk(rootId, []);
+      return path;
+    }
+
+    function getLineageText(id) {
+      var lineage = getLineage(id);
+      var names = [];
+      for (var i = 0; i < lineage.length; i++) {
+        names.push(people[lineage[i]].name);
+      }
+      return names.join(" ← ");
+    }
+
+    function getCardClass(id) {
+      if (hasChildren(id)) return "card card-has-children";
+      return "card card-no-children";
+    }
+
+    function openWhatsApp(name) {
+      var message = encodeURIComponent("السلام عليكم، أرغب في إضافة أو تعديل بيانات في شجرة العائلة بخصوص: " + name);
+      window.location.href = "https://wa.me/" + contactNumber + "?text=" + message;
+    }
+
+    function handleClick(id) {
+      if (hasChildren(id)) {
+        historyStack.push(id);
+        currentPerson = id;
+        render(id);
+      } else {
+        var ok = confirm("لا توجد بيانات كافية لهذا الاسم حاليا.\n\nهل تريد فتح واتساب لإضافة أو تعديل البيانات؟");
+        if (ok) openWhatsApp(people[id].name);
+      }
+    }
+
+    function renderBreadcrumb() {
+      var b = document.getElementById("breadcrumb");
+      b.innerHTML = "";
+
+      for (var i = 0; i < historyStack.length; i++) {
+        (function(index) {
+          var personId = historyStack[index];
+          var btn = document.createElement("button");
+          btn.innerHTML = people[personId].name;
+          btn.onclick = function() {
+            historyStack = historyStack.slice(0, index + 1);
+            currentPerson = personId;
+            render(personId);
+          };
+          b.appendChild(btn);
+        })(i);
+      }
+    }
+
+    function renderInfoBar(id) {
+      var node = people[id];
+      var directCount = getChildrenCount(id);
+      var descendants = getDescendantsCount(id);
+      var lineageText = getLineageText(id);
+
+      var html = "";
+      html += '<div class="info-box">';
+      html += '<div>عدد الأبناء المباشرين: <strong>' + directCount + '</strong></div>';
+      html += '<div>إجمالي الأشخاص تحت هذا الفرع: <strong>' + descendants + '</strong></div>';
+      html += '<div>التسلسل: <strong>' + lineageText + '</strong></div>';
+      if (node.note) {
+        html += '<div>ملاحظة: <strong>' + node.note + '</strong></div>';
+      }
+      html += '</div>';
+
+      document.getElementById("infoBar").innerHTML = html;
+    }
+
+    function render(id) {
+      document.getElementById("title").innerHTML = people[id].name;
+      renderBreadcrumb();
+      renderInfoBar(id);
+
+      var content = document.getElementById("content");
+      var children = people[id].children || [];
+      var html = "";
+
+      if (children.length === 0) {
+        html += '<div class="card card-no-children">';
+        html += '<div class="name-row">';
+        html += '<div class="name">' + people[id].name + '</div>';
+        html += '<div class="generation-badge">' + generationLabelShort(getGeneration(id)) + '</div>';
+        html += '</div>';
+        html += '<div class="meta">لا توجد أسماء أبناء مسجلة حاليا لهذا الفرع.</div>';
+        html += '<div class="tag">لإضافة البيانات يرجى التواصل</div>';
+        html += '</div>';
+        content.innerHTML = html;
+        return;
+      }
+
+      for (var i = 0; i < children.length; i++) {
+        var childId = children[i];
+        var child = people[childId];
+        var directCount = getChildrenCount(childId);
+        var descendants = getDescendantsCount(childId);
+        var note = child.note ? "<br><strong>ملاحظة:</strong> " + child.note : "";
+
+        html += '<div class="' + getCardClass(childId) + '" onclick="handleClick(\'' + childId + '\')">';
+        html += '<div class="name-row">';
+        html += '<div class="name">' + child.name + '</div>';
+        html += '<div class="generation-badge">' + generationLabelShort(getGeneration(childId)) + '</div>';
+        html += '</div>';
+        html += '<div class="meta">عدد الأبناء المباشرين: ' + directCount + note + '</div>';
+        html += '<div class="meta">إجمالي الأشخاص تحت الفرع: ' + descendants + '</div>';
+        html += '<div class="tag">' + (hasChildren(childId) ? "اضغط لعرض الفرع" : "اضغط لطلب الإضافة") + '</div>';
+        html += '</div>';
+      }
+
+      content.innerHTML = html;
+    }
+
+    function goRoot() {
+      historyStack = [rootId];
+      currentPerson = rootId;
+      document.getElementById("searchInput").value = "";
+      render(rootId);
+    }
+
+    function goBack() {
+      if (historyStack.length > 1) {
+        historyStack.pop();
+        currentPerson = historyStack[historyStack.length - 1];
+        render(currentPerson);
+      }
+    }
+
+    function renderSearchResults(keyword) {
+      var normalizedKeyword = normalizeArabic(keyword);
+      var results = [];
+
+      for (var key in people) {
+        var person = people[key];
+        var nameMatch = normalizeArabic(person.name).indexOf(normalizedKeyword) !== -1;
+        var noteMatch = normalizeArabic(person.note || "").indexOf(normalizedKeyword) !== -1;
+        if (nameMatch || noteMatch) {
+          results.push(key);
+        }
+      }
+
+      document.getElementById("title").innerHTML = "نتائج البحث";
+      document.getElementById("breadcrumb").innerHTML = "";
+      document.getElementById("infoBar").innerHTML = "";
+
+      var html = "";
+      if (results.length === 0) {
+        html = '<div class="card"><div class="meta">لا توجد نتائج مطابقة.</div></div>';
+      } else {
+        for (var i = 0; i < results.length; i++) {
+          var id = results[i];
+          html += '<div class="' + getCardClass(id) + '" onclick="' + (hasChildren(id) ? "handleClick('" + id + "')" : "openWhatsApp('" + people[id].name.replace(/'/g, "\\'") + "')") + '">';
+          html += '<div class="name-row">';
+          html += '<div class="name">' + people[id].name + '</div>';
+          html += '<div class="generation-badge">' + generationLabelShort(getGeneration(id)) + '</div>';
+          html += '</div>';
+          html += '<div class="meta">التسلسل: ' + getLineageText(id) + '</div>';
+          html += '<div class="meta">عدد الأبناء المباشرين: ' + getChildrenCount(id) + '</div>';
+          html += '<div class="meta">إجمالي الأشخاص تحت الفرع: ' + getDescendantsCount(id) + '</div>';
+          html += '<div class="tag">' + (hasChildren(id) ? "اضغط للدخول" : "اضغط لطلب الإضافة") + '</div>';
+          html += '</div>';
+        }
+      }
+
+      document.getElementById("content").innerHTML = html;
+    }
+
+    function buildFullTree(id) {
+      var node = people[id];
+      if (!node) return "";
+
+      var html = '<details open>';
+      html += '<summary>' + node.name + ' <span style="font-size:11px;color:#2563eb;">(' + generationLabelShort(getGeneration(id)) + ')</span></summary>';
+
+      if (node.children && node.children.length > 0) {
+        for (var i = 0; i < node.children.length; i++) {
+          html += buildFullTree(node.children[i]);
+        }
+      }
+
+      html += '</details>';
+      return html;
+    }
+
+    function openAllTree() {
+      var panel = document.getElementById("treePanel");
+      panel.innerHTML = buildFullTree(currentPerson);
+      panel.classList.add("active");
+    }
+
+    function closeAllTree() {
+      var panel = document.getElementById("treePanel");
+      panel.innerHTML = "";
+      panel.classList.remove("active");
+    }
+
+    document.getElementById("searchInput").onkeyup = function() {
+      var keyword = this.value.trim();
+      if (!keyword) {
+        render(currentPerson);
+        return;
+      }
+      renderSearchResults(keyword);
+    };
+
+    render(rootId);
+  </script>
+</body>
+</html>
