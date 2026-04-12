@@ -2189,11 +2189,21 @@ const people = {
       showAdminPage();
     }
 
-    function showAdminPage() {
+    async function showAdminPage() {
       currentView = "admin";
       hideAllPages();
       const page = document.getElementById("adminPage");
       page.classList.remove("hidden");
+
+      const { data: requestsData } = await supabaseClient
+  .from("requests")
+  .select("*")
+  .order("id", { ascending: false });
+
+const { data: messagesData } = await supabaseClient
+  .from("messages")
+  .select("*")
+  .order("id", { ascending: false });
 
       page.innerHTML = `
         <div class="admin-page">
@@ -2214,14 +2224,15 @@ const people = {
           </div>
 
           <div id="adminSectionHolder">
-            ${renderAdminSections()}
+            ${renderAdminSections(requestsData || [], messagesData || [])}
           </div>
         </div>
       `;
       switchAdminTab("overview");
     }
 
-    function renderAdminSections() {
+function renderAdminSections(requestsData = [],
+messagesData = []) {
       const statusOptions = ["", "مكتمل", "يحتاج مراجعة", "قيد المراجعة", "مؤكد", "شفهي"];
       const generationStats = getGenerationStats();
       const duplicateList = detectDuplicateNames();
@@ -2233,8 +2244,8 @@ const people = {
               <h3>ملخص سريع</h3>
               <div class="meta">
                 إجمالي الأفراد: <strong>${totalPeopleCount()}</strong><br>
-                عدد الرسائل: <strong>${appState.messages.length}</strong><br>
-                عدد الطلبات: <strong>${appState.requests.length}</strong><br>
+                عدد الرسائل: <strong>${messagesData.length}</strong><br>
+                عدد الطلبات: <strong>${requestsData.length}</strong><br>
                 عدد السجلات في الأرشيف: <strong>${appState.changeLog.length}</strong>
               </div>
             </div>
