@@ -6,18 +6,18 @@
   <title>شجرة عائلة محمد بن حميد المجيني</title>
   <style>
     :root{
-  --main:#b89a7a;
-  --main2:#c9ab89;
-  --gold:#a8845d;
-  --bg:#f7f1e8;
-  --card:#fffaf4;
-  --text:#4b3e33;
-  --muted:#8b7765;
-  --line:#dcccbc;
-  --danger:#a94e4e;
-  --ok:#5d7a5e;
-  --shadow:0 8px 24px rgba(0,0,0,.06);
-}
+      --main:#b89a7a;
+      --main2:#c9ab89;
+      --gold:#a8845d;
+      --bg:#f4ede4;
+      --card:#fff9f2;
+      --text:#4b3e33;
+      --muted:#7d6b5b;
+      --line:#d8c7b6;
+      --danger:#a94e4e;
+      --ok:#5d7a5e;
+      --shadow:0 8px 24px rgba(0,0,0,.08);
+    }
 
     *{box-sizing:border-box}
     html{scroll-behavior:smooth}
@@ -33,7 +33,7 @@
       position:sticky;
       top:0;
       z-index:1000;
-      background:rgba(252,247,241,.95);
+      background:rgba(244,237,228,.96);
       backdrop-filter:blur(8px);
       border-bottom:1px solid var(--line);
     }
@@ -77,7 +77,7 @@
     .top-actions button{
       background:var(--main);
       color:#fff;
-      box-shadow:0 4px 12px rgba(199,162,125,.18);
+      box-shadow:0 4px 12px rgba(184,154,122,.20);
     }
 
     .btn-main:hover,
@@ -86,7 +86,7 @@
     }
 
     .btn-soft{
-      background:#f3e8dc;
+      background:#efe4d5;
       color:var(--text);
     }
 
@@ -176,7 +176,7 @@
     .field:focus,
     .textarea:focus{
       border-color:var(--main);
-      box-shadow:0 0 0 3px rgba(199,162,125,.08);
+      box-shadow:0 0 0 3px rgba(184,154,122,.08);
     }
 
     .toolbar{
@@ -201,7 +201,7 @@
     }
 
     .breadcrumb button{
-      background:#f3e8dc;
+      background:#efe4d5;
       color:var(--text);
       margin:4px;
       padding:8px 10px;
@@ -223,7 +223,7 @@
     }
 
     .quick-branches button{
-      background:#f3e8dc;
+      background:#efe4d5;
       color:var(--text);
       border-radius:999px;
       padding:8px 12px;
@@ -258,11 +258,11 @@
       z-index:0;
       border-radius:18px;
       background:
-        linear-gradient(45deg, rgba(199,162,125,.08) 25%, transparent 25%, transparent 50%, rgba(199,162,125,.08) 50%, rgba(199,162,125,.08) 75%, transparent 75%, transparent),
-        linear-gradient(-45deg, rgba(199,162,125,.05) 25%, transparent 25%, transparent 50%, rgba(199,162,125,.05) 50%, rgba(199,162,125,.05) 75%, transparent 75%, transparent),
-        radial-gradient(circle at center, rgba(255,255,255,.58), rgba(255,255,255,.26) 22%, transparent 48%);
-      background-size:26px 26px, 26px 26px, 100% 100%;
-      opacity:.55;
+        linear-gradient(45deg, rgba(199,162,125,.10) 25%, transparent 25%, transparent 50%, rgba(199,162,125,.10) 50%, rgba(199,162,125,.10) 75%, transparent 75%, transparent),
+        linear-gradient(-45deg, rgba(199,162,125,.07) 25%, transparent 25%, transparent 50%, rgba(199,162,125,.07) 50%, rgba(199,162,125,.07) 75%, transparent 75%, transparent),
+        radial-gradient(circle at center, rgba(255,255,255,.58), rgba(255,255,255,.20) 24%, transparent 52%);
+      background-size:28px 28px, 28px 28px, 100% 100%;
+      opacity:.68;
     }
 
     .card::after{
@@ -273,11 +273,10 @@
       z-index:0;
       border-radius:18px;
       background:
-        radial-gradient(circle at top right, rgba(199,162,125,.22) 0%, rgba(199,162,125,.14) 12%, transparent 34%),
-        radial-gradient(circle at top left, rgba(199,162,125,.18) 0%, rgba(199,162,125,.10) 10%, transparent 30%),
-        radial-gradient(circle at bottom right, rgba(199,162,125,.18) 0%, rgba(199,162,125,.10) 10%, transparent 30%),
-        radial-gradient(circle at bottom left, rgba(199,162,125,.22) 0%, rgba(199,162,125,.14) 12%, transparent 34%);
-      opacity:1;
+        radial-gradient(circle at top right, rgba(168,132,93,.18), transparent 28%),
+        radial-gradient(circle at top left, rgba(168,132,93,.14), transparent 26%),
+        radial-gradient(circle at bottom right, rgba(168,132,93,.14), transparent 26%),
+        radial-gradient(circle at bottom left, rgba(168,132,93,.18), transparent 28%);
     }
 
     .card > *{position:relative; z-index:1}
@@ -325,19 +324,19 @@
     }
 
     .gen-badge{
-      background:#f7f0e5;
+      background:#f4efdf;
       color:#846830;
     }
 
     .small-badge{
-      background:#f3e8dc;
+      background:#efe4d5;
       color:var(--main);
       cursor:pointer;
       border-color:#dfcfbc;
     }
 
     .small-badge:hover{
-      background:#ecdccc;
+      background:#e6d8c8;
     }
 
     .meta{
@@ -352,7 +351,7 @@
       padding:6px 10px;
       border-radius:999px;
       font-size:12px;
-      background:#f7efe7;
+      background:#f2ebe2;
       color:var(--main);
     }
 
@@ -414,9 +413,9 @@
       position:absolute;
       inset:0;
       background:
-        linear-gradient(rgba(255,255,255,.72), rgba(255,255,255,.72)),
+        linear-gradient(rgba(255,255,255,.68), rgba(255,255,255,.68)),
         url("bg-mujaini.jpg") center center / cover no-repeat;
-      opacity:.9;
+      opacity:.90;
       border-radius:20px;
       pointer-events:none;
     }
@@ -434,7 +433,7 @@
     }
 
     .about-box details{
-      background:rgba(255,255,255,.88);
+      background:rgba(255,255,255,.84);
       border:1px solid var(--line);
       border-radius:14px;
       margin-bottom:10px;
@@ -537,7 +536,7 @@
     }
 
     .admin-tabs button{
-      background:#f3e8dc;
+      background:#efe4d5;
       color:var(--text);
       border-radius:999px;
       padding:8px 12px;
@@ -860,8 +859,8 @@
 
       "p45": { name: "محمد", note: "", children: ["p45_1","p45_2","p45_3","p45_4","p45_5"] },
       "p45_1": { name: "ميثه", note: "", children: ["p45_1a","p45_1b"] },
-"p45_1a": { name: "عذبه", note: "", children: [] },
-"p45_1b": { name: "ذياب", note: "", children: [] },
+      "p45_1a": { name: "عذبه", note: "", children: [] },
+      "p45_1b": { name: "ذياب", note: "", children: [] },
       "p45_2": { name: "خديجه", note: "", children: [] },
       "p45_3": { name: "قصايد", note: "", children: [] },
       "p45_4": { name: "فراس", note: "", children: [] },
@@ -899,23 +898,24 @@
       "p51_5": { name: "محمد", note: "", children: ["p51_5a"] },
       "p51_5a": { name: "علي", note: "", children: [] },
 
-      "p52": { name: "علياء", note: "", children: ["p52_1","p52_2"] },
+      "p52": { name: "علياء", note: "", children: ["p52_1","p52_2","p52_3","p52_4"] },
+      "p52_1": { name: "محمد", note: "", children: ["p52_1a","p52_1b"] },
+      "p52_1a": { name: "عذبه", note: "", children: [] },
+      "p52_1b": { name: "ذياب", note: "", children: [] },
 
-      "p52_1": { name: "خديجه", note: "", children: ["p52_1a","p52_1b"] },
-      "p52_2": { name: "صفيه", note: "", children: ["p52_2a","p52_2b","p52_2c"] },
+      "p52_2": { name: "خديجه", note: "", children: ["p52_2a","p52_2b"] },
+      "p52_2a": { name: "محمد", note: "", children: [] },
+      "p52_2b": { name: "مريم", note: "", children: [] },
 
-      "p52_1a": { name: "محمد", note: "", children: ["p52_1a1","p52_1a2"] },
-      "p52_1a1": { name: "ذياب", note: "", children: [] },
-      "p52_1a2": { name: "عذبه", note: "", children: [] },
+      "p52_3": { name: "صفيه", note: "", children: ["p52_3a","p52_3b","p52_3c"] },
+      "p52_3a": { name: "سلطان", note: "", children: [] },
+      "p52_3b": { name: "ريم", note: "", children: [] },
+      "p52_3c": { name: "لمى", note: "", children: [] },
 
-      "p52_1b": { name: "مريم", note: "", children: ["p52_1b1","p52_1b2"] },
-      "p52_1b1": { name: "جابر", note: "", children: [] },
-      "p52_1b2": { name: "ملاذ", note: "", children: [] },
+      "p52_4": { name: "مريم", note: "", children: ["p52_4a","p52_4b"] },
+      "p52_4a": { name: "جابر", note: "", children: [] },
+      "p52_4b": { name: "ملاذ", note: "", children: [] },
 
-      "p52_2a": { name: "لمى", note: "", children: [] },
-      "p52_2b": { name: "ريم", note: "", children: [] },
-      "p52_2c": { name: "سلطان", note: "", children: [] },
-      
       "p53": { name: "بلقيس", note: "", children: ["p53_1"] },
       "p53_1": { name: "عبدالله", note: "", children: [] },
 
@@ -2458,14 +2458,23 @@
       switchAdminTab("messages");
     }
 
+    function createPersonNode(name, note = "") {
+      const newId = "u" + Date.now() + Math.floor(Math.random() * 1000);
+      people[newId] = {
+        name: name.trim(),
+        note: note.trim(),
+        children: []
+      };
+      return newId;
+    }
+
     function adminAddPerson() {
       const parentId = document.getElementById("adminParentSelect").value;
       const newName = document.getElementById("adminNewName").value.trim();
       const newNote = document.getElementById("adminNewNote").value.trim();
       if (!newName) return alert("اكتب الاسم الجديد");
 
-      const newId = "u" + Date.now();
-      people[newId] = { name: newName, note: newNote, children: [] };
+      const newId = createPersonNode(newName, newNote);
       people[parentId].children.push(newId);
 
       logChange("إضافة اسم جديد: " + newName + " تحت " + people[parentId].name);
@@ -2503,55 +2512,44 @@
       switchAdminTab("requests");
     }
 
-    function createPersonNode(name, note = "") {
-     const newId = "u" + Date.now() + Math.floor(Math.random() * 1000);
-     people[newId] = {
-     name: name.trim(),
-     note: note.trim(),
-    children: []
-  };
-  return newId;
-}
+    function markRequestDone(idx) {
+      const item = appState.requests[idx];
+      if (!item) return;
 
-function markRequestDone(idx) {
-  const item = appState.requests[idx];
-  if (!item) return;
+      if (item.type === "إضافة" && item.parentId && item.childName) {
+        const parentId = item.parentId;
+        const childName = String(item.childName || "").trim();
 
-  if (item.type === "إضافة" && item.parentId && item.childName) {
-    const parentId = item.parentId;
-    const childName = String(item.childName || "").trim();
+        if (people[parentId] && childName) {
+          const mainChildId = createPersonNode(childName);
+          people[parentId].children.push(mainChildId);
 
-    if (people[parentId] && childName) {
-      const mainChildId = createPersonNode(childName);
-      people[parentId].children.push(mainChildId);
+          if (item.childrenText && String(item.childrenText).trim()) {
+            const childrenNames = String(item.childrenText)
+              .split(",")
+              .map(name => name.trim())
+              .filter(Boolean);
 
-      if (item.childrenText && String(item.childrenText).trim()) {
-        const childrenNames = String(item.childrenText)
-          .split(",")
-          .map(name => name.trim())
-          .filter(Boolean);
+            childrenNames.forEach(name => {
+              const subChildId = createPersonNode(name);
+              people[mainChildId].children.push(subChildId);
+            });
+          }
 
-        childrenNames.forEach(name => {
-          const subChildId = createPersonNode(name);
-          people[mainChildId].children.push(subChildId);
-        });
+          logChange("اعتماد طلب وإضافة الاسم: " + childName + " تحت " + people[parentId].name);
+        } else {
+          logChange("تم اعتماد طلب لكن تعذر الإضافة لعدم اكتمال البيانات");
+        }
+      } else {
+        logChange("اعتماد طلب: " + item.type + " - " + item.target);
       }
 
-      logChange("اعتماد طلب وإضافة الاسم: " + childName + " تحت " + people[parentId].name);
-    } else {
-      logChange("تم اعتماد طلب لكن تعذر الإضافة لعدم اكتمال البيانات");
-    }
-  } else {
-    logChange("اعتماد طلب: " + item.type + " - " + item.target);
-  }
+      appState.requests.splice(idx, 1);
+      saveState();
 
-  appState.requests.splice(idx, 1);
-  saveState();
-
-  showAdminPage();
-  switchAdminTab("requests");
-  render(currentPerson);
-}
+      showAdminPage();
+      switchAdminTab("requests");
+      render(currentPerson);
     }
 
     function runRelation() {
@@ -2650,4 +2648,4 @@ function markRequestDone(idx) {
     routeToHash();
   </script>
 </body>
-  </html>
+</html>
