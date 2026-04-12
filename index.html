@@ -6,17 +6,17 @@
   <title>شجرة عائلة محمد بن حميد المجيني</title>
   <style>
     :root{
-      --main:#b89a7a;
-      --main2:#c9ab89;
-      --gold:#a8845d;
-      --bg:#f7f1e8;
-      --card:#fffaf4;
-      --text:#4b3e33;
-      --muted:#8b7765;
-      --line:#dcccbc;
-      --danger:#a94e4e;
-      --ok:#5d7a5e;
-      --shadow:0 8px 24px rgba(0,0,0,.06);
+      --main:#d7b79a;
+      --main2:#e6ccb5;
+      --gold:#c7a27d;
+      --bg:#fcf7f1;
+      --card:#fffdf9;
+      --text:#5a4a3e;
+      --muted:#9a8472;
+      --line:#eaded2;
+      --danger:#b85c5c;
+      --ok:#6f8b70;
+      --shadow:0 8px 24px rgba(0,0,0,.05);
     }
 
     *{box-sizing:border-box}
@@ -33,7 +33,7 @@
       position:sticky;
       top:0;
       z-index:1000;
-      background:rgba(247,241,232,.94);
+      background:rgba(252,247,241,.95);
       backdrop-filter:blur(8px);
       border-bottom:1px solid var(--line);
     }
@@ -77,7 +77,7 @@
     .top-actions button{
       background:var(--main);
       color:#fff;
-      box-shadow:0 4px 12px rgba(184,154,122,.18);
+      box-shadow:0 4px 12px rgba(199,162,125,.18);
     }
 
     .btn-main:hover,
@@ -86,7 +86,7 @@
     }
 
     .btn-soft{
-      background:#efe4d5;
+      background:#f3e8dc;
       color:var(--text);
     }
 
@@ -176,7 +176,7 @@
     .field:focus,
     .textarea:focus{
       border-color:var(--main);
-      box-shadow:0 0 0 3px rgba(184,154,122,.08);
+      box-shadow:0 0 0 3px rgba(199,162,125,.08);
     }
 
     .toolbar{
@@ -201,7 +201,7 @@
     }
 
     .breadcrumb button{
-      background:#efe4d5;
+      background:#f3e8dc;
       color:var(--text);
       margin:4px;
       padding:8px 10px;
@@ -223,7 +223,7 @@
     }
 
     .quick-branches button{
-      background:#efe4d5;
+      background:#f3e8dc;
       color:var(--text);
       border-radius:999px;
       padding:8px 12px;
@@ -238,7 +238,7 @@
 
     .card{
       position:relative;
-      background:#fff;
+      background:#fffefb;
       border:1px solid var(--line);
       border-top:4px solid var(--main);
       border-radius:18px;
@@ -256,12 +256,28 @@
       inset:0;
       pointer-events:none;
       z-index:0;
+      border-radius:18px;
       background:
-        radial-gradient(circle at top right, rgba(168,132,93,.18), transparent 24%),
-        radial-gradient(circle at top left, rgba(168,132,93,.14), transparent 22%),
-        radial-gradient(circle at bottom right, rgba(168,132,93,.14), transparent 22%),
-        radial-gradient(circle at bottom left, rgba(168,132,93,.16), transparent 24%);
-      opacity:.9;
+        linear-gradient(45deg, rgba(199,162,125,.08) 25%, transparent 25%, transparent 50%, rgba(199,162,125,.08) 50%, rgba(199,162,125,.08) 75%, transparent 75%, transparent),
+        linear-gradient(-45deg, rgba(199,162,125,.05) 25%, transparent 25%, transparent 50%, rgba(199,162,125,.05) 50%, rgba(199,162,125,.05) 75%, transparent 75%, transparent),
+        radial-gradient(circle at center, rgba(255,255,255,.58), rgba(255,255,255,.26) 22%, transparent 48%);
+      background-size:26px 26px, 26px 26px, 100% 100%;
+      opacity:.55;
+    }
+
+    .card::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      z-index:0;
+      border-radius:18px;
+      background:
+        radial-gradient(circle at top right, rgba(199,162,125,.22) 0%, rgba(199,162,125,.14) 12%, transparent 34%),
+        radial-gradient(circle at top left, rgba(199,162,125,.18) 0%, rgba(199,162,125,.10) 10%, transparent 30%),
+        radial-gradient(circle at bottom right, rgba(199,162,125,.18) 0%, rgba(199,162,125,.10) 10%, transparent 30%),
+        radial-gradient(circle at bottom left, rgba(199,162,125,.22) 0%, rgba(199,162,125,.14) 12%, transparent 34%);
+      opacity:1;
     }
 
     .card > *{position:relative; z-index:1}
@@ -309,19 +325,19 @@
     }
 
     .gen-badge{
-      background:#f4efdf;
+      background:#f7f0e5;
       color:#846830;
     }
 
     .small-badge{
-      background:#efe4d5;
+      background:#f3e8dc;
       color:var(--main);
       cursor:pointer;
       border-color:#dfcfbc;
     }
 
     .small-badge:hover{
-      background:#e6d8c8;
+      background:#ecdccc;
     }
 
     .meta{
@@ -336,7 +352,7 @@
       padding:6px 10px;
       border-radius:999px;
       font-size:12px;
-      background:#f2ebe2;
+      background:#f7efe7;
       color:var(--main);
     }
 
@@ -398,9 +414,9 @@
       position:absolute;
       inset:0;
       background:
-        linear-gradient(rgba(255,255,255,.68), rgba(255,255,255,.68)),
+        linear-gradient(rgba(255,255,255,.72), rgba(255,255,255,.72)),
         url("bg-mujaini.jpg") center center / cover no-repeat;
-      opacity:.86;
+      opacity:.9;
       border-radius:20px;
       pointer-events:none;
     }
@@ -418,7 +434,7 @@
     }
 
     .about-box details{
-      background:rgba(255,255,255,.84);
+      background:rgba(255,255,255,.88);
       border:1px solid var(--line);
       border-radius:14px;
       margin-bottom:10px;
@@ -521,7 +537,7 @@
     }
 
     .admin-tabs button{
-      background:#efe4d5;
+      background:#f3e8dc;
       color:var(--text);
       border-radius:999px;
       padding:8px 12px;
@@ -633,8 +649,10 @@
       position:absolute;
       inset:0;
       background:
-        radial-gradient(circle at top right, rgba(168,132,93,.16), transparent 25%),
-        radial-gradient(circle at bottom left, rgba(168,132,93,.12), transparent 25%);
+        linear-gradient(45deg, rgba(199,162,125,.06) 25%, transparent 25%, transparent 50%, rgba(199,162,125,.06) 50%, rgba(199,162,125,.06) 75%, transparent 75%, transparent),
+        linear-gradient(-45deg, rgba(199,162,125,.04) 25%, transparent 25%, transparent 50%, rgba(199,162,125,.04) 50%, rgba(199,162,125,.04) 75%, transparent 75%, transparent);
+      background-size:24px 24px;
+      opacity:.35;
       pointer-events:none;
     }
 
@@ -1317,6 +1335,7 @@
       target = normalizeArabic(target);
       if (!query || !target) return 0;
       if (target.indexOf(query) !== -1) return 100;
+
       const queryParts = query.split(" ").filter(Boolean);
       const targetParts = target.split(" ").filter(Boolean);
 
