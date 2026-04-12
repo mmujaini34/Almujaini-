@@ -803,7 +803,15 @@ const DEFAULT_PASSWORD = "Mujaini34";
 const SUPABASE_URL = "https://fjjavswshxsjvocrkjox.supabase.co";
 const SUPABASE_KEY = "sb_publishable_RnfnO_UOIrny2cjCPvLoyg__pTvE9Ge";
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+async function saveMessageToSupabase(payload) {
+  const { error } = await supabaseClient.from("messages").insert([payload]);
+  if (error) throw error;
+}
 
+async function saveRequestToSupabase(payload) {
+  const { error } = await supabaseClient.from("requests").insert([payload]);
+  if (error) throw error;
+}
 const people = {  
       "p1": { name: "محمد بن حميد المجيني", note: "", children: ["p2","p3","p4","p5","p6","p7","p8","p9","p10"] },
 
@@ -1610,7 +1618,39 @@ const people = {
       pendingParentRequestId = null;
     }
 
-    function submitAddRequest() {
+    async function submitAddRequest() {
+  const childName = document.getElementById("reqChildName").value.trim();
+  const childrenText = document.getElementById("reqChildrenText").value.trim();
+  const senderName = document.getElementById("reqSenderName").value.trim();
+  const details = document.getElementById("reqDetails").value.trim();
+
+  if (!pendingParentRequestId) {
+    alert("لم يتم تحديد الأب.");
+    return;
+  }
+
+  if (!childName) {
+    alert("اكتب الاسم المطلوب إضافته.");
+    return;
+  }
+
+  try {
+    await saveRequestToSupabase({
+      parent_id: pendingParentRequestId,
+      child_name: childName,
+      children_text: childrenText || "",
+      sender_name: senderName || "بدون اسم",
+      details: details || "",
+      status: "pending"
+    });
+
+    closeAddRequestModal();
+    alert("تم إرسال طلب الإضافة إلى الإدارة.");
+  } catch (e) {
+    console.error(e);
+    alert("تعذر إرسال الطلب حاليًا");
+  }
+    }
       const childName = document.getElementById("reqChildName").value.trim();
       const childrenText = document.getElementById("reqChildrenText").value.trim();
       const senderName = document.getElementById("reqSenderName").value.trim();
@@ -2133,7 +2173,31 @@ const people = {
       page.innerHTML = rows;
     }
 
-    function submitPublicMessage() {
+    async function submitPublicMessage() {
+  const name = document.getElementById("msgName").value.trim();
+  const type = document.getElementById("msgType").value;
+  const body = document.getElementById("msgBody").value.trim();
+
+  if (!body) {
+    alert("اكتب الرسالة أولًا");
+    return;
+  }
+
+  try {
+    await saveMessageToSupabase({
+      msg_type: type,
+      sender_name: name || "بدون اسم",
+      body: body
+    });
+
+    document.getElementById("msgName").value = "";
+    document.getElementById("msgBody").value = "";
+    alert("تم إرسال الرسالة");
+  } catch (e) {
+    console.error(e);
+    alert("تعذر إرسال الرسالة حاليًا");
+  }
+}
       const name = document.getElementById("msgName").value.trim();
       const type = document.getElementById("msgType").value;
       const body = document.getElementById("msgBody").value.trim();
