@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>شجرة عائلة محمد بن حميد المجيني</title>
@@ -794,12 +795,16 @@
   </div>
 
   <script>
-    const contactNumber = "96896040406";
-    const rootId = "p1";
-    const STORAGE_KEY = "mujaini_tree_app_v5";
-    const DEFAULT_PASSWORD = "Mujaini34";
+  const contactNumber = "96896040406";
+const rootId = "p1";
+const STORAGE_KEY = "mujaini_tree_app_v5";
+const DEFAULT_PASSWORD = "Mujaini34";
 
-    const people = {
+const SUPABASE_URL = "https://fjjavswshxsjvocrkjox.supabase.co";
+const SUPABASE_KEY = "sb_publishable_RnfnO_UOIrny2cjCPvLoyg__pTvE9Ge";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const people = {  
       "p1": { name: "محمد بن حميد المجيني", note: "", children: ["p2","p3","p4","p5","p6","p7","p8","p9","p10"] },
 
       "p2": { name: "صالحة بنت محمد", note: "", children: [] },
