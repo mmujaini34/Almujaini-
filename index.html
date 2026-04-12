@@ -6,16 +6,16 @@
   <title>شجرة عائلة محمد بن حميد المجيني</title>
   <style>
     :root{
-      --main:#6f7b5c;
-      --main2:#8a9575;
-      --gold:#b89b5e;
-      --bg:#f6f3ed;
-      --text:#2f352c;
-      --muted:#6e7468;
-      --line:#ddd7cb;
-      --card:#fffdf9;
+      --main:#b89a7a;
+      --main2:#c9ab89;
+      --gold:#a8845d;
+      --bg:#f7f1e8;
+      --card:#fffaf4;
+      --text:#4b3e33;
+      --muted:#8b7765;
+      --line:#dcccbc;
       --danger:#a94e4e;
-      --ok:#4f7a57;
+      --ok:#5d7a5e;
       --shadow:0 8px 24px rgba(0,0,0,.06);
     }
 
@@ -33,19 +33,20 @@
       position:sticky;
       top:0;
       z-index:1000;
-      background:rgba(246,243,237,.92);
+      background:rgba(247,241,232,.94);
       backdrop-filter:blur(8px);
       border-bottom:1px solid var(--line);
     }
 
     .topbar-inner{
-      max-width:1150px;
+      max-width:1200px;
       margin:auto;
       padding:10px 12px;
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap:10px;
+      flex-wrap:wrap;
     }
 
     .brand{
@@ -59,10 +60,10 @@
       display:flex;
       gap:8px;
       flex-wrap:wrap;
+      justify-content:center;
     }
 
-    .btn,
-    button{
+    button,.btn{
       border:none;
       border-radius:12px;
       padding:10px 12px;
@@ -75,17 +76,17 @@
     .btn-main,
     .top-actions button{
       background:var(--main);
-      color:white;
-      box-shadow:0 4px 12px rgba(111,123,92,.16);
+      color:#fff;
+      box-shadow:0 4px 12px rgba(184,154,122,.18);
     }
 
     .btn-main:hover,
     .top-actions button:hover{
-      background:var(--main2);
+      background:var(--gold);
     }
 
     .btn-soft{
-      background:#efe9dc;
+      background:#efe4d5;
       color:var(--text);
     }
 
@@ -111,7 +112,7 @@
     }
 
     .page{
-      max-width:1150px;
+      max-width:1200px;
       margin:auto;
       padding:14px 12px 28px;
     }
@@ -144,7 +145,8 @@
     .about-box,
     .admin-page,
     .person-page,
-    .messages-box{
+    .messages-box,
+    .hierarchy-box{
       background:var(--card);
       border:1px solid var(--line);
       border-radius:20px;
@@ -174,7 +176,7 @@
     .field:focus,
     .textarea:focus{
       border-color:var(--main);
-      box-shadow:0 0 0 3px rgba(111,123,92,.08);
+      box-shadow:0 0 0 3px rgba(184,154,122,.08);
     }
 
     .toolbar{
@@ -199,7 +201,7 @@
     }
 
     .breadcrumb button{
-      background:#ece8dd;
+      background:#efe4d5;
       color:var(--text);
       margin:4px;
       padding:8px 10px;
@@ -221,7 +223,7 @@
     }
 
     .quick-branches button{
-      background:#eee8da;
+      background:#efe4d5;
       color:var(--text);
       border-radius:999px;
       padding:8px 12px;
@@ -235,6 +237,7 @@
     }
 
     .card{
+      position:relative;
       background:#fff;
       border:1px solid var(--line);
       border-top:4px solid var(--main);
@@ -243,8 +246,25 @@
       cursor:pointer;
       box-shadow:var(--shadow);
       transition:.18s ease;
-      position:relative;
+      overflow:hidden;
+      isolation:isolate;
     }
+
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      z-index:0;
+      background:
+        radial-gradient(circle at top right, rgba(168,132,93,.18), transparent 24%),
+        radial-gradient(circle at top left, rgba(168,132,93,.14), transparent 22%),
+        radial-gradient(circle at bottom right, rgba(168,132,93,.14), transparent 22%),
+        radial-gradient(circle at bottom left, rgba(168,132,93,.16), transparent 24%);
+      opacity:.9;
+    }
+
+    .card > *{position:relative; z-index:1}
 
     .card:hover{
       transform:translateY(-2px);
@@ -267,16 +287,41 @@
       font-weight:700;
       font-size:18px;
       line-height:1.6;
+      flex:1;
     }
 
-    .gen-badge{
+    .badges{
+      display:flex;
+      gap:6px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .gen-badge,
+    .small-badge{
       flex-shrink:0;
-      background:#f4efdf;
-      color:#846830;
-      border:1px solid #eadab7;
       border-radius:999px;
       padding:5px 8px;
       font-size:11px;
+      white-space:nowrap;
+      border:1px solid #eadab7;
+    }
+
+    .gen-badge{
+      background:#f4efdf;
+      color:#846830;
+    }
+
+    .small-badge{
+      background:#efe4d5;
+      color:var(--main);
+      cursor:pointer;
+      border-color:#dfcfbc;
+    }
+
+    .small-badge:hover{
+      background:#e6d8c8;
     }
 
     .meta{
@@ -291,7 +336,7 @@
       padding:6px 10px;
       border-radius:999px;
       font-size:12px;
-      background:#efefe8;
+      background:#f2ebe2;
       color:var(--main);
     }
 
@@ -337,7 +382,7 @@
     }
 
     .children-item{
-      background:#faf8f2;
+      background:#faf5ef;
       border:1px solid var(--line);
       border-radius:12px;
       padding:10px;
@@ -353,9 +398,9 @@
       position:absolute;
       inset:0;
       background:
-        linear-gradient(rgba(255,255,255,.66), rgba(255,255,255,.66)),
+        linear-gradient(rgba(255,255,255,.68), rgba(255,255,255,.68)),
         url("bg-mujaini.jpg") center center / cover no-repeat;
-      opacity:.82;
+      opacity:.86;
       border-radius:20px;
       pointer-events:none;
     }
@@ -373,7 +418,7 @@
     }
 
     .about-box details{
-      background:rgba(255,255,255,.82);
+      background:rgba(255,255,255,.84);
       border:1px solid var(--line);
       border-radius:14px;
       margin-bottom:10px;
@@ -439,7 +484,7 @@
 
     .modal-box{
       width:100%;
-      max-width:420px;
+      max-width:440px;
       background:#fff;
       border-radius:18px;
       padding:18px;
@@ -476,7 +521,7 @@
     }
 
     .admin-tabs button{
-      background:#efe9dc;
+      background:#efe4d5;
       color:var(--text);
       border-radius:999px;
       padding:8px 12px;
@@ -502,27 +547,9 @@
       padding:12px;
     }
 
-    .row{
-      display:grid;
-      grid-template-columns:repeat(2,1fr);
-      gap:10px;
-    }
-
     .small{
       font-size:12px;
       color:var(--muted);
-    }
-
-    .timeline-grid{
-      display:grid;
-      gap:10px;
-    }
-
-    .timeline-item{
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px;
     }
 
     .top-note{
@@ -530,6 +557,85 @@
       color:var(--muted);
       margin-bottom:10px;
       line-height:1.8;
+    }
+
+    .lineage-chain{
+      display:grid;
+      gap:10px;
+      justify-content:center;
+      margin-top:10px;
+    }
+
+    .lineage-item{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:10px 14px;
+      text-align:center;
+      position:relative;
+      min-width:180px;
+    }
+
+    .lineage-item:not(:last-child)::after{
+      content:"";
+      position:absolute;
+      left:50%;
+      transform:translateX(-50%);
+      bottom:-10px;
+      width:2px;
+      height:10px;
+      background:var(--gold);
+    }
+
+    .hierarchy-box{
+      padding:18px;
+    }
+
+    .hierarchy-row{
+      margin-bottom:20px;
+      text-align:center;
+    }
+
+    .hierarchy-row-title{
+      color:var(--main);
+      font-weight:700;
+      margin-bottom:10px;
+    }
+
+    .hierarchy-cards{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:10px;
+      position:relative;
+    }
+
+    .hier-card{
+      background:#fff;
+      border:1px solid var(--line);
+      border-top:4px solid var(--main);
+      border-radius:16px;
+      padding:10px 12px;
+      min-width:180px;
+      cursor:pointer;
+      box-shadow:var(--shadow);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .hier-card.selected{
+      border-top-color:var(--gold);
+      background:#fdf8f1;
+    }
+
+    .hier-card::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        radial-gradient(circle at top right, rgba(168,132,93,.16), transparent 25%),
+        radial-gradient(circle at bottom left, rgba(168,132,93,.12), transparent 25%);
+      pointer-events:none;
     }
 
     @media (max-width:900px){
@@ -544,10 +650,11 @@
       .topbar-inner{flex-direction:column; align-items:stretch}
       .brand{text-align:center}
       .top-actions{justify-content:center}
-      .row{grid-template-columns:1fr}
       .hero h1{font-size:24px}
       .title{font-size:20px}
       .name{font-size:16px}
+      .hier-card{min-width:140px}
+      .lineage-item{min-width:140px}
     }
   </style>
 </head>
@@ -559,6 +666,7 @@
         <button onclick="goRoot()">الرئيسية</button>
         <button onclick="showAbout()">📜 نبذة عن قبيلة المجيني</button>
         <button onclick="showWhoAmI()">من أكون؟</button>
+        <button onclick="showHierarchyPage(rootId)">عرض الهرم</button>
         <button class="icon-btn" onclick="openAdminPassword()">⚙️</button>
       </div>
     </div>
@@ -578,7 +686,7 @@
       <button class="btn-main" onclick="goRoot()">الرجوع للجذر</button>
       <button class="btn-main" onclick="goBack()">رجوع خطوة</button>
       <button class="btn-main" onclick="shareCurrent()">مشاركة الرابط</button>
-      <button class="btn-main" onclick="showTimeline()">الشجرة الزمنية</button>
+      <button class="btn-main" onclick="showHierarchyPage(currentPerson)">هرم الفرع الحالي</button>
     </div>
 
     <div class="title" id="title">محمد بن حميد المجيني</div>
@@ -587,7 +695,7 @@
     <div class="stats-strip" id="infoBar"></div>
     <div class="cards" id="content"></div>
 
-    <div class="messages-box panel" style="margin-top:16px;padding:16px;">
+    <div class="messages-box" style="margin-top:16px;padding:16px;">
       <h3 style="margin:0 0 12px;color:var(--main);">💬 ملاحظات ومقترحات</h3>
       <div class="top-note">يمكنك إرسال ملاحظة أو شكر أو تصحيح أو اقتراح. الاسم اختياري.</div>
       <div class="note-form">
@@ -615,6 +723,7 @@
   <div class="page hidden" id="aboutPage"></div>
   <div class="page hidden" id="personPage"></div>
   <div class="page hidden" id="adminPage"></div>
+  <div class="page hidden" id="hierarchyPage"></div>
 
   <div class="modal" id="confirmModal">
     <div class="modal-box">
@@ -639,10 +748,38 @@
     </div>
   </div>
 
+  <div class="modal" id="addRequestModal">
+    <div class="modal-box">
+      <div class="modal-title">طلب إضافة اسم</div>
+      <div class="modal-text">سيتم إرسال الطلب إلى صفحة الإدارة للمراجعة.</div>
+      <div class="note-form">
+        <input class="field" id="reqParentName" placeholder="اسم الأب" readonly />
+        <input class="field" id="reqChildName" placeholder="الاسم المطلوب إضافته" />
+        <input class="field" id="reqChildrenText" placeholder="الأبناء (اختياري، افصل بينهم بفاصلة)" />
+        <input class="field" id="reqSenderName" placeholder="اسمك (اختياري)" />
+        <textarea class="textarea" id="reqDetails" placeholder="ملاحظة أو تفاصيل إضافية (اختياري)"></textarea>
+      </div>
+      <div class="modal-actions" style="margin-top:12px;">
+        <button class="btn-soft" onclick="closeAddRequestModal()">إلغاء</button>
+        <button class="btn-main" onclick="submitAddRequest()">إرسال الطلب</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="lineageModal">
+    <div class="modal-box">
+      <div class="modal-title">تسلسل النسب</div>
+      <div id="lineageModalBody"></div>
+      <div style="margin-top:14px;">
+        <button class="btn-main" style="width:100%;" onclick="closeLineageModal()">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const contactNumber = "96896040406";
     const rootId = "p1";
-    const STORAGE_KEY = "mujaini_tree_app_v4";
+    const STORAGE_KEY = "mujaini_tree_app_v5";
     const DEFAULT_PASSWORD = "Mujaini34";
 
     const people = {
@@ -1098,10 +1235,11 @@
     let currentPerson = rootId;
     let historyStack = [rootId];
     let pendingWhatsAppId = null;
+    let pendingParentRequestId = null;
     let modalOpen = false;
     let currentView = "tree";
-    let currentDisplayMode = "cards";
     let appState = loadState();
+    let hierarchyTrail = [rootId];
 
     function defaultState() {
       return {
@@ -1161,7 +1299,6 @@
       const matrix = [];
       for (let i = 0; i <= b.length; i++) matrix[i] = [i];
       for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
-
       for (let i = 1; i <= b.length; i++) {
         for (let j = 1; j <= a.length; j++) {
           if (b.charAt(i - 1) === a.charAt(j - 1)) matrix[i][j] = matrix[i - 1][j - 1];
@@ -1180,7 +1317,6 @@
       target = normalizeArabic(target);
       if (!query || !target) return 0;
       if (target.indexOf(query) !== -1) return 100;
-
       const queryParts = query.split(" ").filter(Boolean);
       const targetParts = target.split(" ").filter(Boolean);
 
@@ -1216,9 +1352,7 @@
     function getDescendantsCount(id) {
       if (!people[id] || !people[id].children) return 0;
       let total = 0;
-      for (const childId of people[id].children) {
-        total += 1 + getDescendantsCount(childId);
-      }
+      for (const childId of people[id].children) total += 1 + getDescendantsCount(childId);
       return total;
     }
 
@@ -1237,7 +1371,7 @@
     }
 
     function generationLabelShort(n) {
-      return "ج" + n;
+      return "G" + n;
     }
 
     function getLineage(id) {
@@ -1270,8 +1404,22 @@
       return null;
     }
 
+    function getStatus(id) {
+      return appState.statuses[id] || "";
+    }
+
+    function setStatus(id, value) {
+      appState.statuses[id] = value;
+      saveState();
+      logChange("تعديل حالة الفرع: " + people[id].name + " → " + value);
+    }
+
     function totalPeopleCount() {
       return Object.keys(people).length;
+    }
+
+    function branchRoots() {
+      return people[rootId].children;
     }
 
     function getGenerationStats() {
@@ -1283,22 +1431,13 @@
       return stats;
     }
 
-    function branchRoots() {
-      return people[rootId].children;
-    }
-
-    function countNamesFrequency() {
-      const map = {};
+    function detectDuplicateNames() {
+      const freq = {};
+      const out = [];
       for (const id in people) {
         const n = normalizeArabic(people[id].name);
-        map[n] = (map[n] || 0) + 1;
+        freq[n] = (freq[n] || 0) + 1;
       }
-      return map;
-    }
-
-    function detectDuplicateNames() {
-      const freq = countNamesFrequency();
-      const out = [];
       for (const id in people) {
         const n = normalizeArabic(people[id].name);
         if (freq[n] > 1) out.push({ id, name: people[id].name, count: freq[n] });
@@ -1332,26 +1471,18 @@
       };
     }
 
-    function getStatus(id) {
-      return appState.statuses[id] || "";
-    }
-
-    function setStatus(id, value) {
-      appState.statuses[id] = value;
-      saveState();
-      logChange("تعديل حالة الفرع: " + people[id].name + " → " + value);
-    }
-
-    function copyText(text) {
-      navigator.clipboard.writeText(text);
-      alert("تم النسخ");
-    }
-
     function hideAllPages() {
       document.getElementById("mainPage").classList.add("hidden");
       document.getElementById("aboutPage").classList.add("hidden");
       document.getElementById("personPage").classList.add("hidden");
       document.getElementById("adminPage").classList.add("hidden");
+      document.getElementById("hierarchyPage").classList.add("hidden");
+    }
+
+    function showTreePage() {
+      currentView = "tree";
+      hideAllPages();
+      document.getElementById("mainPage").classList.remove("hidden");
     }
 
     function routeToHash() {
@@ -1363,12 +1494,17 @@
       }
       if (h.startsWith("person=")) {
         const id = h.split("=")[1];
-        if (people[id]) showPersonPage(id);
+        if (people[id]) showPersonPage(id, false);
+        else { showTreePage(); render(rootId); }
+        return;
+      }
+      if (h.startsWith("hierarchy=")) {
+        const id = h.split("=")[1];
+        if (people[id]) showHierarchyPage(id, false);
         else { showTreePage(); render(rootId); }
         return;
       }
       if (h === "about") return showAbout(false);
-      if (h === "timeline") return showTimeline(false);
       if (h === "whoami") return showWhoAmI(false);
       if (people[h]) {
         showTreePage();
@@ -1381,15 +1517,28 @@
       render(rootId);
     }
 
+    function copyText(text) {
+      navigator.clipboard.writeText(text);
+      alert("تم النسخ");
+    }
+
+    function shareCurrent() {
+      let url = location.href;
+      if (currentView === "tree") url = location.origin + location.pathname + "#" + currentPerson;
+      if (currentView === "person") url = location.origin + location.pathname + "#person=" + currentPerson;
+      if (currentView === "about") url = location.origin + location.pathname + "#about";
+      if (currentView === "hierarchy") url = location.origin + location.pathname + "#hierarchy=" + hierarchyTrail[hierarchyTrail.length - 1];
+      navigator.clipboard.writeText(url);
+      alert("تم نسخ الرابط");
+    }
+
     function openWhatsApp(id) {
       const fullLineage = getLineageText(id);
       const message = "السلام عليكم، أرغب في إضافة أو تعديل بيانات في شجرة العائلة بخصوص: " + fullLineage;
-
       const number = contactNumber.replace(/[^\d]/g, "");
       const waLink = "https://wa.me/" + number + "?text=" + encodeURIComponent(message);
       const fallbackLink = "https://api.whatsapp.com/send?phone=" + number + "&text=" + encodeURIComponent(message);
       const isAndroid = /Android/i.test(navigator.userAgent);
-
       if (isAndroid) window.location.href = fallbackLink;
       else window.location.href = waLink;
     }
@@ -1418,6 +1567,66 @@
       }
     }
 
+    function openAddRequestModal(parentId) {
+      pendingParentRequestId = parentId;
+      document.getElementById("reqParentName").value = people[parentId].name;
+      document.getElementById("reqChildName").value = "";
+      document.getElementById("reqChildrenText").value = "";
+      document.getElementById("reqSenderName").value = "";
+      document.getElementById("reqDetails").value = "";
+      document.getElementById("addRequestModal").classList.add("active");
+    }
+
+    function closeAddRequestModal() {
+      document.getElementById("addRequestModal").classList.remove("active");
+      pendingParentRequestId = null;
+    }
+
+    function submitAddRequest() {
+      const childName = document.getElementById("reqChildName").value.trim();
+      const childrenText = document.getElementById("reqChildrenText").value.trim();
+      const senderName = document.getElementById("reqSenderName").value.trim();
+      const details = document.getElementById("reqDetails").value.trim();
+
+      if (!pendingParentRequestId) return alert("لم يتم تحديد الأب.");
+      if (!childName) return alert("اكتب الاسم المطلوب إضافته.");
+
+      appState.requests.unshift({
+        type: "إضافة",
+        target: people[pendingParentRequestId].name,
+        body:
+          "طلب إضافة الاسم: " + childName +
+          "\nتحت الأب: " + people[pendingParentRequestId].name +
+          (childrenText ? "\nالأبناء: " + childrenText : "") +
+          (senderName ? "\nاسم المرسل: " + senderName : "") +
+          (details ? "\nتفاصيل: " + details : ""),
+        parentId: pendingParentRequestId,
+        childName,
+        childrenText,
+        senderName: senderName || "بدون اسم",
+        time: new Date().toLocaleString("ar")
+      });
+
+      saveState();
+      logChange("استلام طلب إضافة جديد تحت " + people[pendingParentRequestId].name);
+      closeAddRequestModal();
+      alert("تم إرسال طلب الإضافة إلى صفحة الإدارة.");
+    }
+
+    function openLineageModal(id) {
+      const path = getLineage(id).reverse();
+      document.getElementById("lineageModalBody").innerHTML = `
+        <div class="lineage-chain">
+          ${path.map(pid => `<div class="lineage-item">${people[pid].name}</div>`).join("")}
+        </div>
+      `;
+      document.getElementById("lineageModal").classList.add("active");
+    }
+
+    function closeLineageModal() {
+      document.getElementById("lineageModal").classList.remove("active");
+    }
+
     function handleClick(id) {
       if (hasChildren(id)) {
         historyStack.push(id);
@@ -1442,21 +1651,6 @@
 
     function goBack() {
       history.back();
-    }
-
-    function shareCurrent() {
-      let url = location.href;
-      if (currentView === "tree") url = location.origin + location.pathname + "#" + currentPerson;
-      if (currentView === "person") url = location.origin + location.pathname + "#person=" + currentPerson;
-      if (currentView === "about") url = location.origin + location.pathname + "#about";
-      navigator.clipboard.writeText(url);
-      alert("تم نسخ الرابط");
-    }
-
-    function showTreePage() {
-      currentView = "tree";
-      hideAllPages();
-      document.getElementById("mainPage").classList.remove("hidden");
     }
 
     function renderBreadcrumb() {
@@ -1502,6 +1696,31 @@
       document.getElementById("infoBar").innerHTML = html;
     }
 
+    function renderCard(id) {
+      const child = people[id];
+      const status = getStatus(id);
+      return `
+        <div class="card ${hasChildren(id) ? "" : "no-children"}" onclick="handleClick('${id}')">
+          <div class="name-row">
+            <div class="name">${child.name}${appState.settings.showCounts ? ` (${getChildrenCount(id)})` : ""}</div>
+            <div class="badges">
+              <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${id}')">طلب إضافة</div>
+              <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${id}')">نسب</div>
+              <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${id}')">هرم</div>
+              ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(id))}</div>` : ""}
+            </div>
+          </div>
+          <div class="meta">
+            عدد الأبناء المباشرين: ${getChildrenCount(id)}<br>
+            إجمالي الأشخاص تحت الفرع: ${getDescendantsCount(id)}<br>
+            ${child.note ? `ملاحظة: ${child.note}<br>` : ""}
+          </div>
+          ${status && appState.settings.showStatuses ? `<div class="status-badge">${status}</div>` : ""}
+          <div class="tag">${hasChildren(id) ? "اضغط لعرض الفرع" : "اضغط لطلب الإضافة"}</div>
+        </div>
+      `;
+    }
+
     function render(id) {
       showTreePage();
       document.getElementById("title").textContent = people[id].name;
@@ -1516,51 +1735,31 @@
           <div class="card no-children">
             <div class="name-row">
               <div class="name">${people[id].name}</div>
-              ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(id))}</div>` : ""}
+              <div class="badges">
+                <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${id}')">طلب إضافة</div>
+                <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${id}')">نسب</div>
+                <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${id}')">هرم</div>
+                ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(id))}</div>` : ""}
+              </div>
             </div>
             <div class="meta">لا توجد أسماء أبناء مسجلة حاليًا لهذا الفرع.</div>
-            <div class="tag">اضغط على مشاركة الرابط أو استخدم واتساب للإضافة</div>
           </div>
         `;
         return;
       }
-
       content.className = "cards";
       content.innerHTML = children.map(childId => renderCard(childId)).join("");
     }
 
-    function renderCard(id) {
-      const child = people[id];
-      const status = getStatus(id);
-      return `
-        <div class="card ${hasChildren(id) ? "" : "no-children"}" onclick="handleClick('${id}')">
-          <div class="name-row">
-            <div class="name">${child.name}${appState.settings.showCounts ? ` (${getChildrenCount(id)})` : ""}</div>
-            ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(id))}</div>` : ""}
-          </div>
-          <div class="meta">
-            عدد الأبناء المباشرين: ${getChildrenCount(id)}<br>
-            إجمالي الأشخاص تحت الفرع: ${getDescendantsCount(id)}<br>
-            ${child.note ? `ملاحظة: ${child.note}<br>` : ""}
-          </div>
-          ${status && appState.settings.showStatuses ? `<div class="status-badge">${status}</div>` : ""}
-          <div class="tag">${hasChildren(id) ? "اضغط لعرض الفرع" : "اضغط لطلب الإضافة"}</div>
-        </div>
-      `;
-    }
-
     function renderSearchResults(keyword) {
       const results = [];
-
       for (const key in people) {
         const person = people[key];
         const scoreName = similarityScore(keyword, person.name);
         const scoreNote = similarityScore(keyword, person.note || "");
         const finalScore = Math.max(scoreName, scoreNote);
-
         if (finalScore >= 35) results.push({ id: key, score: finalScore });
       }
-
       results.sort((a,b)=>b.score-a.score);
 
       showTreePage();
@@ -1579,14 +1778,18 @@
           <div class="card ${hasChildren(r.id) ? "" : "no-children"}" onclick="${hasChildren(r.id) ? `handleClick('${r.id}')` : `showConfirmModal('${r.id}')`}">
             <div class="name-row">
               <div class="name">${people[r.id].name}</div>
-              ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(r.id))}</div>` : ""}
+              <div class="badges">
+                <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${r.id}')">طلب إضافة</div>
+                <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${r.id}')">نسب</div>
+                <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${r.id}')">هرم</div>
+                ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(r.id))}</div>` : ""}
+              </div>
             </div>
             <div class="meta">
               التسلسل: ${getLineageText(r.id)}<br>
               عدد الأبناء المباشرين: ${getChildrenCount(r.id)}<br>
               درجة التقارب: ${Math.round(r.score)}%
             </div>
-            <div class="tag">${hasChildren(r.id) ? "اضغط للدخول" : "اضغط لطلب الإضافة"}</div>
           </div>
         `).join("")
         : `<div class="card"><div class="meta">لا توجد نتائج مطابقة.</div></div>`;
@@ -1729,86 +1932,6 @@
       if (pushHash) history.pushState({ about: true }, "", "#about");
     }
 
-    function showPersonPage(id, pushHash = true) {
-      currentView = "person";
-      currentPerson = id;
-      hideAllPages();
-      const page = document.getElementById("personPage");
-      page.classList.remove("hidden");
-
-      const person = people[id];
-      const lineage = getLineageText(id);
-      const parentId = getParentId(id);
-      const children = person.children || [];
-      const status = getStatus(id);
-
-      page.innerHTML = `
-        <div class="person-page">
-          <div class="title">${person.name}</div>
-
-          <div class="person-grid">
-            <div class="subbox">
-              <h3>بيانات الشخص</h3>
-              <div class="meta">
-                الجيل: <strong>${generationLabelShort(getGeneration(id))}</strong><br>
-                التسلسل: <strong>${lineage}</strong><br>
-                الأب: <strong>${parentId ? people[parentId].name : "لا يوجد"}</strong><br>
-                عدد الأبناء المباشرين: <strong>${getChildrenCount(id)}</strong><br>
-                إجمالي الذرية أسفل الفرع: <strong>${getDescendantsCount(id)}</strong><br>
-                ${person.note ? `ملاحظة: <strong>${person.note}</strong><br>` : ""}
-                ${status ? `حالة الفرع: <strong>${status}</strong><br>` : ""}
-              </div>
-              <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
-                <button class="btn-main" onclick="copyText('${lineage.replace(/'/g,"\\'")}')">نسخ التسلسل</button>
-                <button class="btn-main" onclick="shareCurrent()">مشاركة هذا الفرع</button>
-                ${parentId ? `<button class="btn-soft" onclick="showPersonPage('${parentId}')">الانتقال إلى الأب</button>` : ""}
-                <button class="btn-soft" onclick="showTreePage(); render('${id}')">عرضه داخل الشجرة</button>
-              </div>
-            </div>
-
-            <div class="subbox">
-              <h3>أبناء الشخص</h3>
-              <div class="children-list">
-                ${
-                  children.length
-                    ? children.map(cid => `
-                      <div class="children-item" onclick="${hasChildren(cid) ? `showPersonPage('${cid}')` : `showConfirmModal('${cid}')`}">
-                        ${people[cid].name} ${appState.settings.showCounts ? `(${getChildrenCount(cid)})` : ""}
-                      </div>
-                    `).join("")
-                    : `<div class="meta">لا توجد أسماء أبناء مسجلة لهذا الشخص.</div>`
-                }
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-
-      if (pushHash) history.pushState({ personPage:id }, "", "#person=" + id);
-    }
-
-    function showTimeline(pushHash = true) {
-      currentView = "timeline";
-      hideAllPages();
-      const page = document.getElementById("aboutPage");
-      page.classList.remove("hidden");
-
-      const stats = getGenerationStats();
-      let html = `<div class="about-box"><h2>الشجرة الزمنية حسب الأجيال</h2><div class="timeline-grid">`;
-      Object.keys(stats).sort((a,b)=>a-b).forEach(g => {
-        const members = Object.keys(people).filter(id => getGeneration(id) == g);
-        html += `
-          <div class="timeline-item">
-            <strong>الجيل ${g}</strong> — العدد: ${stats[g]}
-            <div class="small" style="margin-top:8px;">${members.map(id => people[id].name).join("، ")}</div>
-          </div>
-        `;
-      });
-      html += `</div></div>`;
-      page.innerHTML = html;
-      if (pushHash) history.pushState({ timeline:true }, "", "#timeline");
-    }
-
     function showWhoAmI(pushHash = true) {
       currentView = "whoami";
       hideAllPages();
@@ -1852,6 +1975,134 @@
           <button class="btn-soft" onclick="showTreePage(); render('${best.id}')">فتح داخل الشجرة</button>
         </div>
       `;
+    }
+
+    function showPersonPage(id, pushHash = true) {
+      currentView = "person";
+      currentPerson = id;
+      hideAllPages();
+      const page = document.getElementById("personPage");
+      page.classList.remove("hidden");
+
+      const person = people[id];
+      const lineage = getLineageText(id);
+      const parentId = getParentId(id);
+      const children = person.children || [];
+      const status = getStatus(id);
+
+      page.innerHTML = `
+        <div class="person-page">
+          <div class="title">${person.name}</div>
+          <div class="person-grid">
+            <div class="subbox">
+              <h3>بيانات الشخص</h3>
+              <div class="meta">
+                الجيل: <strong>${generationLabelShort(getGeneration(id))}</strong><br>
+                التسلسل: <strong>${lineage}</strong><br>
+                الأب: <strong>${parentId ? people[parentId].name : "لا يوجد"}</strong><br>
+                عدد الأبناء المباشرين: <strong>${getChildrenCount(id)}</strong><br>
+                إجمالي الذرية أسفل الفرع: <strong>${getDescendantsCount(id)}</strong><br>
+                ${person.note ? `ملاحظة: <strong>${person.note}</strong><br>` : ""}
+                ${status ? `حالة الفرع: <strong>${status}</strong><br>` : ""}
+              </div>
+              <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn-main" onclick="copyText('${lineage.replace(/'/g,"\\'")}')">نسخ التسلسل</button>
+                <button class="btn-main" onclick="showHierarchyPage('${id}')">عرض هرمي</button>
+                ${parentId ? `<button class="btn-soft" onclick="showPersonPage('${parentId}')">الانتقال إلى الأب</button>` : ""}
+                <button class="btn-soft" onclick="showTreePage(); render('${id}')">عرضه داخل الشجرة</button>
+              </div>
+            </div>
+
+            <div class="subbox">
+              <h3>أبناء الشخص</h3>
+              <div class="children-list">
+                ${
+                  children.length
+                    ? children.map(cid => `
+                      <div class="children-item" onclick="${hasChildren(cid) ? `showPersonPage('${cid}')` : `showConfirmModal('${cid}')`}">
+                        ${people[cid].name} ${appState.settings.showCounts ? `(${getChildrenCount(cid)})` : ""}
+                      </div>
+                    `).join("")
+                    : `<div class="meta">لا توجد أسماء أبناء مسجلة لهذا الشخص.</div>`
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      if (pushHash) history.pushState({ personPage:id }, "", "#person=" + id);
+    }
+
+    function showHierarchyPage(startId = rootId, pushHash = true) {
+      currentView = "hierarchy";
+      hideAllPages();
+      const page = document.getElementById("hierarchyPage");
+      page.classList.remove("hidden");
+
+      hierarchyTrail = buildTrailForHierarchy(startId);
+      renderHierarchyPage();
+
+      if (pushHash) history.pushState({ hierarchy:startId }, "", "#hierarchy=" + startId);
+    }
+
+    function buildTrailForHierarchy(id) {
+      const path = getLineage(id);
+      return path.length ? path : [rootId];
+    }
+
+    function hierarchySelect(levelIndex, selectedId) {
+      hierarchyTrail = hierarchyTrail.slice(0, levelIndex + 1);
+      hierarchyTrail[levelIndex + 1] = selectedId;
+      renderHierarchyPage();
+    }
+
+    function renderHierarchyPage() {
+      const page = document.getElementById("hierarchyPage");
+      const selected = hierarchyTrail[hierarchyTrail.length - 1];
+
+      let rows = `
+        <div class="hierarchy-box">
+          <div class="title">عرض الهرم</div>
+          <div class="top-note">اضغط أي اسم في الصفوف للتنقل داخل الهرم مع الاحتفاظ بالتسلسل السابق.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:14px;">
+            <button class="btn-main" onclick="showHierarchyPage(rootId)">الرجوع لأصل الهرم</button>
+            <button class="btn-soft" onclick="showTreePage(); render('${selected}')">فتح داخل الشجرة</button>
+            <button class="btn-soft" onclick="openLineageModal('${selected}')">عرض النسب الفردي</button>
+          </div>
+      `;
+
+      rows += `
+        <div class="hierarchy-row">
+          <div class="hierarchy-row-title">الأصل</div>
+          <div class="hierarchy-cards">
+            <div class="hier-card selected" onclick="showHierarchyPage('${rootId}')">${people[rootId].name}</div>
+          </div>
+        </div>
+      `;
+
+      for (let i = 0; i < hierarchyTrail.length; i++) {
+        const parentId = hierarchyTrail[i];
+        const children = people[parentId].children || [];
+        if (!children.length) continue;
+
+        const selectedChild = hierarchyTrail[i + 1] || null;
+        rows += `
+          <div class="hierarchy-row">
+            <div class="hierarchy-row-title">أبناء ${people[parentId].name}</div>
+            <div class="hierarchy-cards">
+              ${children.map(cid => `
+                <div class="hier-card ${selectedChild === cid ? "selected" : ""}" onclick="hierarchySelect(${i}, '${cid}')">
+                  ${people[cid].name}
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      rows += `</div>`;
+      page.innerHTML = rows;
     }
 
     function submitPublicMessage() {
@@ -1908,8 +2159,8 @@
           <div class="admin-tabs">
             <button onclick="switchAdminTab('overview')">الرئيسية</button>
             <button onclick="switchAdminTab('messages')">الرسائل</button>
+            <button onclick="switchAdminTab('requests')">طلبات الإضافة</button>
             <button onclick="switchAdminTab('add')">إضافة وتعديل</button>
-            <button onclick="switchAdminTab('requests')">الطلبات</button>
             <button onclick="switchAdminTab('relation')">صلة القرابة</button>
             <button onclick="switchAdminTab('duplicates')">الكشف والتضارب</button>
             <button onclick="switchAdminTab('stats')">الإحصائيات</button>
@@ -1939,7 +2190,7 @@
               <div class="meta">
                 إجمالي الأفراد: <strong>${totalPeopleCount()}</strong><br>
                 عدد الرسائل: <strong>${appState.messages.length}</strong><br>
-                عدد الطلبات المحلية: <strong>${appState.requests.length}</strong><br>
+                عدد الطلبات: <strong>${appState.requests.length}</strong><br>
                 عدد السجلات في الأرشيف: <strong>${appState.changeLog.length}</strong>
               </div>
             </div>
@@ -1948,7 +2199,7 @@
               <div style="display:flex;gap:8px;flex-wrap:wrap;">
                 <button class="btn-main" onclick="exportBackup()">تصدير JSON</button>
                 <button class="btn-soft" onclick="switchAdminTab('messages')">فتح الرسائل</button>
-                <button class="btn-soft" onclick="switchAdminTab('add')">إضافة اسم</button>
+                <button class="btn-soft" onclick="switchAdminTab('requests')">فتح الطلبات</button>
               </div>
             </div>
           </div>
@@ -1972,6 +2223,32 @@
                     </div>
                   `).join("")
                   : `<div class="list-item">لا توجد رسائل بعد.</div>`
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-section" id="admin-requests">
+          <div class="subbox">
+            <h3>طلبات الإضافة</h3>
+            <div class="list-box">
+              ${
+                appState.requests.length
+                  ? appState.requests.map((r, idx)=>`
+                    <div class="list-item">
+                      <strong>${r.type}</strong> — ${r.target}<br>
+                      <span class="small">${r.time}</span><br>
+                      ${r.senderName ? `<span class="small">المرسل: ${r.senderName}</span><br>` : ""}
+                      ${r.childName ? `<span class="small">الاسم المطلوب إضافته: ${r.childName}</span><br>` : ""}
+                      ${r.childrenText ? `<span class="small">الأبناء المقترحون: ${r.childrenText}</span><br>` : ""}
+                      <div style="margin-top:8px;line-height:1.9;white-space:pre-line;">${r.body}</div>
+                      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+                        <button class="btn-ok" onclick="markRequestDone(${idx})">اعتماد</button>
+                        <button class="btn-danger" onclick="deleteRequest(${idx})">حذف</button>
+                      </div>
+                    </div>
+                  `).join("")
+                  : `<div class="list-item">لا توجد طلبات.</div>`
               }
             </div>
           </div>
@@ -2015,46 +2292,6 @@
           </div>
         </div>
 
-        <div class="admin-section" id="admin-requests">
-          <div class="admin-grid">
-            <div class="subbox">
-              <h3>إنشاء طلب محلي</h3>
-              <div class="note-form">
-                <select class="field" id="requestType">
-                  <option>إضافة</option>
-                  <option>تصحيح</option>
-                  <option>دمج</option>
-                  <option>نقل</option>
-                </select>
-                <input class="field" id="requestTarget" placeholder="الاسم أو الفرع المستهدف" />
-                <textarea class="textarea" id="requestBody" placeholder="اكتب تفاصيل الطلب..."></textarea>
-                <button class="btn-main" onclick="addLocalRequest()">حفظ الطلب</button>
-              </div>
-            </div>
-
-            <div class="subbox">
-              <h3>الطلبات</h3>
-              <div class="list-box">
-                ${
-                  appState.requests.length
-                    ? appState.requests.map((r, idx)=>`
-                      <div class="list-item">
-                        <strong>${r.type}</strong> — ${r.target}<br>
-                        <span class="small">${r.time}</span>
-                        <div style="margin-top:8px;line-height:1.9;">${r.body}</div>
-                        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
-                          <button class="btn-ok" onclick="markRequestDone(${idx})">اعتماد</button>
-                          <button class="btn-danger" onclick="deleteRequest(${idx})">حذف</button>
-                        </div>
-                      </div>
-                    `).join("")
-                    : `<div class="list-item">لا توجد طلبات.</div>`
-                }
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div class="admin-section" id="admin-relation">
           <div class="admin-grid">
             <div class="subbox">
@@ -2067,8 +2304,8 @@
               </div>
             </div>
             <div class="subbox">
-              <h3>صفحة من أكون؟</h3>
-              <div class="meta">موجودة أيضًا للعامة من الشريط العلوي.</div>
+              <h3>النسب الفردي</h3>
+              <div class="meta">متاح أيضًا من الزر الصغير بجانب كل اسم.</div>
             </div>
           </div>
         </div>
@@ -2112,8 +2349,7 @@
               <div class="meta">
                 إجمالي الأفراد: <strong>${totalPeopleCount()}</strong><br>
                 عدد الفروع الرئيسية: <strong>${branchRoots().length}</strong><br>
-                أكثر جيل عدداً: <strong>${Object.entries(generationStats).sort((a,b)=>b[1]-a[1])[0]?.[0] || "-"}</strong><br>
-                أكبر فرع رئيسي: <strong>${largestMainBranchName()}</strong>
+                أكثر جيل عدداً: <strong>${Object.entries(generationStats).sort((a,b)=>b[1]-a[1])[0]?.[0] || "-"}</strong>
               </div>
             </div>
             <div class="subbox">
@@ -2232,22 +2468,8 @@
       if (!q) return box.innerHTML = "";
       const res = suggestParentForName(q);
       box.innerHTML = res.length
-        ? `<div class="list-box" style="margin-top:10px;">${
-            res.map(r => `<div class="list-item">${r.name}</div>`).join("")
-          }</div>`
+        ? `<div class="list-box" style="margin-top:10px;">${res.map(r => `<div class="list-item">${r.name}</div>`).join("")}</div>`
         : `<div class="list-item" style="margin-top:10px;">لا توجد اقتراحات.</div>`;
-    }
-
-    function addLocalRequest() {
-      const type = document.getElementById("requestType").value;
-      const target = document.getElementById("requestTarget").value.trim();
-      const body = document.getElementById("requestBody").value.trim();
-      if (!target || !body) return alert("أكمل بيانات الطلب");
-      appState.requests.unshift({ type, target, body, time: new Date().toLocaleString("ar") });
-      saveState();
-      logChange("إضافة طلب جديد: " + type);
-      showAdminPage();
-      switchAdminTab("requests");
     }
 
     function deleteRequest(idx) {
@@ -2281,15 +2503,6 @@
           ${r.pathB.map(id => "← " + people[id].name).join("<br>")}
         </div>
       `;
-    }
-
-    function largestMainBranchName() {
-      let best = null;
-      branchRoots().forEach(id => {
-        const count = getDescendantsCount(id);
-        if (!best || count > best.count) best = { id, count };
-      });
-      return best ? people[best.id].name : "-";
     }
 
     function saveDisplaySettings() {
