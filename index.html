@@ -2503,13 +2503,55 @@
       switchAdminTab("requests");
     }
 
-    function markRequestDone(idx) {
-      const item = appState.requests[idx];
-      if (item) logChange("اعتماد طلب: " + item.type + " - " + item.target);
-      appState.requests.splice(idx,1);
-      saveState();
-      showAdminPage();
-      switchAdminTab("requests");
+    function createPersonNode(name, note = "") {
+     const newId = "u" + Date.now() + Math.floor(Math.random() * 1000);
+     people[newId] = {
+     name: name.trim(),
+     note: note.trim(),
+    children: []
+  };
+  return newId;
+}
+
+function markRequestDone(idx) {
+  const item = appState.requests[idx];
+  if (!item) return;
+
+  if (item.type === "إضافة" && item.parentId && item.childName) {
+    const parentId = item.parentId;
+    const childName = String(item.childName || "").trim();
+
+    if (people[parentId] && childName) {
+      const mainChildId = createPersonNode(childName);
+      people[parentId].children.push(mainChildId);
+
+      if (item.childrenText && String(item.childrenText).trim()) {
+        const childrenNames = String(item.childrenText)
+          .split(",")
+          .map(name => name.trim())
+          .filter(Boolean);
+
+        childrenNames.forEach(name => {
+          const subChildId = createPersonNode(name);
+          people[mainChildId].children.push(subChildId);
+        });
+      }
+
+      logChange("اعتماد طلب وإضافة الاسم: " + childName + " تحت " + people[parentId].name);
+    } else {
+      logChange("تم اعتماد طلب لكن تعذر الإضافة لعدم اكتمال البيانات");
+    }
+  } else {
+    logChange("اعتماد طلب: " + item.type + " - " + item.target);
+  }
+
+  appState.requests.splice(idx, 1);
+  saveState();
+
+  showAdminPage();
+  switchAdminTab("requests");
+  render(currentPerson);
+}
     }
 
     function runRelation() {
