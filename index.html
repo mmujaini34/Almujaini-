@@ -2198,21 +2198,6 @@ const people = {
     alert("تعذر إرسال الرسالة حاليًا");
   }
 }
-        alert("اكتب الرسالة أولًا");
-        return;
-      }
-      appState.messages.unshift({
-        name: name || "بدون اسم",
-        type,
-        body,
-        time: new Date().toLocaleString("ar")
-      });
-      saveState();
-      logChange("استلام رسالة جديدة من القسم العام");
-      document.getElementById("msgName").value = "";
-      document.getElementById("msgBody").value = "";
-      alert("تم إرسال الرسالة");
-    }
 
     function openAdminPassword() {
       document.getElementById("adminPasswordInput").value = "";
