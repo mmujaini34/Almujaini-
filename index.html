@@ -4,360 +4,648 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>شجرة عائلة محمد بن حميد المجيني</title>
-
   <style>
     :root{
-      --main:#123c69;
-      --main2:#2a5d84;
-      --gold:#b8924a;
-      --bg:#eef2f5;
-      --text:#1f2937;
-      --muted:#5f6b7a;
-      --card:rgba(255,255,255,0.95);
-      --line:#d7e0e8;
+      --main:#6f7b5c;
+      --main2:#8a9575;
+      --gold:#b89b5e;
+      --bg:#f6f3ed;
+      --text:#2f352c;
+      --muted:#6e7468;
+      --line:#ddd7cb;
+      --card:#fffdf9;
+      --danger:#a94e4e;
+      --ok:#4f7a57;
+      --shadow:0 8px 24px rgba(0,0,0,.06);
     }
 
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      padding: 14px;
-      background: var(--bg);
-      font-family: Tahoma, Arial, sans-serif;
-      color: var(--text);
-      position: relative;
-      overflow-x: hidden;
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:Tahoma, Arial, sans-serif;
+      overflow-x:hidden;
     }
 
-    body::before{
-      content:"";
-      position: fixed;
-      inset: 0;
-      background:
-        linear-gradient(rgba(255,255,255,0.82), rgba(255,255,255,0.82)),
-        url("./bg-mujaini.jpg") center center / cover no-repeat;
-      opacity: 0.42;
-      pointer-events: none;
-      z-index: -1;
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:1000;
+      background:rgba(246,243,237,.92);
+      backdrop-filter:blur(8px);
+      border-bottom:1px solid var(--line);
     }
 
-    .box {
-      max-width: 1020px;
-      margin: auto;
+    .topbar-inner{
+      max-width:1150px;
+      margin:auto;
+      padding:10px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
     }
 
-    .header {
-      background: linear-gradient(135deg, rgba(18,60,105,0.95), rgba(42,93,132,0.93));
-      color: white;
-      padding: 24px 18px;
-      border-radius: 20px;
-      margin-bottom: 14px;
-      text-align: center;
-      box-shadow: 0 10px 24px rgba(0,0,0,0.08);
-      border: 1px solid rgba(255,255,255,0.15);
+    .brand{
+      font-weight:700;
+      color:var(--main);
+      font-size:18px;
+      white-space:nowrap;
     }
 
-    .header h1 {
-      margin: 0 0 8px 0;
-      font-size: 27px;
+    .top-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
     }
 
-    .header p {
-      margin: 0;
-      line-height: 1.95;
-      font-size: 14px;
-      opacity: 0.98;
+    .btn,
+    button{
+      border:none;
+      border-radius:12px;
+      padding:10px 12px;
+      cursor:pointer;
+      font-family:inherit;
+      font-size:14px;
+      transition:.18s ease;
     }
 
-    .search-box,
+    .btn-main,
+    .top-actions button{
+      background:var(--main);
+      color:white;
+      box-shadow:0 4px 12px rgba(111,123,92,.16);
+    }
+
+    .btn-main:hover,
+    .top-actions button:hover{
+      background:var(--main2);
+    }
+
+    .btn-soft{
+      background:#efe9dc;
+      color:var(--text);
+    }
+
+    .btn-danger{
+      background:var(--danger);
+      color:#fff;
+    }
+
+    .btn-ok{
+      background:var(--ok);
+      color:#fff;
+    }
+
+    .icon-btn{
+      width:42px;
+      height:42px;
+      border-radius:50%;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-size:18px;
+      padding:0;
+    }
+
+    .page{
+      max-width:1150px;
+      margin:auto;
+      padding:14px 12px 28px;
+    }
+
+    .hero{
+      background:linear-gradient(135deg,var(--main),var(--main2));
+      color:#fff;
+      border-radius:22px;
+      padding:24px 18px;
+      box-shadow:var(--shadow);
+      margin-bottom:14px;
+    }
+
+    .hero h1{
+      margin:0 0 8px;
+      font-size:28px;
+    }
+
+    .hero p{
+      margin:0;
+      line-height:1.9;
+      font-size:14px;
+      opacity:.96;
+    }
+
+    .panel,
     .title,
-    .info-box,
-    .footer,
-    .about-box {
-      background: var(--card);
-      backdrop-filter: blur(2px);
+    .search-box,
+    .stats-strip,
+    .about-box,
+    .admin-page,
+    .person-page,
+    .messages-box{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:20px;
+      box-shadow:var(--shadow);
     }
 
-    .search-box {
-      padding: 12px;
-      border-radius: 18px;
-      margin-bottom: 12px;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.05);
-      border: 1px solid var(--line);
+    .search-box{
+      padding:12px;
+      margin-bottom:12px;
     }
 
-    .search-box input {
-      width: 100%;
-      padding: 14px 14px;
-      font-size: 16px;
-      border: 1px solid #cfd8e3;
-      border-radius: 12px;
-      box-sizing: border-box;
-      outline: none;
-      background: white;
+    .search-box input,
+    .search-box select,
+    .field,
+    .textarea{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:13px 12px;
+      font-family:inherit;
+      font-size:15px;
+      background:#fff;
+      outline:none;
     }
 
-    .search-box input:focus {
-      border-color: var(--main);
-      box-shadow: 0 0 0 3px rgba(18,60,105,0.08);
+    .search-box input:focus,
+    .field:focus,
+    .textarea:focus{
+      border-color:var(--main);
+      box-shadow:0 0 0 3px rgba(111,123,92,.08);
     }
 
-    .tools {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-bottom: 12px;
+    .toolbar{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:8px;
+      margin-bottom:12px;
     }
 
-    .tools button {
-      border: none;
-      border-radius: 12px;
-      padding: 12px;
-      background: var(--main);
-      color: white;
-      font-size: 14px;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(18,60,105,0.14);
+    .title{
+      padding:16px;
+      margin-bottom:10px;
+      text-align:center;
+      color:var(--main);
+      font-size:22px;
+      font-weight:700;
     }
 
-    .tools button:hover {
-      background: var(--main2);
+    .breadcrumb{
+      text-align:center;
+      margin-bottom:10px;
     }
 
-    .title {
-      padding: 18px;
-      border-radius: 18px;
-      margin-bottom: 10px;
-      font-size: 22px;
-      font-weight: bold;
-      color: var(--main);
-      text-align: center;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.05);
-      border: 1px solid var(--line);
+    .breadcrumb button{
+      background:#ece8dd;
+      color:var(--text);
+      margin:4px;
+      padding:8px 10px;
+      border-radius:999px;
     }
 
-    .breadcrumb {
-      margin-bottom: 10px;
-      text-align: center;
+    .stats-strip{
+      padding:14px;
+      margin-bottom:12px;
+      line-height:2;
+      border-right:5px solid var(--gold);
     }
 
-    .breadcrumb button {
-      margin: 4px;
-      padding: 8px 12px;
-      border: none;
-      border-radius: 20px;
-      background: #e8f0f7;
-      color: var(--main);
-      cursor: pointer;
-      font-size: 13px;
+    .quick-branches{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin:0 0 12px;
     }
 
-    .info-box {
-      padding: 15px;
-      border-radius: 18px;
-      margin-bottom: 12px;
-      line-height: 2;
-      border-right: 5px solid var(--gold);
-      box-shadow: 0 4px 14px rgba(0,0,0,0.05);
-      border-left: 1px solid var(--line);
-      border-top: 1px solid var(--line);
-      border-bottom: 1px solid var(--line);
+    .quick-branches button{
+      background:#eee8da;
+      color:var(--text);
+      border-radius:999px;
+      padding:8px 12px;
+      font-size:13px;
     }
 
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
-      gap: 12px;
+    .cards{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+      gap:12px;
     }
 
-    .card {
-      background: rgba(255,255,255,0.96);
-      padding: 15px;
-      border-radius: 18px;
-      cursor: pointer;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.05);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-      border: 1px solid var(--line);
+    .card{
+      background:#fff;
+      border:1px solid var(--line);
+      border-top:4px solid var(--main);
+      border-radius:18px;
+      padding:14px;
+      cursor:pointer;
+      box-shadow:var(--shadow);
+      transition:.18s ease;
+      position:relative;
     }
 
-    .card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 22px rgba(0,0,0,0.08);
+    .card:hover{
+      transform:translateY(-2px);
     }
 
-    .card-has-children {
-      border-top: 4px solid var(--main);
+    .card.no-children{
+      border-top-color:var(--gold);
+      background:#fffdfa;
     }
 
-    .card-no-children {
-      border-top: 4px solid var(--gold);
-      background: rgba(252,252,252,0.98);
+    .name-row{
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      align-items:flex-start;
+      margin-bottom:8px;
     }
 
-    .name-row {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 8px;
+    .name{
+      font-weight:700;
+      font-size:18px;
+      line-height:1.6;
     }
 
-    .name {
-      font-size: 18px;
-      font-weight: bold;
-      color: #111827;
-      line-height: 1.6;
+    .gen-badge{
+      flex-shrink:0;
+      background:#f4efdf;
+      color:#846830;
+      border:1px solid #eadab7;
+      border-radius:999px;
+      padding:5px 8px;
+      font-size:11px;
     }
 
-    .generation-badge {
-      flex-shrink: 0;
-      font-size: 11px;
-      background: #f5ecd9;
-      color: #8a6a2b;
-      padding: 5px 9px;
-      border-radius: 999px;
-      white-space: nowrap;
-      border: 1px solid #ead9b0;
+    .meta{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.9;
     }
 
-    .meta {
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.9;
+    .tag{
+      display:inline-block;
+      margin-top:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
+      background:#efefe8;
+      color:var(--main);
     }
 
-    .tag {
-      display: inline-block;
-      margin-top: 8px;
-      padding: 6px 10px;
-      border-radius: 20px;
-      font-size: 12px;
-      background: #edf4fb;
-      color: var(--main);
+    .status-badge{
+      display:inline-block;
+      margin-top:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
+      background:#f8f2e6;
+      color:#8d6f36;
+      border:1px solid #eadab7;
     }
 
-    .about-box {
-      padding: 18px;
-      border-radius: 18px;
-      line-height: 2.1;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.05);
-      grid-column: 1 / -1;
-      border: 1px solid var(--line);
+    .person-page,
+    .admin-page{
+      padding:18px;
     }
 
-    .about-box h2 {
-      color: var(--main);
-      margin-top: 0;
-      margin-bottom: 12px;
-      font-size: 24px;
+    .person-grid,
+    .admin-grid{
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:14px;
     }
 
-    .about-box h3 {
-      color: var(--gold);
-      margin-top: 18px;
-      margin-bottom: 8px;
-      font-size: 18px;
+    .subbox{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
     }
 
-    .about-box p {
-      margin: 0 0 12px 0;
-      font-size: 15px;
+    .subbox h3,
+    .subbox h4{
+      margin:0 0 10px;
+      color:var(--main);
     }
 
-    .about-box ul {
-      margin: 0 0 12px 0;
-      padding-right: 20px;
+    .children-list{
+      display:grid;
+      gap:8px;
     }
 
-    .about-box li {
-      margin-bottom: 6px;
-      font-size: 15px;
+    .children-item{
+      background:#faf8f2;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px;
+      cursor:pointer;
     }
 
-    .footer {
-      padding: 16px;
-      border-radius: 18px;
-      margin-top: 16px;
-      text-align: center;
-      line-height: 2;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.05);
-      border: 1px solid var(--line);
+    .about-wrap{
+      position:relative;
+    }
+
+    .about-wrap::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(rgba(255,255,255,.66), rgba(255,255,255,.66)),
+        url("bg-mujaini.jpg") center center / cover no-repeat;
+      opacity:.82;
+      border-radius:20px;
+      pointer-events:none;
+    }
+
+    .about-box{
+      position:relative;
+      padding:18px;
+      overflow:hidden;
+    }
+
+    .about-box h2{
+      margin:0 0 12px;
+      color:var(--main);
+      font-size:24px;
+    }
+
+    .about-box details{
+      background:rgba(255,255,255,.82);
+      border:1px solid var(--line);
+      border-radius:14px;
+      margin-bottom:10px;
+      overflow:hidden;
+    }
+
+    .about-box summary{
+      cursor:pointer;
+      padding:14px;
+      font-weight:700;
+      color:var(--main);
+      list-style:none;
+    }
+
+    .about-box summary::-webkit-details-marker{display:none}
+    .about-content{
+      padding:0 14px 14px;
+      line-height:2;
+      color:var(--text);
+      font-size:15px;
+    }
+
+    .note-form{
+      display:grid;
+      gap:10px;
+    }
+
+    .textarea{
+      min-height:120px;
+      resize:vertical;
+    }
+
+    .footer{
+      margin-top:16px;
+      padding:16px;
+      text-align:center;
+      line-height:2;
     }
 
     .footer .line0,
     .footer .line1,
-    .footer .line2 {
-      color: var(--main);
+    .footer .line2{
+      color:var(--main);
+      font-weight:700;
     }
 
-    .footer .line0 {
-      font-size: 15px;
-      font-weight: bold;
+    .footer .line1{
+      font-size:18px;
     }
 
-    .footer .line1 {
-      font-size: 18px;
-      font-weight: bold;
+    .modal{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.35);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:2000;
+      padding:20px;
     }
 
-    .footer .line2 {
-      font-size: 14px;
-      font-weight: bold;
+    .modal.active{display:flex}
+
+    .modal-box{
+      width:100%;
+      max-width:420px;
+      background:#fff;
+      border-radius:18px;
+      padding:18px;
+      box-shadow:0 16px 40px rgba(0,0,0,.18);
     }
 
-    @media (max-width: 760px) {
-      .tools {
-        grid-template-columns: 1fr;
-      }
+    .modal-title{
+      color:var(--main);
+      font-weight:700;
+      font-size:18px;
+      margin-bottom:10px;
+    }
 
-      .name {
-        font-size: 16px;
-      }
+    .modal-text{
+      line-height:1.9;
+      color:var(--text);
+      font-size:14px;
+      margin-bottom:14px;
+    }
 
-      .generation-badge {
-        font-size: 10px;
-      }
+    .modal-actions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
 
-      .header h1 {
-        font-size: 23px;
+    .hidden{display:none !important}
+
+    .admin-tabs{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+
+    .admin-tabs button{
+      background:#efe9dc;
+      color:var(--text);
+      border-radius:999px;
+      padding:8px 12px;
+    }
+
+    .admin-section{
+      display:none;
+    }
+
+    .admin-section.active{
+      display:block;
+    }
+
+    .list-box{
+      display:grid;
+      gap:10px;
+    }
+
+    .list-item{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:10px;
+    }
+
+    .small{
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .timeline-grid{
+      display:grid;
+      gap:10px;
+    }
+
+    .timeline-item{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+    }
+
+    .top-note{
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:10px;
+      line-height:1.8;
+    }
+
+    @media (max-width:900px){
+      .person-grid,
+      .admin-grid{
+        grid-template-columns:1fr;
       }
+    }
+
+    @media (max-width:760px){
+      .toolbar{grid-template-columns:1fr}
+      .topbar-inner{flex-direction:column; align-items:stretch}
+      .brand{text-align:center}
+      .top-actions{justify-content:center}
+      .row{grid-template-columns:1fr}
+      .hero h1{font-size:24px}
+      .title{font-size:20px}
+      .name{font-size:16px}
     }
   </style>
 </head>
 <body>
-  <div class="box">
-    <div class="header">
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">شجرة عائلة محمد بن حميد المجيني</div>
+      <div class="top-actions">
+        <button onclick="goRoot()">الرئيسية</button>
+        <button onclick="showAbout()">📜 نبذة عن قبيلة المجيني</button>
+        <button onclick="showWhoAmI()">من أكون؟</button>
+        <button class="icon-btn" onclick="openAdminPassword()">⚙️</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="mainPage">
+    <div class="hero">
       <h1>شجرة عائلة محمد بن حميد المجيني</h1>
-      <p>اضغط على اسم أي أب لعرض أبنائه، ويمكنك استخدام البحث للوصول إلى الأسماء القريبة حتى لو كان الاسم مختلفًا أو ناقصًا.</p>
+      <p>واجهة عائلية تفاعلية للبحث والتنقل بين الفروع، مع صفحة نبذة عن القبيلة، وملاحظات ومقترحات، ولوحة إدارة مستقلة.</p>
     </div>
 
     <div class="search-box">
-      <input type="text" id="searchInput" placeholder="ابحث عن اسم ثلاثي أو رباعي أو خماسي..." />
+      <input id="searchInput" type="text" placeholder="ابحث عن اسم ثلاثي أو رباعي أو خماسي..." />
     </div>
 
-    <div class="tools">
-      <button onclick="showAbout()">نبذة عن قبيلة المجيني</button>
-      <button onclick="goRoot()">الرجوع للجذر</button>
-      <button onclick="goBack()">رجوع خطوة</button>
+    <div class="toolbar">
+      <button class="btn-main" onclick="goRoot()">الرجوع للجذر</button>
+      <button class="btn-main" onclick="goBack()">رجوع خطوة</button>
+      <button class="btn-main" onclick="shareCurrent()">مشاركة الرابط</button>
+      <button class="btn-main" onclick="showTimeline()">الشجرة الزمنية</button>
     </div>
 
     <div class="title" id="title">محمد بن حميد المجيني</div>
     <div class="breadcrumb" id="breadcrumb"></div>
-    <div id="infoBar"></div>
+    <div class="quick-branches" id="quickBranches"></div>
+    <div class="stats-strip" id="infoBar"></div>
     <div class="cards" id="content"></div>
+
+    <div class="messages-box panel" style="margin-top:16px;padding:16px;">
+      <h3 style="margin:0 0 12px;color:var(--main);">💬 ملاحظات ومقترحات</h3>
+      <div class="top-note">يمكنك إرسال ملاحظة أو شكر أو تصحيح أو اقتراح. الاسم اختياري.</div>
+      <div class="note-form">
+        <input class="field" id="msgName" placeholder="الاسم (اختياري)" />
+        <select class="field" id="msgType">
+          <option>ملاحظة</option>
+          <option>شكر</option>
+          <option>تصحيح</option>
+          <option>اقتراح</option>
+          <option>استفسار</option>
+          <option>أخرى</option>
+        </select>
+        <textarea class="textarea" id="msgBody" placeholder="اكتب رسالتك هنا..."></textarea>
+        <button class="btn-main" onclick="submitPublicMessage()">إرسال الرسالة</button>
+      </div>
+    </div>
 
     <div class="footer">
       <div class="line0">إعداد هذا العمل</div>
-      <div class="line1">محمد علي المجيني</div>
+      <div class="line1">محمد بن علي بن حسن المجيني</div>
       <div class="line2">اللهم اغفر لأحيائنا وأمواتنا وارحمهم برحمتك الواسعة</div>
     </div>
   </div>
 
-  <script>
-    var contactNumber = "96896040406";
-    var rootId = "p1";
+  <div class="page hidden" id="aboutPage"></div>
+  <div class="page hidden" id="personPage"></div>
+  <div class="page hidden" id="adminPage"></div>
 
-    var people = {
+  <div class="modal" id="confirmModal">
+    <div class="modal-box">
+      <div class="modal-title">إضافة أو تعديل البيانات</div>
+      <div class="modal-text" id="confirmText">هل تريد فتح واتساب؟</div>
+      <div class="modal-actions">
+        <button class="btn-soft" onclick="closeConfirmModal()">إلغاء</button>
+        <button class="btn-main" onclick="confirmWhatsApp()">فتح واتساب</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="adminPasswordModal">
+    <div class="modal-box">
+      <div class="modal-title">دخول الإدارة</div>
+      <div class="modal-text">أدخل كلمة المرور لفتح صفحة الإدارة.</div>
+      <input class="field" type="password" id="adminPasswordInput" placeholder="كلمة المرور" />
+      <div class="modal-actions" style="margin-top:12px;">
+        <button class="btn-soft" onclick="closeAdminPassword()">إلغاء</button>
+        <button class="btn-main" onclick="enterAdmin()">دخول</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const contactNumber = "96896040406";
+    const rootId = "p1";
+    const STORAGE_KEY = "mujaini_tree_app_v4";
+    const DEFAULT_PASSWORD = "Mujaini34";
+
+    const people = {
       "p1": { name: "محمد بن حميد المجيني", note: "", children: ["p2","p3","p4","p5","p6","p7","p8","p9","p10"] },
 
       "p2": { name: "صالحة بنت محمد", note: "", children: [] },
@@ -807,8 +1095,51 @@
       "p149": { name: "علياء", note: "", children: [] }
     };
 
-    var currentPerson = rootId;
-    var historyStack = [rootId];
+    let currentPerson = rootId;
+    let historyStack = [rootId];
+    let pendingWhatsAppId = null;
+    let modalOpen = false;
+    let currentView = "tree";
+    let currentDisplayMode = "cards";
+    let appState = loadState();
+
+    function defaultState() {
+      return {
+        adminPassword: DEFAULT_PASSWORD,
+        messages: [],
+        requests: [],
+        changeLog: [],
+        statuses: {},
+        settings: {
+          showCounts: true,
+          showGeneration: true,
+          showStatuses: true
+        }
+      };
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return defaultState();
+        return { ...defaultState(), ...JSON.parse(raw) };
+      } catch (e) {
+        return defaultState();
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+    }
+
+    function logChange(text) {
+      appState.changeLog.unshift({
+        text,
+        time: new Date().toLocaleString("ar")
+      });
+      if (appState.changeLog.length > 100) appState.changeLog.pop();
+      saveState();
+    }
 
     function normalizeArabic(text) {
       return String(text || "")
@@ -827,23 +1158,18 @@
     function levenshtein(a, b) {
       a = normalizeArabic(a);
       b = normalizeArabic(b);
-      var matrix = [];
-      var i, j;
+      const matrix = [];
+      for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+      for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
 
-      for (i = 0; i <= b.length; i++) matrix[i] = [i];
-      for (j = 0; j <= a.length; j++) matrix[0][j] = j;
-
-      for (i = 1; i <= b.length; i++) {
-        for (j = 1; j <= a.length; j++) {
-          if (b.charAt(i - 1) === a.charAt(j - 1)) {
-            matrix[i][j] = matrix[i - 1][j - 1];
-          } else {
-            matrix[i][j] = Math.min(
-              matrix[i - 1][j - 1] + 1,
-              matrix[i][j - 1] + 1,
-              matrix[i - 1][j] + 1
-            );
-          }
+      for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+          if (b.charAt(i - 1) === a.charAt(j - 1)) matrix[i][j] = matrix[i - 1][j - 1];
+          else matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j] + 1
+          );
         }
       }
       return matrix[b.length][a.length];
@@ -852,16 +1178,15 @@
     function similarityScore(query, target) {
       query = normalizeArabic(query);
       target = normalizeArabic(target);
-
       if (!query || !target) return 0;
       if (target.indexOf(query) !== -1) return 100;
 
-      var queryParts = query.split(" ").filter(Boolean);
-      var targetParts = target.split(" ").filter(Boolean);
+      const queryParts = query.split(" ").filter(Boolean);
+      const targetParts = target.split(" ").filter(Boolean);
 
-      var partHits = 0;
-      for (var i = 0; i < queryParts.length; i++) {
-        for (var j = 0; j < targetParts.length; j++) {
+      let partHits = 0;
+      for (let i = 0; i < queryParts.length; i++) {
+        for (let j = 0; j < targetParts.length; j++) {
           if (
             targetParts[j].indexOf(queryParts[i]) !== -1 ||
             queryParts[i].indexOf(targetParts[j]) !== -1
@@ -872,16 +1197,16 @@
         }
       }
 
-      var partScore = (partHits / Math.max(queryParts.length, 1)) * 70;
-      var distance = levenshtein(query, target);
-      var maxLen = Math.max(query.length, target.length) || 1;
-      var editScore = Math.max(0, 30 - (distance / maxLen) * 30);
+      const partScore = (partHits / Math.max(queryParts.length, 1)) * 70;
+      const distance = levenshtein(query, target);
+      const maxLen = Math.max(query.length, target.length) || 1;
+      const editScore = Math.max(0, 30 - (distance / maxLen) * 30);
 
       return partScore + editScore;
     }
 
     function hasChildren(id) {
-      return people[id] && people[id].children && people[id].children.length > 0;
+      return people[id] && Array.isArray(people[id].children) && people[id].children.length > 0;
     }
 
     function getChildrenCount(id) {
@@ -890,9 +1215,8 @@
 
     function getDescendantsCount(id) {
       if (!people[id] || !people[id].children) return 0;
-      var total = 0;
-      for (var i = 0; i < people[id].children.length; i++) {
-        var childId = people[id].children[i];
+      let total = 0;
+      for (const childId of people[id].children) {
         total += 1 + getDescendantsCount(childId);
       }
       return total;
@@ -901,10 +1225,10 @@
     function getGeneration(id) {
       function walk(nodeId, depth) {
         if (nodeId === id) return depth;
-        var node = people[nodeId];
+        const node = people[nodeId];
         if (!node || !node.children) return null;
-        for (var i = 0; i < node.children.length; i++) {
-          var found = walk(node.children[i], depth + 1);
+        for (const child of node.children) {
+          const found = walk(child, depth + 1);
           if (found !== null) return found;
         }
         return null;
@@ -917,53 +1241,180 @@
     }
 
     function getLineage(id) {
-      var path = [];
-
+      let path = [];
       function walk(nodeId, currentPath) {
-        var nextPath = currentPath.concat(nodeId);
+        const nextPath = currentPath.concat(nodeId);
         if (nodeId === id) {
           path = nextPath;
           return true;
         }
-        var node = people[nodeId];
+        const node = people[nodeId];
         if (!node || !node.children) return false;
-        for (var i = 0; i < node.children.length; i++) {
-          if (walk(node.children[i], nextPath)) return true;
+        for (const child of node.children) {
+          if (walk(child, nextPath)) return true;
         }
         return false;
       }
-
       walk(rootId, []);
       return path;
     }
 
     function getLineageText(id) {
-      var lineage = getLineage(id);
-      var names = [];
-      for (var i = 0; i < lineage.length; i++) {
-        names.push(people[lineage[i]].name);
-      }
-      return names.join(" ← ");
+      return getLineage(id).map(x => people[x].name).join(" ← ");
     }
 
-    function getCardClass(id) {
-      return hasChildren(id) ? "card card-has-children" : "card card-no-children";
+    function getParentId(id) {
+      for (const key in people) {
+        if (people[key].children.includes(id)) return key;
+      }
+      return null;
+    }
+
+    function totalPeopleCount() {
+      return Object.keys(people).length;
+    }
+
+    function getGenerationStats() {
+      const stats = {};
+      for (const id in people) {
+        const g = getGeneration(id);
+        stats[g] = (stats[g] || 0) + 1;
+      }
+      return stats;
+    }
+
+    function branchRoots() {
+      return people[rootId].children;
+    }
+
+    function countNamesFrequency() {
+      const map = {};
+      for (const id in people) {
+        const n = normalizeArabic(people[id].name);
+        map[n] = (map[n] || 0) + 1;
+      }
+      return map;
+    }
+
+    function detectDuplicateNames() {
+      const freq = countNamesFrequency();
+      const out = [];
+      for (const id in people) {
+        const n = normalizeArabic(people[id].name);
+        if (freq[n] > 1) out.push({ id, name: people[id].name, count: freq[n] });
+      }
+      return out;
+    }
+
+    function suggestParentForName(name) {
+      const tokens = normalizeArabic(name).split(" ").filter(Boolean);
+      const results = [];
+      for (const id in people) {
+        const personName = normalizeArabic(people[id].name);
+        let score = 0;
+        tokens.forEach(t => { if (personName.includes(t)) score += 1; });
+        if (score > 0) results.push({ id, score, name: people[id].name });
+      }
+      results.sort((a,b)=>b.score-a.score);
+      return results.slice(0,5);
+    }
+
+    function relationBetween(idA, idB) {
+      const pathA = getLineage(idA);
+      const pathB = getLineage(idB);
+      let i = 0;
+      while (i < pathA.length && i < pathB.length && pathA[i] === pathB[i]) i++;
+      const common = pathA[i - 1];
+      return {
+        common,
+        pathA: pathA.slice(i - 1),
+        pathB: pathB.slice(i - 1)
+      };
+    }
+
+    function getStatus(id) {
+      return appState.statuses[id] || "";
+    }
+
+    function setStatus(id, value) {
+      appState.statuses[id] = value;
+      saveState();
+      logChange("تعديل حالة الفرع: " + people[id].name + " → " + value);
+    }
+
+    function copyText(text) {
+      navigator.clipboard.writeText(text);
+      alert("تم النسخ");
+    }
+
+    function hideAllPages() {
+      document.getElementById("mainPage").classList.add("hidden");
+      document.getElementById("aboutPage").classList.add("hidden");
+      document.getElementById("personPage").classList.add("hidden");
+      document.getElementById("adminPage").classList.add("hidden");
+    }
+
+    function routeToHash() {
+      const h = location.hash.replace("#","");
+      if (!h) {
+        showTreePage();
+        render(rootId);
+        return;
+      }
+      if (h.startsWith("person=")) {
+        const id = h.split("=")[1];
+        if (people[id]) showPersonPage(id);
+        else { showTreePage(); render(rootId); }
+        return;
+      }
+      if (h === "about") return showAbout(false);
+      if (h === "timeline") return showTimeline(false);
+      if (h === "whoami") return showWhoAmI(false);
+      if (people[h]) {
+        showTreePage();
+        currentPerson = h;
+        historyStack = getLineage(h);
+        render(h);
+        return;
+      }
+      showTreePage();
+      render(rootId);
     }
 
     function openWhatsApp(id) {
-      var fullLineage = getLineageText(id);
-      var message = "السلام عليكم، أرغب في إضافة أو تعديل بيانات في شجرة العائلة بخصوص: " + fullLineage;
+      const fullLineage = getLineageText(id);
+      const message = "السلام عليكم، أرغب في إضافة أو تعديل بيانات في شجرة العائلة بخصوص: " + fullLineage;
 
-      var number = contactNumber.replace(/[^\d]/g, "");
-      var waLink = "https://wa.me/" + number + "?text=" + encodeURIComponent(message);
-      var fallbackLink = "https://api.whatsapp.com/send?phone=" + number + "&text=" + encodeURIComponent(message);
+      const number = contactNumber.replace(/[^\d]/g, "");
+      const waLink = "https://wa.me/" + number + "?text=" + encodeURIComponent(message);
+      const fallbackLink = "https://api.whatsapp.com/send?phone=" + number + "&text=" + encodeURIComponent(message);
+      const isAndroid = /Android/i.test(navigator.userAgent);
 
-      var isAndroid = /Android/i.test(navigator.userAgent);
+      if (isAndroid) window.location.href = fallbackLink;
+      else window.location.href = waLink;
+    }
 
-      if (isAndroid) {
-        window.location.href = fallbackLink;
-      } else {
-        window.location.href = waLink;
+    function showConfirmModal(id) {
+      pendingWhatsAppId = id;
+      modalOpen = true;
+      document.getElementById("confirmText").innerHTML =
+        "لا توجد بيانات كافية لهذا الاسم حاليًا.<br>هل تريد فتح واتساب لإضافة أو تعديل البيانات؟";
+      document.getElementById("confirmModal").classList.add("active");
+      history.pushState({ modal:true, personId: currentPerson }, "", "#modal");
+    }
+
+    function closeConfirmModal(fromPop = false) {
+      document.getElementById("confirmModal").classList.remove("active");
+      pendingWhatsAppId = null;
+      modalOpen = false;
+      if (!fromPop && location.hash === "#modal") history.back();
+    }
+
+    function confirmWhatsApp() {
+      if (pendingWhatsAppId) {
+        const id = pendingWhatsAppId;
+        closeConfirmModal(true);
+        openWhatsApp(id);
       }
     }
 
@@ -971,234 +1422,954 @@
       if (hasChildren(id)) {
         historyStack.push(id);
         currentPerson = id;
+        history.pushState({ personId: id }, "", "#" + id);
+        showTreePage();
         render(id);
       } else {
-        var ok = confirm("لا توجد بيانات كافية لهذا الاسم حاليا.\n\nهل تريد فتح واتساب لإضافة أو تعديل البيانات؟");
-        if (ok) openWhatsApp(id);
+        showConfirmModal(id);
       }
-    }
-
-    function renderBreadcrumb() {
-      var b = document.getElementById("breadcrumb");
-      b.innerHTML = "";
-
-      for (var i = 0; i < historyStack.length; i++) {
-        (function(index) {
-          var personId = historyStack[index];
-          var btn = document.createElement("button");
-          btn.innerHTML = people[personId].name;
-          btn.onclick = function() {
-            historyStack = historyStack.slice(0, index + 1);
-            currentPerson = personId;
-            render(personId);
-          };
-          b.appendChild(btn);
-        })(i);
-      }
-    }
-
-    function renderInfoBar(id) {
-      var node = people[id];
-      var directCount = getChildrenCount(id);
-      var descendants = getDescendantsCount(id);
-      var lineageText = getLineageText(id);
-
-      var html = "";
-      html += '<div class="info-box">';
-      html += '<div>عدد الأبناء المباشرين: <strong>' + directCount + '</strong></div>';
-      html += '<div>إجمالي الأشخاص تحت هذا الفرع: <strong>' + descendants + '</strong></div>';
-      html += '<div>التسلسل: <strong>' + lineageText + '</strong></div>';
-      if (node.note) {
-        html += '<div>ملاحظة: <strong>' + node.note + '</strong></div>';
-      }
-      html += '</div>';
-
-      document.getElementById("infoBar").innerHTML = html;
-    }
-
-    function render(id) {
-      document.getElementById("title").innerHTML = people[id].name;
-      renderBreadcrumb();
-      renderInfoBar(id);
-
-      var content = document.getElementById("content");
-      var children = people[id].children || [];
-      var html = "";
-
-      if (children.length === 0) {
-        html += '<div class="card card-no-children">';
-        html += '<div class="name-row">';
-        html += '<div class="name">' + people[id].name + '</div>';
-        html += '<div class="generation-badge">' + generationLabelShort(getGeneration(id)) + '</div>';
-        html += '</div>';
-        html += '<div class="meta">لا توجد أسماء أبناء مسجلة حاليا لهذا الفرع.</div>';
-        html += '<div class="tag">لإضافة البيانات يرجى التواصل</div>';
-        html += '</div>';
-        content.innerHTML = html;
-        return;
-      }
-
-      for (var i = 0; i < children.length; i++) {
-        var childId = children[i];
-        var child = people[childId];
-        var note = child.note ? "<br><strong>ملاحظة:</strong> " + child.note : "";
-
-        html += '<div class="' + getCardClass(childId) + '" onclick="handleClick(\'' + childId + '\')">';
-        html += '<div class="name-row">';
-        html += '<div class="name">' + child.name + '</div>';
-        html += '<div class="generation-badge">' + generationLabelShort(getGeneration(childId)) + '</div>';
-        html += '</div>';
-        html += '<div class="meta">عدد الأبناء المباشرين: ' + getChildrenCount(childId) + note + '</div>';
-        html += '<div class="meta">إجمالي الأشخاص تحت الفرع: ' + getDescendantsCount(childId) + '</div>';
-        html += '<div class="tag">' + (hasChildren(childId) ? "اضغط لعرض الفرع" : "اضغط لطلب الإضافة") + '</div>';
-        html += '</div>';
-      }
-
-      content.innerHTML = html;
     }
 
     function goRoot() {
+      currentView = "tree";
       historyStack = [rootId];
       currentPerson = rootId;
       document.getElementById("searchInput").value = "";
+      history.pushState({ personId: rootId }, "", "#" + rootId);
+      showTreePage();
       render(rootId);
     }
 
     function goBack() {
-      if (historyStack.length > 1) {
-        historyStack.pop();
-        currentPerson = historyStack[historyStack.length - 1];
-        render(currentPerson);
-      }
+      history.back();
     }
 
-    function renderSearchResults(keyword) {
-      var results = [];
+    function shareCurrent() {
+      let url = location.href;
+      if (currentView === "tree") url = location.origin + location.pathname + "#" + currentPerson;
+      if (currentView === "person") url = location.origin + location.pathname + "#person=" + currentPerson;
+      if (currentView === "about") url = location.origin + location.pathname + "#about";
+      navigator.clipboard.writeText(url);
+      alert("تم نسخ الرابط");
+    }
 
-      for (var key in people) {
-        var person = people[key];
-        var scoreName = similarityScore(keyword, person.name);
-        var scoreNote = similarityScore(keyword, person.note || "");
-        var finalScore = Math.max(scoreName, scoreNote);
+    function showTreePage() {
+      currentView = "tree";
+      hideAllPages();
+      document.getElementById("mainPage").classList.remove("hidden");
+    }
 
-        if (finalScore >= 35) {
-          results.push({ id: key, score: finalScore });
-        }
-      }
-
-      results.sort(function(a, b) {
-        return b.score - a.score;
+    function renderBreadcrumb() {
+      const b = document.getElementById("breadcrumb");
+      b.innerHTML = "";
+      historyStack.forEach((personId, index) => {
+        const btn = document.createElement("button");
+        btn.textContent = people[personId].name;
+        btn.onclick = () => {
+          historyStack = historyStack.slice(0, index + 1);
+          currentPerson = personId;
+          history.pushState({ personId }, "", "#" + personId);
+          render(personId);
+        };
+        b.appendChild(btn);
       });
-
-      document.getElementById("title").innerHTML = "نتائج البحث";
-      document.getElementById("breadcrumb").innerHTML = "";
-
-      var infoHtml = '<div class="info-box">عدد النتائج: <strong>' + results.length + '</strong>';
-      if (results.length > 0 && results[0].score < 100) {
-        infoHtml += '<br>هل تقصد: <strong>' + people[results[0].id].name + '</strong>';
-      }
-      infoHtml += '</div>';
-      document.getElementById("infoBar").innerHTML = infoHtml;
-
-      var html = "";
-      if (results.length === 0) {
-        html = '<div class="card"><div class="meta">لا توجد نتائج مطابقة.</div></div>';
-      } else {
-        for (var i = 0; i < results.length; i++) {
-          var id = results[i].id;
-
-          html += '<div class="' + getCardClass(id) + '" onclick="' +
-            (hasChildren(id)
-              ? "handleClick('" + id + "')"
-              : "openWhatsApp('" + id + "')") +
-            '">';
-
-          html += '<div class="name-row">';
-          html += '<div class="name">' + people[id].name + '</div>';
-          html += '<div class="generation-badge">' + generationLabelShort(getGeneration(id)) + '</div>';
-          html += '</div>';
-
-          html += '<div class="meta">التسلسل: ' + getLineageText(id) + '</div>';
-          html += '<div class="meta">عدد الأبناء المباشرين: ' + getChildrenCount(id) + '</div>';
-          html += '<div class="meta">درجة التقارب: ' + Math.round(results[i].score) + '%</div>';
-          html += '<div class="tag">' + (hasChildren(id) ? "اضغط للدخول" : "اضغط لطلب الإضافة") + '</div>';
-          html += '</div>';
-        }
-      }
-
-      document.getElementById("content").innerHTML = html;
     }
 
-    function showAbout() {
-      document.getElementById("title").innerHTML = "نبذة عن قبيلة المجيني";
-      document.getElementById("breadcrumb").innerHTML = "";
-      document.getElementById("infoBar").innerHTML = "";
+    function renderQuickBranches() {
+      const box = document.getElementById("quickBranches");
+      box.innerHTML = "";
+      branchRoots().forEach(id => {
+        const btn = document.createElement("button");
+        btn.textContent = people[id].name + " (" + getChildrenCount(id) + ")";
+        btn.onclick = () => handleClick(id);
+        box.appendChild(btn);
+      });
+    }
 
-      document.getElementById("content").innerHTML = `
-        <div class="about-box">
-          <h2>تاريخ وأمجاد قبيلة المجيني: أسياد التجارة الدولية وفرضة ودام الساحل</h2>
+    function renderInfoBar(id) {
+      const node = people[id];
+      const gStats = getGenerationStats();
+      const totalGenerations = Object.keys(gStats).length;
 
-          <h3>المقدمة والجذور</h3>
-          <p>
-            تُعد قبيلة المجيني (المجانية) من أعرق القبائل العمانية القحطانية، وينتهي نسبهم إلى قضاعة،
-            وهي قبيلة عُرفت تاريخياً بالأنفة، والمروءة، والريادة. وقد شكل المجانية ركناً أساسياً في
-            الاستقرار الاجتماعي والسياسي على ساحل الباطنة، متميزين بحكمة الإدارة وسعة الأفق، مما جعلهم
-            محل تقدير وثقة عبر الأزمان.
-          </p>
+      let html = "";
+      html += "عدد الأبناء المباشرين: <strong>" + getChildrenCount(id) + "</strong><br>";
+      html += "إجمالي الأشخاص تحت هذا الفرع: <strong>" + getDescendantsCount(id) + "</strong><br>";
+      html += "التسلسل: <strong>" + getLineageText(id) + "</strong><br>";
+      html += "عدد الأجيال في الشجرة: <strong>" + totalGenerations + "</strong><br>";
+      if (node.note) html += "ملاحظة: <strong>" + node.note + "</strong><br>";
+      const st = getStatus(id);
+      if (st && appState.settings.showStatuses) html += "حالة الفرع: <strong>" + st + "</strong>";
+      document.getElementById("infoBar").innerHTML = html;
+    }
 
-          <h3>المعقل والسيادة: ودام الساحل بالمصنعة</h3>
-          <p>
-            تعتبر ودام الساحل في ولاية المصنعة هي المركز التاريخي والسيادي للقبيلة. ولم تكن ودام مجرد
-            حاضرة سكنية، بل كانت "فرضة" تجارية وجمركية رسمية معتمدة من قبل سلاطين عمان؛ حيث كانت السفن
-            الدولية تقصدها لتبادل البضائع تحت إشراف وأمن رجال القبيلة، مما جعلها شرياناً اقتصادياً
-            حيوياً للدولة ومركزاً لرفع راية السلطنة.
-          </p>
+    function render(id) {
+      showTreePage();
+      document.getElementById("title").textContent = people[id].name;
+      renderBreadcrumb();
+      renderQuickBranches();
+      renderInfoBar(id);
 
-          <h3>الإرث الملاحي: رواد التجارة العابرة للقارات</h3>
-          <p>برع المجانية في التجارة البحرية البعيدة، وامتلكوا أسطولاً من السفن الكبيرة التي طافت المحيطات. كانت خطوطهم التجارية تصل إلى:</p>
-          <ul>
-            <li>شرق أفريقيا (زنجبار، ممباسا، لامو): نقلوا الثقافة العمانية والتمور، وعادوا بخيرات أفريقيا من توابل وأخشاب.</li>
-            <li>شبه القارة الهندية (بومباي وكراتشي): لاستيراد المنسوجات الفاخرة والأرز.</li>
-            <li>الخليج العربي عامة: كانت سفنهم حلقة الوصل بين موانئ البصرة والكويت والمنامة والدمام.</li>
-          </ul>
+      const content = document.getElementById("content");
+      const children = people[id].children || [];
+      if (!children.length) {
+        content.innerHTML = `
+          <div class="card no-children">
+            <div class="name-row">
+              <div class="name">${people[id].name}</div>
+              ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(id))}</div>` : ""}
+            </div>
+            <div class="meta">لا توجد أسماء أبناء مسجلة حاليًا لهذا الفرع.</div>
+            <div class="tag">اضغط على مشاركة الرابط أو استخدم واتساب للإضافة</div>
+          </div>
+        `;
+        return;
+      }
 
-          <h3>أعلام ورموز تاريخية</h3>
-          <p>ضمت القبيلة الكثير من الشخصيات البارزة التي أثرت في البلد والمنطقة قديماً وحديثاً، ومن أهم رموزها:</p>
-          <ul>
-            <li><strong>النوخذه أحمد بن جابر المجيني:</strong> القامة التاريخية والرمز الذي ارتبط اسمه بالوجاهة والتأثير والسيادة. عُرف كنوخذه صاحب اسم رنان ومشهور في "ساحل عمان"، قاد السفن في أصعب الظروف والموانئ الدولية، وكان مرجعاً في القيادة والخبرة البحرية.</li>
-            <li><strong>الشيخ علي بن عبدالله المجيني:</strong> الذي يُعد مرجعاً تاريخياً وثقافياً كبيراً، ساهم بحكمته ورؤيته في الحفاظ على موروث القبيلة وتوثيق أمجاد "الفرضة" والنشاط التجاري لودام الساحل.</li>
-          </ul>
+      content.className = "cards";
+      content.innerHTML = children.map(childId => renderCard(childId)).join("");
+    }
 
-          <h3>الجيل الحديث: مواصلة العطاء (رجالاً ونساءً)</h3>
-          <p>لم يتوقف طموح المجانية عند حدود البحر، بل انتقل مع النهضة المباركة إلى آفاق العلم والعمل، حيث برزت شخصيات حديثة أثرت في مسيرة بناء الوطن:</p>
-          <ul>
-            <li>في السلك الدبلوماسي والعسكري: يخدم العديد من أبناء القبيلة كقادة وضباط في مختلف الأجهزة العسكرية، وسفراء يمثلون سلطنة عمان بوقار واقتدار.</li>
-            <li>في التعليم والطب والهندسة: برزت نساء القبيلة كطبيبات، مهندسات، وأكاديميات، حيث وضعن بصماتهن في التعليم العالي والقطاعات الصحية، مساهمات بفعالية في النهضة الاجتماعية.</li>
-            <li>الابتكار وريادة الأعمال: يقود الشباب من آل المجيني اليوم مشاريع تقنية واقتصادية كبرى، محافظين على روح "التاجر الأول" ومواكبين لرؤية عمان المستقبلية.</li>
-          </ul>
-
-          <h3>المراجع والاستنادات التاريخية</h3>
-          <ul>
-            <li>الموسوعة العمانية: المرجع الرسمي لوزارة التراث والثقافة، والذي يوثق نسب القبيلة وتواجدها الراسخ في المصنعة والسويق.</li>
-            <li>السجلات الجمركية السلطانية القديمة: التي تثبت اعتماد "ودام الساحل" كفرضة رسمية (ميناء تجاري) للدولة.</li>
-            <li>الأرشيف البحري العماني: الذي يحفظ أسماء النواخذة الكبار وأساطيل السفن، ومن ضمنها سفن النوخذه أحمد بن جابر المجيني.</li>
-            <li>كتاب "عرب الخليج" (ب. ج. سلوت): الذي يتناول الموانئ التجارية العمانية والرسوم الجمركية وتاريخ "ودام" كمركز نشط.</li>
-            <li>الروايات الشفوية والتوثيق الميداني: المستمد من أعيان القبيلة والآثار القائمة مثل "حصن ودام الساحل".</li>
-          </ul>
+    function renderCard(id) {
+      const child = people[id];
+      const status = getStatus(id);
+      return `
+        <div class="card ${hasChildren(id) ? "" : "no-children"}" onclick="handleClick('${id}')">
+          <div class="name-row">
+            <div class="name">${child.name}${appState.settings.showCounts ? ` (${getChildrenCount(id)})` : ""}</div>
+            ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(id))}</div>` : ""}
+          </div>
+          <div class="meta">
+            عدد الأبناء المباشرين: ${getChildrenCount(id)}<br>
+            إجمالي الأشخاص تحت الفرع: ${getDescendantsCount(id)}<br>
+            ${child.note ? `ملاحظة: ${child.note}<br>` : ""}
+          </div>
+          ${status && appState.settings.showStatuses ? `<div class="status-badge">${status}</div>` : ""}
+          <div class="tag">${hasChildren(id) ? "اضغط لعرض الفرع" : "اضغط لطلب الإضافة"}</div>
         </div>
       `;
     }
 
-    document.getElementById("searchInput").onkeyup = function() {
-      var keyword = this.value.trim();
+    function renderSearchResults(keyword) {
+      const results = [];
+
+      for (const key in people) {
+        const person = people[key];
+        const scoreName = similarityScore(keyword, person.name);
+        const scoreNote = similarityScore(keyword, person.note || "");
+        const finalScore = Math.max(scoreName, scoreNote);
+
+        if (finalScore >= 35) results.push({ id: key, score: finalScore });
+      }
+
+      results.sort((a,b)=>b.score-a.score);
+
+      showTreePage();
+      document.getElementById("title").textContent = "نتائج البحث";
+      document.getElementById("breadcrumb").innerHTML = "";
+      document.getElementById("quickBranches").innerHTML = "";
+
+      let top = `عدد النتائج: <strong>${results.length}</strong>`;
+      if (results.length > 0 && results[0].score < 100) {
+        top += `<br>هل تقصد: <strong>${people[results[0].id].name}</strong>`;
+      }
+      document.getElementById("infoBar").innerHTML = top;
+
+      const html = results.length
+        ? results.map(r => `
+          <div class="card ${hasChildren(r.id) ? "" : "no-children"}" onclick="${hasChildren(r.id) ? `handleClick('${r.id}')` : `showConfirmModal('${r.id}')`}">
+            <div class="name-row">
+              <div class="name">${people[r.id].name}</div>
+              ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(r.id))}</div>` : ""}
+            </div>
+            <div class="meta">
+              التسلسل: ${getLineageText(r.id)}<br>
+              عدد الأبناء المباشرين: ${getChildrenCount(r.id)}<br>
+              درجة التقارب: ${Math.round(r.score)}%
+            </div>
+            <div class="tag">${hasChildren(r.id) ? "اضغط للدخول" : "اضغط لطلب الإضافة"}</div>
+          </div>
+        `).join("")
+        : `<div class="card"><div class="meta">لا توجد نتائج مطابقة.</div></div>`;
+
+      document.getElementById("content").innerHTML = html;
+    }
+
+    function showAbout(pushHash = true) {
+      currentView = "about";
+      hideAllPages();
+      const page = document.getElementById("aboutPage");
+      page.classList.remove("hidden");
+      page.innerHTML = `
+        <div class="about-wrap">
+          <div class="about-box">
+            <h2>📜 نبذة عن قبيلة المجيني</h2>
+
+            <details open>
+              <summary>المقدمة والجذور</summary>
+              <div class="about-content">
+                تُعد قبيلة المجيني (المجانية) من أعرق القبائل العمانية القحطانية، وينتهي نسبهم إلى قضاعة، وهي قبيلة عُرفت تاريخياً بالأنفة، والمروءة، والريادة. شكل المجانية ركناً أساسياً في الاستقرار الاجتماعي والسياسي على ساحل الباطنة، متميزين بحكمة الإدارة وسعة الأفق، مما جعلهم محل تقدير وثقة عبر الأزمان.
+              </div>
+            </details>
+
+            <details>
+              <summary>المعقل والسيادة: ودام الساحل "الميناء المنافس"</summary>
+              <div class="about-content">
+                تعتبر ودام الساحل في ولاية المصنعة هي المركز التاريخي والسيادي للقبيلة. لم تكن ودام مجرد حاضرة سكنية، بل كانت "فرضة" تجارية وجمركية رسمية معتمدة، ويصنفها المؤرخون الأجانب كواحدة من أكبر موانئ الخليج تاريخياً، ومنافساً قوياً لميناء صور.
+              </div>
+            </details>
+
+            <details>
+              <summary>الفرضة (الجمرك)</summary>
+              <div class="about-content">
+                كان للميناء مبنى رسمي من الطين وحطب الكندل، حيث يُعين "المعوشري" لجباية الرسوم الجمركية لصالح الحكومة، مما يؤكد المكانة الرسمية والسيادية للمنطقة.
+              </div>
+            </details>
+
+            <details>
+              <summary>خور ودام (رأس بو جشيش)</summary>
+              <div class="about-content">
+                يعتبر من أكبر وأرقى خيران الباطنة، وكان ملاذاً آمناً للسفن من العواصف، ومركزاً لصناعة وتصليح السفن (التشوير).
+              </div>
+            </details>
+
+            <details>
+              <summary>الإرث الملاحي: رواد التجارة البحرية</summary>
+              <div class="about-content">
+                امتلك المجانية أسطولاً من "الخشب" والسفن الكبيرة (كالسنابيق، الغنجة، البوم، والشوعي). وبحكم قلة الأراضي الزراعية حينها، اتجه أبناء ودام الساحل للبحر فأصبحوا تجاراً ونواخذة يشار إليهم بالبنان، حتى إن كبار تجار المنطقة كانوا يطلبونهم لقيادة سفنهم لخبرتهم الواسعة بموانئ العالم.
+              </div>
+            </details>
+
+            <details>
+              <summary>الخطوط التجارية</summary>
+              <div class="about-content">
+                وصلت سفنهم إلى الهند (بومباي)، كراتشي، البصرة، الكويت، البحرين، ودبي، بالإضافة إلى زنجبار، ممباسا، ومطارف الصومال، وصولاً إلى بلاد فارس والمكلا وعدن.
+              </div>
+            </details>
+
+            <details>
+              <summary>نوع التجارة</summary>
+              <div class="about-content">
+                نقلوا التمور العمانية، العسل، الدبس، والليمون المجفف، وجلبوا الأرز، وحطب الكندل، والقرنفل، والتوابل، والأقمشة الحريرية والقطنية.
+              </div>
+            </details>
+
+            <details>
+              <summary>أعلام ورموز ودام الساحل</summary>
+              <div class="about-content">
+                ضمت القبيلة شخصيات بارزة أثرت في تاريخ البلد والمنطقة قديماً وحديثاً، ومن أهم رموزها:
+                <br><br>
+                <strong>النوخذه أحمد بن جابر المجيني:</strong><br>
+                القامة التاريخية والرمز الذي ارتبط اسمه بالوجاهة والتأثير والسيادة. عُرف كنوخذه صاحب اسم رنان ومشهور، وبمروءته العالية ومواقفه النبيلة مع بحارته.
+                <br><br>
+                <strong>الشيخ علي بن عبدالله المجيني:</strong><br>
+                المرجع التاريخي والثقافي الذي ساهم بحكمته في الحفاظ على موروث القبيلة وتوثيق أمجاد "الفرضة" والنشاط التجاري لودام الساحل.
+                <br><br>
+                <strong>عبدالله بن أحمد بن جابر المجيني:</strong><br>
+                صاحب مركب "أم السرور" (المركب الوحيد الذي صُنع بالكامل في ودام) ومركب "فتح الخير" التي كانت تنقل الحجاج في رحلات إيمانية وتجارية طويلة.
+                <br><br>
+                <strong>محمد بن صالح المجيني (العجيد):</strong><br>
+                أحد الرموز الفاعلة في النشاط البحري والتجاري، وصاحب السفن المعروفة التي جابت الموانئ الدولية.
+              </div>
+            </details>
+
+            <details>
+              <summary>المرأة المجينية: ركينة البيت وسند المجد</summary>
+              <div class="about-content">
+                للمرأة المجينية دور تاريخي لا يقل أهمية عن دور الرجال؛ فكانت هي "الربان" على اليابسة وقت غياب النواخذة في أسفارهم التي تدوم شهوراً. تميزت بالصلابة والحكمة في إدارة شؤون الأسرة، وكانت هي الحافظة للقيم والأصالة التي تُورث للأبناء، مما جعلها شريكة أساسية في صمود القبيلة واستمرار أمجادها.
+              </div>
+            </details>
+
+            <details>
+              <summary>أبناء المجيني في الوقت الحاضر: نهج العلم والخدمة</summary>
+              <div class="about-content">
+                في العهد الحديث للسلطنة، واصل أبناء المجيني مسيرة العطاء بكل إخلاص، متمسكين بذات "البوصلة" التي قادت أجدادهم، ولكن في ميادين البناء والتطوير:
+                <br><br>
+                <strong>حماة الوطن:</strong><br>
+                يبرز أبناء القبيلة اليوم كقادة وضباط مخلصين في مختلف الأجهزة العسكرية والأمنية، حاملين أمانة الدفاع عن تراب الوطن وسيادته.
+                <br><br>
+                <strong>رواد العلم والمعرفة:</strong><br>
+                أخرجت القبيلة نخبة من الكوادر المؤهلة في الطب، والهندسة، والتعليم العالي، حيث يشغل العديد منهم مناصب أكاديمية وبحثية تساهم في رقي المجتمع.
+                <br><br>
+                <strong>السلك الدبلوماسي والإداري:</strong><br>
+                يمثل أبناء المجيني عمان كدبلوماسيين وإداريين في مختلف وحدات الجهاز الإداري للدولة، متميزين بحسن الخلق والكفاءة العالية.
+                <br><br>
+                <strong>ريادة الأعمال والابتكار:</strong><br>
+                يقود الشباب اليوم مشاريع اقتصادية وتقنية تتماشى مع "رؤية عمان 2040"، محافظين على السمعة الطيبة والسماحة التي اشتهر بها آباؤهم في البيع والشراء.
+              </div>
+            </details>
+
+            <details>
+              <summary>أشهر سفن القبيلة</summary>
+              <div class="about-content">
+                <strong>الهيال:</strong> سنبوق كبير لأحمد بن جابر، ارتبط بقصص الشجاعة ومواجهة أهوال البحر.
+                <br><br>
+                <strong>الصمعاء (اليونسية):</strong> من السفن المشهورة التي امتلكها أحمد بن جابر ومحمد بن صالح العجيد.
+                <br><br>
+                <strong>أم السرور:</strong> مفخرة الصناعة المحلية في ودام، والتي استغرق بناؤها ثلاث سنوات باستخدام أخشاب السمر والقرط المحلية.
+              </div>
+            </details>
+
+            <details>
+              <summary>المراجع والاستنادات التاريخية</summary>
+              <div class="about-content">
+                <strong>كتابات المؤرخين الأجانب:</strong> التي وصفت ميناء ودام كواحد من أكبر وأهم موانئ الخليج تاريخياً.
+                <br><br>
+                <strong>الموسوعة العمانية:</strong> لتوثيق نسب القبيلة (قضاعة) وتواجدها الجغرافي الراسخ.
+                <br><br>
+                <strong>سجلات الفرضة والجمرك:</strong> وثائق قديمة تؤكد الدور الرسمي لودام الساحل كمركز لتحصيل الرسوم السلطانية.
+                <br><br>
+                <strong>الأرشيف البحري:</strong> الذي يحفظ أسماء النواخذة الكبار وأساطيل السفن التابعة لأعيان القبيلة.
+                <br><br>
+                <strong>المعالم الأثرية:</strong> حصن ودام الساحل التاريخي، وخور رأس بو جشيش الذي يجسد العراقة الجغرافية للمنطقة.
+              </div>
+            </details>
+          </div>
+        </div>
+      `;
+      if (pushHash) history.pushState({ about: true }, "", "#about");
+    }
+
+    function showPersonPage(id, pushHash = true) {
+      currentView = "person";
+      currentPerson = id;
+      hideAllPages();
+      const page = document.getElementById("personPage");
+      page.classList.remove("hidden");
+
+      const person = people[id];
+      const lineage = getLineageText(id);
+      const parentId = getParentId(id);
+      const children = person.children || [];
+      const status = getStatus(id);
+
+      page.innerHTML = `
+        <div class="person-page">
+          <div class="title">${person.name}</div>
+
+          <div class="person-grid">
+            <div class="subbox">
+              <h3>بيانات الشخص</h3>
+              <div class="meta">
+                الجيل: <strong>${generationLabelShort(getGeneration(id))}</strong><br>
+                التسلسل: <strong>${lineage}</strong><br>
+                الأب: <strong>${parentId ? people[parentId].name : "لا يوجد"}</strong><br>
+                عدد الأبناء المباشرين: <strong>${getChildrenCount(id)}</strong><br>
+                إجمالي الذرية أسفل الفرع: <strong>${getDescendantsCount(id)}</strong><br>
+                ${person.note ? `ملاحظة: <strong>${person.note}</strong><br>` : ""}
+                ${status ? `حالة الفرع: <strong>${status}</strong><br>` : ""}
+              </div>
+              <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn-main" onclick="copyText('${lineage.replace(/'/g,"\\'")}')">نسخ التسلسل</button>
+                <button class="btn-main" onclick="shareCurrent()">مشاركة هذا الفرع</button>
+                ${parentId ? `<button class="btn-soft" onclick="showPersonPage('${parentId}')">الانتقال إلى الأب</button>` : ""}
+                <button class="btn-soft" onclick="showTreePage(); render('${id}')">عرضه داخل الشجرة</button>
+              </div>
+            </div>
+
+            <div class="subbox">
+              <h3>أبناء الشخص</h3>
+              <div class="children-list">
+                ${
+                  children.length
+                    ? children.map(cid => `
+                      <div class="children-item" onclick="${hasChildren(cid) ? `showPersonPage('${cid}')` : `showConfirmModal('${cid}')`}">
+                        ${people[cid].name} ${appState.settings.showCounts ? `(${getChildrenCount(cid)})` : ""}
+                      </div>
+                    `).join("")
+                    : `<div class="meta">لا توجد أسماء أبناء مسجلة لهذا الشخص.</div>`
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      if (pushHash) history.pushState({ personPage:id }, "", "#person=" + id);
+    }
+
+    function showTimeline(pushHash = true) {
+      currentView = "timeline";
+      hideAllPages();
+      const page = document.getElementById("aboutPage");
+      page.classList.remove("hidden");
+
+      const stats = getGenerationStats();
+      let html = `<div class="about-box"><h2>الشجرة الزمنية حسب الأجيال</h2><div class="timeline-grid">`;
+      Object.keys(stats).sort((a,b)=>a-b).forEach(g => {
+        const members = Object.keys(people).filter(id => getGeneration(id) == g);
+        html += `
+          <div class="timeline-item">
+            <strong>الجيل ${g}</strong> — العدد: ${stats[g]}
+            <div class="small" style="margin-top:8px;">${members.map(id => people[id].name).join("، ")}</div>
+          </div>
+        `;
+      });
+      html += `</div></div>`;
+      page.innerHTML = html;
+      if (pushHash) history.pushState({ timeline:true }, "", "#timeline");
+    }
+
+    function showWhoAmI(pushHash = true) {
+      currentView = "whoami";
+      hideAllPages();
+      const page = document.getElementById("aboutPage");
+      page.classList.remove("hidden");
+      page.innerHTML = `
+        <div class="about-box">
+          <h2>من أكون؟</h2>
+          <div class="top-note">اكتب اسمك، وسيظهر لك أقرب تطابق وموقعك في الشجرة.</div>
+          <div class="note-form">
+            <input class="field" id="whoInput" placeholder="اكتب الاسم..." />
+            <button class="btn-main" onclick="runWhoAmI()">بحث</button>
+            <div id="whoResult"></div>
+          </div>
+        </div>
+      `;
+      if (pushHash) history.pushState({ whoami:true }, "", "#whoami");
+    }
+
+    function runWhoAmI() {
+      const q = document.getElementById("whoInput").value.trim();
+      const out = document.getElementById("whoResult");
+      if (!q) {
+        out.innerHTML = "";
+        return;
+      }
+      let best = null;
+      for (const id in people) {
+        const score = similarityScore(q, people[id].name);
+        if (!best || score > best.score) best = { id, score };
+      }
+      if (!best || best.score < 35) {
+        out.innerHTML = `<div class="list-item">لم يتم العثور على نتيجة مناسبة.</div>`;
+        return;
+      }
+      out.innerHTML = `
+        <div class="list-item">
+          <strong>هل تقصد: ${people[best.id].name}</strong><br>
+          <span class="small">التسلسل: ${getLineageText(best.id)}</span><br><br>
+          <button class="btn-main" onclick="showPersonPage('${best.id}')">فتح الملف</button>
+          <button class="btn-soft" onclick="showTreePage(); render('${best.id}')">فتح داخل الشجرة</button>
+        </div>
+      `;
+    }
+
+    function submitPublicMessage() {
+      const name = document.getElementById("msgName").value.trim();
+      const type = document.getElementById("msgType").value;
+      const body = document.getElementById("msgBody").value.trim();
+      if (!body) {
+        alert("اكتب الرسالة أولًا");
+        return;
+      }
+      appState.messages.unshift({
+        name: name || "بدون اسم",
+        type,
+        body,
+        time: new Date().toLocaleString("ar")
+      });
+      saveState();
+      logChange("استلام رسالة جديدة من القسم العام");
+      document.getElementById("msgName").value = "";
+      document.getElementById("msgBody").value = "";
+      alert("تم إرسال الرسالة");
+    }
+
+    function openAdminPassword() {
+      document.getElementById("adminPasswordInput").value = "";
+      document.getElementById("adminPasswordModal").classList.add("active");
+    }
+
+    function closeAdminPassword() {
+      document.getElementById("adminPasswordModal").classList.remove("active");
+    }
+
+    function enterAdmin() {
+      const pwd = document.getElementById("adminPasswordInput").value;
+      if (pwd !== appState.adminPassword) {
+        alert("كلمة المرور غير صحيحة");
+        return;
+      }
+      closeAdminPassword();
+      showAdminPage();
+    }
+
+    function showAdminPage() {
+      currentView = "admin";
+      hideAllPages();
+      const page = document.getElementById("adminPage");
+      page.classList.remove("hidden");
+
+      page.innerHTML = `
+        <div class="admin-page">
+          <div class="title">صفحة الإدارة</div>
+          <div class="top-note">هذه الصفحة تعمل محليًا على المتصفح الحالي. الرسائل والطلبات والوسوم والنسخة الاحتياطية محفوظة محليًا في هذا الجهاز.</div>
+
+          <div class="admin-tabs">
+            <button onclick="switchAdminTab('overview')">الرئيسية</button>
+            <button onclick="switchAdminTab('messages')">الرسائل</button>
+            <button onclick="switchAdminTab('add')">إضافة وتعديل</button>
+            <button onclick="switchAdminTab('requests')">الطلبات</button>
+            <button onclick="switchAdminTab('relation')">صلة القرابة</button>
+            <button onclick="switchAdminTab('duplicates')">الكشف والتضارب</button>
+            <button onclick="switchAdminTab('stats')">الإحصائيات</button>
+            <button onclick="switchAdminTab('archive')">الأرشيف</button>
+            <button onclick="switchAdminTab('backup')">نسخة احتياطية</button>
+            <button onclick="switchAdminTab('settings')">الإعدادات</button>
+          </div>
+
+          <div id="adminSectionHolder">
+            ${renderAdminSections()}
+          </div>
+        </div>
+      `;
+      switchAdminTab("overview");
+    }
+
+    function renderAdminSections() {
+      const statusOptions = ["", "مكتمل", "يحتاج مراجعة", "قيد المراجعة", "مؤكد", "شفهي"];
+      const generationStats = getGenerationStats();
+      const duplicateList = detectDuplicateNames();
+
+      return `
+        <div class="admin-section" id="admin-overview">
+          <div class="admin-grid">
+            <div class="subbox">
+              <h3>ملخص سريع</h3>
+              <div class="meta">
+                إجمالي الأفراد: <strong>${totalPeopleCount()}</strong><br>
+                عدد الرسائل: <strong>${appState.messages.length}</strong><br>
+                عدد الطلبات المحلية: <strong>${appState.requests.length}</strong><br>
+                عدد السجلات في الأرشيف: <strong>${appState.changeLog.length}</strong>
+              </div>
+            </div>
+            <div class="subbox">
+              <h3>أدوات سريعة</h3>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn-main" onclick="exportBackup()">تصدير JSON</button>
+                <button class="btn-soft" onclick="switchAdminTab('messages')">فتح الرسائل</button>
+                <button class="btn-soft" onclick="switchAdminTab('add')">إضافة اسم</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-section" id="admin-messages">
+          <div class="subbox">
+            <h3>💬 الرسائل والملاحظات</h3>
+            <div class="list-box">
+              ${
+                appState.messages.length
+                  ? appState.messages.map((m, idx)=>`
+                    <div class="list-item">
+                      <strong>${m.type}</strong> — ${m.name}<br>
+                      <span class="small">${m.time}</span>
+                      <div style="margin-top:8px;line-height:1.9;">${m.body}</div>
+                      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+                        <button class="btn-soft" onclick="copyText(${JSON.stringify(m.body)})">نسخ</button>
+                        <button class="btn-danger" onclick="deleteMessage(${idx})">حذف</button>
+                      </div>
+                    </div>
+                  `).join("")
+                  : `<div class="list-item">لا توجد رسائل بعد.</div>`
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-section" id="admin-add">
+          <div class="admin-grid">
+            <div class="subbox">
+              <h3>إضافة اسم جديد تحت أب موجود</h3>
+              <div class="note-form">
+                <select class="field" id="adminParentSelect">
+                  ${Object.keys(people).map(id => `<option value="${id}">${people[id].name}</option>`).join("")}
+                </select>
+                <input class="field" id="adminNewName" placeholder="الاسم الجديد" />
+                <input class="field" id="adminNewNote" placeholder="ملاحظة (اختياري)" />
+                <button class="btn-main" onclick="adminAddPerson()">إضافة</button>
+              </div>
+            </div>
+
+            <div class="subbox">
+              <h3>وسم/حالة الفرع</h3>
+              <div class="note-form">
+                <select class="field" id="statusPersonSelect">
+                  ${Object.keys(people).map(id => `<option value="${id}">${people[id].name}</option>`).join("")}
+                </select>
+                <select class="field" id="statusValueSelect">
+                  ${statusOptions.map(v => `<option value="${v}">${v || "بدون حالة"}</option>`).join("")}
+                </select>
+                <button class="btn-main" onclick="adminSetStatus()">حفظ الحالة</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="subbox" style="margin-top:14px;">
+            <h3>اقتراح ربط لاسم جديد</h3>
+            <div class="note-form">
+              <input class="field" id="suggestNameInput" placeholder="اكتب اسمًا جديدًا..." />
+              <button class="btn-main" onclick="runSuggestParent()">عرض اقتراحات الربط</button>
+              <div id="suggestParentResult"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-section" id="admin-requests">
+          <div class="admin-grid">
+            <div class="subbox">
+              <h3>إنشاء طلب محلي</h3>
+              <div class="note-form">
+                <select class="field" id="requestType">
+                  <option>إضافة</option>
+                  <option>تصحيح</option>
+                  <option>دمج</option>
+                  <option>نقل</option>
+                </select>
+                <input class="field" id="requestTarget" placeholder="الاسم أو الفرع المستهدف" />
+                <textarea class="textarea" id="requestBody" placeholder="اكتب تفاصيل الطلب..."></textarea>
+                <button class="btn-main" onclick="addLocalRequest()">حفظ الطلب</button>
+              </div>
+            </div>
+
+            <div class="subbox">
+              <h3>الطلبات</h3>
+              <div class="list-box">
+                ${
+                  appState.requests.length
+                    ? appState.requests.map((r, idx)=>`
+                      <div class="list-item">
+                        <strong>${r.type}</strong> — ${r.target}<br>
+                        <span class="small">${r.time}</span>
+                        <div style="margin-top:8px;line-height:1.9;">${r.body}</div>
+                        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+                          <button class="btn-ok" onclick="markRequestDone(${idx})">اعتماد</button>
+                          <button class="btn-danger" onclick="deleteRequest(${idx})">حذف</button>
+                        </div>
+                      </div>
+                    `).join("")
+                    : `<div class="list-item">لا توجد طلبات.</div>`
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-section" id="admin-relation">
+          <div class="admin-grid">
+            <div class="subbox">
+              <h3>مخطط صلة القرابة بين اسمين</h3>
+              <div class="note-form">
+                <select class="field" id="relationA">${Object.keys(people).map(id => `<option value="${id}">${people[id].name}</option>`).join("")}</select>
+                <select class="field" id="relationB">${Object.keys(people).map(id => `<option value="${id}">${people[id].name}</option>`).join("")}</select>
+                <button class="btn-main" onclick="runRelation()">إظهار الصلة</button>
+                <div id="relationResult"></div>
+              </div>
+            </div>
+            <div class="subbox">
+              <h3>صفحة من أكون؟</h3>
+              <div class="meta">موجودة أيضًا للعامة من الشريط العلوي.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-section" id="admin-duplicates">
+          <div class="admin-grid">
+            <div class="subbox">
+              <h3>كشف الأسماء المتكررة</h3>
+              <div class="list-box">
+                ${
+                  duplicateList.length
+                    ? duplicateList.slice(0,60).map(item => `
+                      <div class="list-item">
+                        ${item.name} — تكرار: ${item.count}
+                      </div>
+                    `).join("")
+                    : `<div class="list-item">لا توجد تكرارات.</div>`
+                }
+              </div>
+            </div>
+
+            <div class="subbox">
+              <h3>فروع ناقصة</h3>
+              <div class="list-box">
+                ${
+                  Object.keys(people)
+                    .filter(id => !hasChildren(id))
+                    .slice(0,60)
+                    .map(id => `<div class="list-item">${people[id].name}</div>`)
+                    .join("") || `<div class="list-item">لا توجد نتائج.</div>`
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-section" id="admin-stats">
+          <div class="admin-grid">
+            <div class="subbox">
+              <h3>محرك الإحصائيات</h3>
+              <div class="meta">
+                إجمالي الأفراد: <strong>${totalPeopleCount()}</strong><br>
+                عدد الفروع الرئيسية: <strong>${branchRoots().length}</strong><br>
+                أكثر جيل عدداً: <strong>${Object.entries(generationStats).sort((a,b)=>b[1]-a[1])[0]?.[0] || "-"}</strong><br>
+                أكبر فرع رئيسي: <strong>${largestMainBranchName()}</strong>
+              </div>
+            </div>
+            <div class="subbox">
+              <h3>عدد أفراد كل جيل</h3>
+              <div class="list-box">
+                ${
+                  Object.keys(generationStats).sort((a,b)=>a-b).map(g => `
+                    <div class="list-item">الجيل ${g}: ${generationStats[g]}</div>
+                  `).join("")
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-section" id="admin-archive">
+          <div class="subbox">
+            <h3>أرشيف التعديلات</h3>
+            <div class="list-box">
+              ${
+                appState.changeLog.length
+                  ? appState.changeLog.map(item => `
+                    <div class="list-item">
+                      ${item.text}<br>
+                      <span class="small">${item.time}</span>
+                    </div>
+                  `).join("")
+                  : `<div class="list-item">لا توجد تعديلات مسجلة بعد.</div>`
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-section" id="admin-backup">
+          <div class="admin-grid">
+            <div class="subbox">
+              <h3>نسخة احتياطية / تصدير</h3>
+              <button class="btn-main" onclick="exportBackup()">تصدير JSON</button>
+            </div>
+            <div class="subbox">
+              <h3>استيراد حالة محلية</h3>
+              <textarea class="textarea" id="backupImport" placeholder="الصق JSON هنا..."></textarea>
+              <button class="btn-main" onclick="importBackup()">استيراد</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-section" id="admin-settings">
+          <div class="admin-grid">
+            <div class="subbox">
+              <h3>إعدادات العرض</h3>
+              <div class="note-form">
+                <label><input type="checkbox" id="setShowCounts" ${appState.settings.showCounts ? "checked":""}> إظهار عدد الأبناء</label>
+                <label><input type="checkbox" id="setShowGeneration" ${appState.settings.showGeneration ? "checked":""}> إظهار الجيل</label>
+                <label><input type="checkbox" id="setShowStatuses" ${appState.settings.showStatuses ? "checked":""}> إظهار حالة الفرع</label>
+                <button class="btn-main" onclick="saveDisplaySettings()">حفظ الإعدادات</button>
+              </div>
+            </div>
+
+            <div class="subbox">
+              <h3>كلمة المرور</h3>
+              <div class="note-form">
+                <input class="field" type="password" id="newAdminPassword" placeholder="كلمة المرور الجديدة" />
+                <button class="btn-main" onclick="changeAdminPassword()">تغيير كلمة المرور</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function switchAdminTab(name) {
+      document.querySelectorAll(".admin-section").forEach(s => s.classList.remove("active"));
+      const el = document.getElementById("admin-" + name);
+      if (el) el.classList.add("active");
+    }
+
+    function deleteMessage(idx) {
+      appState.messages.splice(idx,1);
+      saveState();
+      logChange("حذف رسالة من الإدارة");
+      showAdminPage();
+      switchAdminTab("messages");
+    }
+
+    function adminAddPerson() {
+      const parentId = document.getElementById("adminParentSelect").value;
+      const newName = document.getElementById("adminNewName").value.trim();
+      const newNote = document.getElementById("adminNewNote").value.trim();
+      if (!newName) return alert("اكتب الاسم الجديد");
+
+      const newId = "u" + Date.now();
+      people[newId] = { name: newName, note: newNote, children: [] };
+      people[parentId].children.push(newId);
+
+      logChange("إضافة اسم جديد: " + newName + " تحت " + people[parentId].name);
+      alert("تمت الإضافة محليًا داخل هذه النسخة");
+      showAdminPage();
+      switchAdminTab("add");
+      render(currentPerson);
+    }
+
+    function adminSetStatus() {
+      const id = document.getElementById("statusPersonSelect").value;
+      const value = document.getElementById("statusValueSelect").value;
+      setStatus(id, value);
+      alert("تم حفظ الحالة");
+      showAdminPage();
+      switchAdminTab("add");
+      render(currentPerson);
+    }
+
+    function runSuggestParent() {
+      const q = document.getElementById("suggestNameInput").value.trim();
+      const box = document.getElementById("suggestParentResult");
+      if (!q) return box.innerHTML = "";
+      const res = suggestParentForName(q);
+      box.innerHTML = res.length
+        ? `<div class="list-box" style="margin-top:10px;">${
+            res.map(r => `<div class="list-item">${r.name}</div>`).join("")
+          }</div>`
+        : `<div class="list-item" style="margin-top:10px;">لا توجد اقتراحات.</div>`;
+    }
+
+    function addLocalRequest() {
+      const type = document.getElementById("requestType").value;
+      const target = document.getElementById("requestTarget").value.trim();
+      const body = document.getElementById("requestBody").value.trim();
+      if (!target || !body) return alert("أكمل بيانات الطلب");
+      appState.requests.unshift({ type, target, body, time: new Date().toLocaleString("ar") });
+      saveState();
+      logChange("إضافة طلب جديد: " + type);
+      showAdminPage();
+      switchAdminTab("requests");
+    }
+
+    function deleteRequest(idx) {
+      appState.requests.splice(idx,1);
+      saveState();
+      logChange("حذف طلب");
+      showAdminPage();
+      switchAdminTab("requests");
+    }
+
+    function markRequestDone(idx) {
+      const item = appState.requests[idx];
+      if (item) logChange("اعتماد طلب: " + item.type + " - " + item.target);
+      appState.requests.splice(idx,1);
+      saveState();
+      showAdminPage();
+      switchAdminTab("requests");
+    }
+
+    function runRelation() {
+      const a = document.getElementById("relationA").value;
+      const b = document.getElementById("relationB").value;
+      const r = relationBetween(a,b);
+      const box = document.getElementById("relationResult");
+      box.innerHTML = `
+        <div class="list-item" style="margin-top:10px;">
+          الأصل المشترك الأقرب: <strong>${r.common ? people[r.common].name : "غير معروف"}</strong><br><br>
+          <strong>${people[a].name}</strong><br>
+          ${r.pathA.map(id => "← " + people[id].name).join("<br>")}<br><br>
+          <strong>${people[b].name}</strong><br>
+          ${r.pathB.map(id => "← " + people[id].name).join("<br>")}
+        </div>
+      `;
+    }
+
+    function largestMainBranchName() {
+      let best = null;
+      branchRoots().forEach(id => {
+        const count = getDescendantsCount(id);
+        if (!best || count > best.count) best = { id, count };
+      });
+      return best ? people[best.id].name : "-";
+    }
+
+    function saveDisplaySettings() {
+      appState.settings.showCounts = document.getElementById("setShowCounts").checked;
+      appState.settings.showGeneration = document.getElementById("setShowGeneration").checked;
+      appState.settings.showStatuses = document.getElementById("setShowStatuses").checked;
+      saveState();
+      logChange("تعديل إعدادات العرض");
+      alert("تم حفظ الإعدادات");
+      render(currentPerson);
+      showAdminPage();
+      switchAdminTab("settings");
+    }
+
+    function changeAdminPassword() {
+      const p = document.getElementById("newAdminPassword").value.trim();
+      if (!p) return alert("اكتب كلمة المرور الجديدة");
+      appState.adminPassword = p;
+      saveState();
+      logChange("تغيير كلمة مرور الإدارة");
+      alert("تم تغيير كلمة المرور");
+      document.getElementById("newAdminPassword").value = "";
+    }
+
+    function exportBackup() {
+      const payload = {
+        appState,
+        exportedAt: new Date().toISOString()
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "mujaini-backup.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importBackup() {
+      const txt = document.getElementById("backupImport").value.trim();
+      if (!txt) return alert("الصق JSON أولًا");
+      try {
+        const parsed = JSON.parse(txt);
+        if (parsed.appState) {
+          appState = { ...defaultState(), ...parsed.appState };
+          saveState();
+          logChange("استيراد نسخة احتياطية");
+          alert("تم الاستيراد");
+          showAdminPage();
+          switchAdminTab("backup");
+          render(currentPerson);
+        } else {
+          alert("الملف غير صحيح");
+        }
+      } catch(e) {
+        alert("JSON غير صحيح");
+      }
+    }
+
+    if (!history.state) history.replaceState({ personId: rootId }, "", "#" + rootId);
+
+    window.onpopstate = function() {
+      if (modalOpen) {
+        closeConfirmModal(true);
+        return;
+      }
+      routeToHash();
+    };
+
+    document.getElementById("searchInput").addEventListener("input", function() {
+      const keyword = this.value.trim();
       if (!keyword) {
         render(currentPerson);
         return;
       }
       renderSearchResults(keyword);
-    };
+    });
 
-    render(rootId);
+    renderQuickBranches();
+    routeToHash();
   </script>
 </body>
-</html>
+  </html>
