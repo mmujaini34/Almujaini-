@@ -2516,7 +2516,7 @@ let people = {
         </div>
       `;
 
-      if (pushHash) history.pushState({ personPage:id }, "", "#person=" + id);
+      if (pushHash) history.pushState({ personPage:id }, "", location.pathname + "?person=" + id);
     }
 
     function showHierarchyPage(startId = rootId, pushHash = true) {
