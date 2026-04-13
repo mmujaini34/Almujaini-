@@ -739,30 +739,6 @@
       font-weight:700;
     }
 
-    .card.special-tree-person,
-    .hier-card.special-tree-person{
-      border-color:rgba(184,155,94,.55);
-      border-top-color:var(--gold);
-      background:linear-gradient(180deg, rgba(255,251,242,.98), rgba(255,247,232,.96));
-      box-shadow:0 10px 30px rgba(125,92,61,.18);
-    }
-
-    .tree-special-star{
-      display:block;
-      text-align:center;
-      color:var(--gold);
-      font-size:18px;
-      line-height:1;
-      margin-bottom:6px;
-      letter-spacing:2px;
-      font-weight:700;
-    }
-
-    .special-tree-name{
-      color:#7d5c3d;
-      font-weight:800;
-    }
-
     @media (max-width:900px){
       .person-grid,
       .admin-grid{
@@ -810,7 +786,8 @@
       <button class="btn-main" onclick="goRoot()">الرجوع للجذر</button>
       <button class="btn-main" onclick="goBack()">رجوع خطوة</button>
       <button class="btn-main" onclick="shareCurrent()">مشاركة الرابط</button>
-          </div>
+      <button class="btn-main" onclick="showHierarchyPage(currentPerson)">هرم الفرع الحالي</button>
+    </div>
 
     <div class="title" id="title">محمد بن حميد المجيني</div>
     <div class="breadcrumb" id="breadcrumb"></div>
@@ -1596,12 +1573,10 @@ let people = {
     function renderHierarchyCard(cid, selectedChild, levelIndex) {
       const child = people[cid];
       const status = getStatus(cid);
-      const special = isSpecialPerson(cid);
       return `
-        <div class="hier-card ${selectedChild === cid ? "selected" : ""} ${special ? "special-tree-person" : ""}" onclick="showPersonPage('${cid}')">
-          ${special ? `<div class="tree-special-star">✦</div>` : ""}
+        <div class="hier-card ${selectedChild === cid ? "selected" : ""}" onclick="showPersonPage('${cid}')">
           <div class="name-row">
-            <div class="name ${special ? "special-tree-name" : ""}">${child.name}${appState.settings.showCounts ? ` (${getChildrenCount(cid)})` : ""}</div>
+            <div class="name">${child.name}${appState.settings.showCounts ? ` (${getChildrenCount(cid)})` : ""}</div>
             <div class="badges">
               <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${cid}')">طلب إضافة</div>
               <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${cid}')">نسب</div>
@@ -1611,8 +1586,9 @@ let people = {
             </div>
           </div>
           <div class="meta">
-            عدد الأبناء المباشرين: ${getChildrenCount(cid)}<br>
-            إجمالي الأشخاص تحت الفرع: ${getDescendantsCount(cid)}<br>
+            عدد الأبناء: ${getChildrenCount(cid)}<br>
+            عدد الأحفاد: ${getGrandchildren(cid).length}<br>
+            إجمالي الذرية: ${getDescendantsCount(cid)}<br>
             ${child.note ? `ملاحظة: ${child.note}<br>` : ""}
           </div>
           ${status && appState.settings.showStatuses ? `<div class="status-badge">${status}</div>` : ""}
@@ -1762,7 +1738,7 @@ let people = {
     }
 
     function getStatus(id) {
-      return appState.statuses[id] || "";
+      return appState.statuses[id] || "قيد المراجعة";
     }
 
     function setStatus(id, value) {
@@ -2112,12 +2088,10 @@ let people = {
     function renderCard(id) {
       const child = people[id];
       const status = getStatus(id);
-      const special = isSpecialPerson(id);
       return `
-        <div class="card ${hasChildren(id) ? "" : "no-children"} ${special ? "special-tree-person" : ""}" onclick="handleClick('${id}')">
-          ${special ? `<div class="tree-special-star">✦</div>` : ""}
+        <div class="card ${hasChildren(id) ? "" : "no-children"}" onclick="handleClick('${id}')">
           <div class="name-row">
-            <div class="name ${special ? "special-tree-name" : ""}">${child.name}${appState.settings.showCounts ? ` (${getChildrenCount(id)})` : ""}</div>
+            <div class="name">${child.name}${appState.settings.showCounts ? ` (${getChildrenCount(id)})` : ""}</div>
             <div class="badges">
               <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${id}')">طلب إضافة</div>
               <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${id}')">نسب</div>
@@ -2167,10 +2141,9 @@ let people = {
 
       if (!children.length) {
         content.innerHTML = `
-          <div class="card no-children ${isSpecialPerson(id) ? "special-tree-person" : ""}">
-            ${isSpecialPerson(id) ? `<div class="tree-special-star">✦</div>` : ""}
+          <div class="card no-children">
             <div class="name-row">
-              <div class="name ${isSpecialPerson(id) ? "special-tree-name" : ""}">${people[id].name}</div>
+              <div class="name">${people[id].name}</div>
               <div class="badges">
                 <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${id}')">طلب إضافة</div>
                 <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${id}')">نسب</div>
@@ -2531,44 +2504,44 @@ let people = {
       const parentId = getParentId(id);
       const children = person.children || [];
       const status = getStatus(id);
+      const grandchildrenCount = getGrandchildren(id).length;
+      const descendantsCount = getDescendantsCount(id);
 
       page.innerHTML = `
         <div class="person-page">
-          <div class="title">${isSpecialPerson(id) ? `<div class="tree-special-star">✦</div>` : ""}${person.name}</div>
-          <div class="person-grid">
-            <div class="subbox ${isSpecialPerson(id) ? "special-person" : ""}">
-              <h3>بطاقة تعريفية</h3>
-              <div class="meta">
-                الجيل: <strong>${generationLabelShort(getGeneration(id))}</strong><br>
-                التسلسل: <strong>${lineage}</strong><br>
-                الأب: <strong>${parentId ? people[parentId].name : "لا يوجد"}</strong><br>
-                عدد الأبناء المباشرين: <strong>${getChildrenCount(id)}</strong><br>
-                إجمالي الذرية أسفل الفرع: <strong>${getDescendantsCount(id)}</strong><br>
-                ${person.note ? `ملاحظة: <strong>${person.note}</strong><br>` : ""}
-                ${status ? `حالة الفرع: <strong>${status}</strong><br>` : ""}
-              </div>
-              <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
-                <button class="btn-main" onclick="copyText('${lineage.replace(/'/g,"\\'")}')">نسخ التسلسل</button>
-                <button class="btn-main" onclick="showHierarchyPage('${id}')">عرض هرمي</button>
-                ${parentId ? `<button class="btn-soft" onclick="showPersonPage('${parentId}')">الانتقال إلى الأب</button>` : ""}
-                <button class="btn-soft" onclick="showTreePage(); render('${id}')">عرضه داخل الشجرة</button>
-              </div>
+          <div class="title">${person.name}</div>
+          <div class="subbox ${isSpecialPerson(id) ? "special-person" : ""}" style="margin-bottom:14px;">
+            <h3>بطاقة تعريفية</h3>
+            <div class="meta">
+              التسلسل: <strong>${lineage}</strong><br>
+              الأب: <strong>${parentId ? people[parentId].name : "لا يوجد"}</strong><br>
+              الجيل: <strong>${generationLabelShort(getGeneration(id))}</strong><br>
+              عدد الأبناء: <strong>${getChildrenCount(id)}</strong><br>
+              عدد الأحفاد: <strong>${grandchildrenCount}</strong><br>
+              إجمالي الذرية: <strong>${descendantsCount}</strong><br>
+              ${person.note ? `ملاحظة: <strong>${person.note}</strong><br>` : ""}
+              ${status ? `الحالة: <strong>${status}</strong><br>` : ""}
             </div>
+            <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn-main" onclick="copyText('${lineage.replace(/'/g,"\'")}')">نسخ التسلسل</button>
+              <button class="btn-soft" onclick="showHierarchyPage('${id}')">هرم</button>
+              <button class="btn-soft" onclick="openAddRequestModal('${id}')">طلب إضافة</button>
+              <button class="btn-soft" onclick="openWhoAmIForPerson('${id}')">من؟</button>
+              ${parentId ? `<button class="btn-soft" onclick="showPersonPage('${parentId}')">الانتقال إلى الأب</button>` : ""}
+            </div>
+          </div>
 
-            <div class="subbox">
-              <h3>أبناء الشخص</h3>
-              <div class="children-list">
-                ${
-                  children.length
-                    ? children.map(cid => `
-                      <div class="children-item" onclick="${hasChildren(cid) ? `showPersonPage('${cid}')` : `showConfirmModal('${cid}')`}">
-                        ${people[cid].name} ${appState.settings.showCounts ? `(${getChildrenCount(cid)})` : ""}
-                      </div>
-                    `).join("")
-                    : `<div class="meta">لا توجد أسماء أبناء مسجلة لهذا الشخص.</div>`
-                }
-              </div>
-            </div>
+          <div class="subbox">
+            <h3>أبناء الشخص</h3>
+            ${
+              children.length
+                ? `<div class="cards">${children.map(cid => renderCard(cid)).join("")}</div>`
+                : `<div class="card no-children" style="margin-top:10px;">
+                    <div class="name-row">
+                      <div class="name">لا توجد أسماء أبناء مسجلة لهذا الشخص.</div>
+                    </div>
+                  </div>`
+            }
           </div>
         </div>
       `;
@@ -2620,7 +2593,7 @@ let people = {
         <div class="hierarchy-row">
           <div class="hierarchy-row-title">الأصل</div>
           <div class="hierarchy-cards">
-            <div class="hier-card selected" onclick="showPersonPage('${rootId}')"><div class="name">${people[rootId].name}</div><div class="badges" style="margin-top:8px;justify-content:center;"><div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${rootId}')">هرم</div></div></div>
+            <div class="hier-card selected" onclick="showHierarchyPage('${rootId}')">${people[rootId].name}</div>
           </div>
         </div>
       `;
