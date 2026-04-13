@@ -351,6 +351,7 @@
     }
 
     .tag{
+      display:none;
       display:inline-block;
       margin-top:8px;
       padding:6px 10px;
@@ -786,8 +787,7 @@
       <button class="btn-main" onclick="goRoot()">الرجوع للجذر</button>
       <button class="btn-main" onclick="goBack()">رجوع خطوة</button>
       <button class="btn-main" onclick="shareCurrent()">مشاركة الرابط</button>
-      <button class="btn-main" onclick="showHierarchyPage(currentPerson)">هرم الفرع الحالي</button>
-    </div>
+          </div>
 
     <div class="title" id="title">محمد بن حميد المجيني</div>
     <div class="breadcrumb" id="breadcrumb"></div>
@@ -858,7 +858,8 @@
         <input class="field" id="reqChildName" placeholder="الاسم المطلوب إضافته" />
         <input class="field" id="reqChildrenText" placeholder="الأبناء (اختياري، افصل بينهم بفاصلة)" />
         <input class="field" id="reqSenderName" placeholder="اسمك (اختياري)" />
-        <textarea class="textarea" id="reqDetails" placeholder="ملاحظة أو تفاصيل إضافية (اختياري)"></textarea>
+        <div class="top-note">يمكنك كتابة أكثر من ابن مع أبنائهم في رسالة واحدة. اكتب كل اسم في سطر مستقل، ثم اكتب تحته الأبناء إن وجدوا، ويمكنك أيضًا ذكر من لا يوجد له أبناء.</div>
+        <textarea class="textarea" id="reqDetails" placeholder="أحمد&#10;الأبناء: عبدالله، محمد، علي&#10;&#10;سعيد&#10;الأبناء: خالد، يوسف&#10;&#10;حسن&#10;لا يوجد أبناء"></textarea>
       </div>
       <div class="modal-actions" style="margin-top:12px;">
         <button class="btn-soft" onclick="closeAddRequestModal()">إلغاء</button>
@@ -962,29 +963,29 @@ let people = {
       "p40": { name: "صالح", note: "", children: [] },
 
       "p22": { name: "علي بن جابر", note: "أمه من ضيان", children: ["p41","p42"] },
-      "p22a": { name: "عبدالله بن علي", note: "", children: ["p22a1","p22a2","p22a3","p22a4","p22a5","p22a6"] },
-      "p22a1": { name: "أحمد", note: "", children: ["p22a1_1","p22a1_2","p22a1_3"] },
-      "p22a1_1": { name: "عبدالله", note: "", children: [] },
-      "p22a1_2": { name: "عذاري", note: "", children: [] },
-      "p22a1_3": { name: "سعود", note: "", children: [] },
-      "p22a2": { name: "حسن", note: "", children: ["p22a2_1","p22a2_2","p22a2_3"] },
-      "p22a2_1": { name: "علي", note: "", children: [] },
-      "p22a2_2": { name: "حمد", note: "", children: [] },
-      "p22a2_3": { name: "حمده", note: "", children: [] },
-      "p22a3": { name: "خالد", note: "لا يوجد أبناء", children: [] },
-      "p22a4": { name: "ناعمه", note: "", children: ["p22a4_1","p22a4_2","p22a4_3","p22a4_4","p22a4_5"] },
-      "p22a4_1": { name: "فهد", note: "", children: [] },
-      "p22a4_2": { name: "هند", note: "", children: [] },
-      "p22a4_3": { name: "شما", note: "", children: [] },
-      "p22a4_4": { name: "سند", note: "", children: [] },
-      "p22a4_5": { name: "فجر", note: "", children: [] },
-      "p22a5": { name: "منى", note: "", children: ["p22a5_1","p22a5_2","p22a5_3"] },
-      "p22a5_1": { name: "مهره", note: "", children: [] },
-      "p22a5_2": { name: "ميره", note: "", children: [] },
-      "p22a5_3": { name: "راشد", note: "", children: [] },
-      "p22a6": { name: "شريفة", note: "", children: ["p22a6_1","p22a6_2"] },
-      "p22a6_1": { name: "ميثه", note: "", children: [] },
-      "p22a6_2": { name: "علياء", note: "", children: [] },
+      "p73a": { name: "عبدالله بن علي", note: "", children: ["p73a1","p73a2","p73a3","p73a4","p73a5","p73a6"] },
+      "p73a1": { name: "أحمد", note: "", children: ["p73a1_1","p73a1_2","p73a1_3"] },
+      "p73a1_1": { name: "عبدالله", note: "", children: [] },
+      "p73a1_2": { name: "عذاري", note: "", children: [] },
+      "p73a1_3": { name: "سعود", note: "", children: [] },
+      "p73a2": { name: "حسن", note: "", children: ["p73a2_1","p73a2_2","p73a2_3"] },
+      "p73a2_1": { name: "علي", note: "", children: [] },
+      "p73a2_2": { name: "حمد", note: "", children: [] },
+      "p73a2_3": { name: "حمده", note: "", children: [] },
+      "p73a3": { name: "خالد", note: "لا يوجد أبناء", children: [] },
+      "p73a4": { name: "ناعمه", note: "", children: ["p73a4_1","p73a4_2","p73a4_3","p73a4_4","p73a4_5"] },
+      "p73a4_1": { name: "فهد", note: "", children: [] },
+      "p73a4_2": { name: "هند", note: "", children: [] },
+      "p73a4_3": { name: "شما", note: "", children: [] },
+      "p73a4_4": { name: "سند", note: "", children: [] },
+      "p73a4_5": { name: "فجر", note: "", children: [] },
+      "p73a5": { name: "منى", note: "", children: ["p73a5_1","p73a5_2","p73a5_3"] },
+      "p73a5_1": { name: "مهره", note: "", children: [] },
+      "p73a5_2": { name: "ميره", note: "", children: [] },
+      "p73a5_3": { name: "راشد", note: "", children: [] },
+      "p73a6": { name: "شريفة", note: "", children: ["p73a6_1","p73a6_2"] },
+      "p73a6_1": { name: "ميثه", note: "", children: [] },
+      "p73a6_2": { name: "علياء", note: "", children: [] },
 
       "p41": { name: "حمود بن علي", note: "", children: ["p43","p44","p45","p46","p47","p48","p49","p50","p51","p52","p53","p54"] },
 
@@ -1060,7 +1061,7 @@ let people = {
       "p54": { name: "كوثر", note: "", children: ["p54_1"] },
       "p54_1": { name: "محمد", note: "", children: [] },
 
-      "p22b": { name: "عائشه بنت علي", note: "نسخة مطابقة لفرع حمود بن علي لأنهما زوجان", children: ["qp43","qp44","qp45","qp46","qp47","qp48","qp49","qp50","qp51","qp52","qp53","qp54"] },
+      "p73b": { name: "عائشه بنت علي", note: "", children: ["qp43","qp44","qp45","qp46","qp47","qp48","qp49","qp50","qp51","qp52","qp53","qp54"] },
       "qp43": { name: "أحمد", note: "", children: [] },
       "qp44": { name: "بدر", note: "", children: ["qp44_1","qp44_2","qp44_3"] },
       "qp44_1": { name: "هاجر", note: "", children: [] },
@@ -1348,7 +1349,7 @@ let people = {
       "p106": { name: "فاطمة", note: "", children: [] },
       "p107": { name: "أمل", note: "", children: [] },
 
-      "p73": { name: "علي بن أحمد", note: "", children: ["p108","p109","p110","p111","p112","p113","p114","p115","p116","p22a","p22b"] },
+      "p73": { name: "علي بن أحمد", note: "", children: ["p108","p109","p110","p111","p112","p113","p114","p115","p116","p73a","p73b"] },
       "p108": { name: "يونس", note: "", children: [] },
       "p109": { name: "عبدالله", note: "", children: [] },
       "p110": { name: "محمد", note: "", children: [] },
@@ -1467,17 +1468,9 @@ let people = {
 
 
     function scrollToTopInstant() {
-      window.scrollTo({ top: 0, behavior: "auto" });
     }
 
     function scrollToFirstChildSlow() {
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          const firstCard = document.querySelector('.page:not(.hidden) .cards .card');
-          const target = firstCard || document.querySelector('.page:not(.hidden) .title');
-          if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 40);
-      });
     }
 
     function flattenPeopleForSupabase() {
@@ -1601,8 +1594,7 @@ let people = {
             إجمالي الذرية: ${getDescendantsCount(cid)}<br>
             ${child.note ? `ملاحظة: ${child.note}<br>` : ""}
           </div>
-          ${status && appState.settings.showStatuses ? `<div class="status-badge">${status}</div>` : ""}
-        </div>
+                  </div>
       `;
     }
 
@@ -1610,7 +1602,6 @@ let people = {
       await tryInitPeopleFromSupabase();
       renderQuickBranches();
       routeToHash();
-      scrollToTopInstant();
     }
 
     function defaultState() {
@@ -1907,11 +1898,13 @@ let people = {
     }
 
     function shareCurrent() {
-      let url = location.href;
-      if (currentView === "tree") url = location.origin + location.pathname + "#" + currentPerson;
-      if (currentView === "person") url = location.origin + location.pathname + "#person=" + currentPerson;
-      if (currentView === "about") url = location.origin + location.pathname + "#about";
-      if (currentView === "hierarchy") url = location.origin + location.pathname + "#hierarchy=" + hierarchyTrail[hierarchyTrail.length - 1];
+      const base = "https://almujaini.vercel.app";
+      let url = base;
+      if (currentView === "tree") url = base + "#" + currentPerson;
+      if (currentView === "person") url = base + "#person=" + currentPerson;
+      if (currentView === "about") url = base + "#about";
+      if (currentView === "whoami") url = base + "#whoami";
+      if (currentView === "hierarchy") url = base + "#hierarchy=" + hierarchyTrail[hierarchyTrail.length - 1];
       navigator.clipboard.writeText(url);
       alert("تم نسخ الرابط");
     }
@@ -2015,15 +2008,11 @@ let people = {
     }
 
     function handleClick(id) {
-      if (hasChildren(id)) {
-        historyStack.push(id);
-        currentPerson = id;
-        history.pushState({ personId: id }, "", "#" + id);
-        showTreePage();
-        scrollToTopInstant();
-        render(id);
+      currentPerson = id;
+      if (currentView === "hierarchy") {
+        showPersonPage(id);
       } else {
-        showConfirmModal(id);
+        showPersonPage(id);
       }
     }
 
@@ -2034,9 +2023,7 @@ let people = {
       document.getElementById("searchInput").value = "";
       history.pushState({ personId: rootId }, "", "#" + rootId);
       showTreePage();
-      scrollToTopInstant();
       render(rootId);
-      scrollToTopInstant();
     }
 
     function goBack() {
@@ -2069,11 +2056,10 @@ let people = {
       }
 
       box.style.display = "flex";
-
       const children = people[currentPerson]?.children || [];
       children.forEach(id => {
         const btn = document.createElement("button");
-        btn.textContent = people[id].name;
+        btn.textContent = people[id].name + " (" + getChildrenCount(id) + ")";
         btn.onclick = () => handleClick(id);
         box.appendChild(btn);
       });
@@ -2090,16 +2076,13 @@ let people = {
       html += "التسلسل: <strong>" + getLineageText(id) + "</strong><br>";
       html += "عدد الأجيال في الشجرة: <strong>" + totalGenerations + "</strong><br>";
       if (node.note) html += "ملاحظة: <strong>" + node.note + "</strong><br>";
-      const st = getStatus(id) || (hasChildren(id) ? "قيد المراجعة" : "");
-      if (st && appState.settings.showStatuses) html += "حالة الفرع: <strong>" + st + "</strong>";
       document.getElementById("infoBar").innerHTML = html;
     }
 
     function renderCard(id) {
       const child = people[id];
       const isParent = hasChildren(id);
-      const status = getStatus(id) || (isParent ? "قيد المراجعة" : "");
-      const directChildren = getChildrenCount(id);
+            const directChildren = getChildrenCount(id);
       const totalDesc = getDescendantsCount(id);
       let grandChildren = 0;
       (child.children || []).forEach(cid => {
@@ -2121,12 +2104,11 @@ let people = {
             عدد الأحفاد: ${grandChildren}<br>
             إجمالي الذرية: ${totalDesc}<br>
             ${child.note ? `ملاحظة: ${child.note}<br>` : ""}
-            ${status ? `الحالة: ${status}<br>` : ""}
-          </div>
+                      </div>
           <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
             <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${id}')">هرم</div>
           </div>
-          <div class="tag">${isParent ? "اضغط لعرض الأبناء" : "اضغط لعرض البيانات"}</div>
+          
         </div>
       `;
     }
@@ -2194,7 +2176,6 @@ let people = {
       results.sort((a, b) => b.score - a.score);
 
       showTreePage();
-      scrollToTopInstant();
       document.getElementById("title").textContent = "نتائج البحث";
       document.getElementById("breadcrumb").innerHTML = "";
       document.getElementById("quickBranches").innerHTML = "";
@@ -2319,7 +2300,6 @@ let people = {
       currentView = "whoami-profile";
       currentPerson = id;
       hideAllPages();
-      scrollToTopInstant();
       const page = document.getElementById("whoAmIProfilePage");
       page.classList.remove("hidden");
       const special = isSpecialPerson(id);
@@ -2340,7 +2320,6 @@ let people = {
       hideAllPages();
       const page = document.getElementById("aboutPage");
       page.classList.remove("hidden");
-      scrollToTopInstant();
       scrollToTopInstant();
       page.innerHTML = `
         <div class="about-wrap">
@@ -2477,7 +2456,6 @@ let people = {
       hideAllPages();
       const page = document.getElementById("aboutPage");
       page.classList.remove("hidden");
-      scrollToTopInstant();
       page.innerHTML = `
         <div class="about-wrap">
           <div class="about-box">
@@ -2539,7 +2517,6 @@ let people = {
       `;
 
       if (pushHash) history.pushState({ personPage:id }, "", "#person=" + id);
-      scrollToFirstChildSlow();
     }
 
     function showHierarchyPage(startId = rootId, pushHash = true) {
@@ -2607,7 +2584,6 @@ let people = {
 
       rows += `</div>`;
       page.innerHTML = rows;
-      scrollToFirstChildSlow();
     }
 
     async function submitPublicMessage() {
@@ -2660,7 +2636,6 @@ let people = {
       hideAllPages();
       const page = document.getElementById("adminPage");
       page.classList.remove("hidden");
-      scrollToTopInstant();
 
       const { data: requestsData } = await supabaseClient
         .from("requests")
@@ -2698,7 +2673,7 @@ let people = {
     }
 
     function renderAdminSections(requestsData = [], messagesData = []) {
-      const statusOptions = ["", "مكتمل", "يحتاج مراجعة", "قيد المراجعة", "مؤكد", "شفهي"];
+      const statusOptions = ["", "مكتمل", "يحتاج مراجعة", "مؤكد", "شفهي"];
       const generationStats = getGenerationStats();
       const duplicateList = detectDuplicateNames();
 
