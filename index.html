@@ -739,6 +739,30 @@
       font-weight:700;
     }
 
+    .card.special-tree-person,
+    .hier-card.special-tree-person{
+      border-color:rgba(184,155,94,.55);
+      border-top-color:var(--gold);
+      background:linear-gradient(180deg, rgba(255,251,242,.98), rgba(255,247,232,.96));
+      box-shadow:0 10px 30px rgba(125,92,61,.18);
+    }
+
+    .tree-special-star{
+      display:block;
+      text-align:center;
+      color:var(--gold);
+      font-size:18px;
+      line-height:1;
+      margin-bottom:6px;
+      letter-spacing:2px;
+      font-weight:700;
+    }
+
+    .special-tree-name{
+      color:#7d5c3d;
+      font-weight:800;
+    }
+
     @media (max-width:900px){
       .person-grid,
       .admin-grid{
@@ -1573,10 +1597,12 @@ let people = {
     function renderHierarchyCard(cid, selectedChild, levelIndex) {
       const child = people[cid];
       const status = getStatus(cid);
+      const special = isSpecialPerson(cid);
       return `
-        <div class="hier-card ${selectedChild === cid ? "selected" : ""}">
+        <div class="hier-card ${selectedChild === cid ? "selected" : ""} ${special ? "special-tree-person" : ""}" onclick="showPersonPage('${cid}')">
+          ${special ? `<div class="tree-special-star">✦</div>` : ""}
           <div class="name-row">
-            <div class="name" onclick="event.stopPropagation(); showPersonPage('${cid}')">${child.name}${appState.settings.showCounts ? ` (${getChildrenCount(cid)})` : ""}</div>
+            <div class="name ${special ? "special-tree-name" : ""}">${child.name}${appState.settings.showCounts ? ` (${getChildrenCount(cid)})` : ""}</div>
             <div class="badges">
               <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${cid}')">طلب إضافة</div>
               <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${cid}')">نسب</div>
@@ -2087,10 +2113,12 @@ let people = {
     function renderCard(id) {
       const child = people[id];
       const status = getStatus(id);
+      const special = isSpecialPerson(id);
       return `
-        <div class="card ${hasChildren(id) ? "" : "no-children"}" onclick="handleClick('${id}')">
+        <div class="card ${hasChildren(id) ? "" : "no-children"} ${special ? "special-tree-person" : ""}" onclick="handleClick('${id}')">
+          ${special ? `<div class="tree-special-star">✦</div>` : ""}
           <div class="name-row">
-            <div class="name">${child.name}${appState.settings.showCounts ? ` (${getChildrenCount(id)})` : ""}</div>
+            <div class="name ${special ? "special-tree-name" : ""}">${child.name}${appState.settings.showCounts ? ` (${getChildrenCount(id)})` : ""}</div>
             <div class="badges">
               <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${id}')">طلب إضافة</div>
               <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${id}')">نسب</div>
@@ -2140,9 +2168,10 @@ let people = {
 
       if (!children.length) {
         content.innerHTML = `
-          <div class="card no-children">
+          <div class="card no-children ${isSpecialPerson(id) ? "special-tree-person" : ""}">
+            ${isSpecialPerson(id) ? `<div class="tree-special-star">✦</div>` : ""}
             <div class="name-row">
-              <div class="name">${people[id].name}</div>
+              <div class="name ${isSpecialPerson(id) ? "special-tree-name" : ""}">${people[id].name}</div>
               <div class="badges">
                 <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${id}')">طلب إضافة</div>
                 <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${id}')">نسب</div>
@@ -2506,7 +2535,7 @@ let people = {
 
       page.innerHTML = `
         <div class="person-page">
-          <div class="title">${person.name}</div>
+          <div class="title">${isSpecialPerson(id) ? `<div class="tree-special-star">✦</div>` : ""}${person.name}</div>
           <div class="person-grid">
             <div class="subbox ${isSpecialPerson(id) ? "special-person" : ""}">
               <h3>بطاقة تعريفية</h3>
@@ -3290,4 +3319,4 @@ let people = {
     initApp();
   </script>
 </body>
-  </html>
+</html>
