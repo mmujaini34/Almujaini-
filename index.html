@@ -2500,49 +2500,20 @@ let people = {
       scrollToTopInstant();
 
       const person = people[id];
-      const lineage = getLineageText(id);
-      const parentId = getParentId(id);
       const children = person.children || [];
-      const status = getStatus(id);
-      const grandchildrenCount = getGrandchildren(id).length;
-      const descendantsCount = getDescendantsCount(id);
 
       page.innerHTML = `
         <div class="person-page">
           <div class="title">${person.name}</div>
-          <div class="subbox ${isSpecialPerson(id) ? "special-person" : ""}" style="margin-bottom:14px;">
-            <h3>بطاقة تعريفية</h3>
-            <div class="meta">
-              التسلسل: <strong>${lineage}</strong><br>
-              الأب: <strong>${parentId ? people[parentId].name : "لا يوجد"}</strong><br>
-              الجيل: <strong>${generationLabelShort(getGeneration(id))}</strong><br>
-              عدد الأبناء: <strong>${getChildrenCount(id)}</strong><br>
-              عدد الأحفاد: <strong>${grandchildrenCount}</strong><br>
-              إجمالي الذرية: <strong>${descendantsCount}</strong><br>
-              ${person.note ? `ملاحظة: <strong>${person.note}</strong><br>` : ""}
-              ${status ? `الحالة: <strong>${status}</strong><br>` : ""}
-            </div>
-            <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="btn-main" onclick="copyText('${lineage.replace(/'/g,"\'")}')">نسخ التسلسل</button>
-              <button class="btn-soft" onclick="showHierarchyPage('${id}')">هرم</button>
-              <button class="btn-soft" onclick="openAddRequestModal('${id}')">طلب إضافة</button>
-              <button class="btn-soft" onclick="openWhoAmIForPerson('${id}')">من؟</button>
-              ${parentId ? `<button class="btn-soft" onclick="showPersonPage('${parentId}')">الانتقال إلى الأب</button>` : ""}
-            </div>
-          </div>
-
-          <div class="subbox">
-            <h3>أبناء الشخص</h3>
-            ${
-              children.length
-                ? `<div class="cards">${children.map(cid => renderCard(cid)).join("")}</div>`
-                : `<div class="card no-children" style="margin-top:10px;">
-                    <div class="name-row">
-                      <div class="name">لا توجد أسماء أبناء مسجلة لهذا الشخص.</div>
-                    </div>
-                  </div>`
-            }
-          </div>
+          ${
+            children.length
+              ? `<div class="cards">${children.map(cid => renderCard(cid)).join("")}</div>`
+              : `<div class="card no-children">
+                  <div class="name-row">
+                    <div class="name">لا توجد أسماء أبناء مسجلة لهذا الشخص.</div>
+                  </div>
+                </div>`
+          }
         </div>
       `;
 
