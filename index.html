@@ -6,20 +6,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>شجرة عائلة محمد بن حميد المجيني</title>
   <style>
-    
   :root{
-  --main:#8f6b4c;
-  --main2:#a17d5d;
-  --gold:#7d5c3d;
-  --bg:#e1d2c3;
-  --card:#f6ede4;
-  --text:#342922;
-  --muted:#59493d;
-  --line:#b8a18d;
-  --danger:#7d3737;
-  --ok:#465d47;
-  --shadow:0 8px 24px rgba(0,0,0,.12);
-}
+    --main:#8f6b4c;
+    --main2:#a17d5d;
+    --gold:#7d5c3d;
+    --bg:#e1d2c3;
+    --card:#f6ede4;
+    --text:#342922;
+    --muted:#59493d;
+    --line:#b8a18d;
+    --danger:#7d3737;
+    --ok:#465d47;
+    --shadow:0 8px 24px rgba(0,0,0,.12);
+  }
     *{box-sizing:border-box}
     html{scroll-behavior:smooth}
     body{
@@ -37,6 +36,11 @@
       background:rgba(244,237,228,.96);
       backdrop-filter:blur(8px);
       border-bottom:1px solid var(--line);
+      transition:transform .45s ease;
+    }
+
+    .topbar.is-hidden{
+      transform:translateY(-110%);
     }
 
     .topbar-inner{
@@ -656,6 +660,85 @@
       pointer-events:none;
     }
 
+
+    .topbar{
+      transition:transform .38s ease, opacity .26s ease;
+      will-change:transform, opacity;
+    }
+
+    .topbar.is-hidden{
+      transform:translateY(-110%);
+      opacity:0;
+    }
+
+    .whoami-bg{
+      position:relative;
+      overflow:hidden;
+      border-radius:22px;
+      min-height:320px;
+    }
+
+    .whoami-bg::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(rgba(246,243,237,.86), rgba(246,243,237,.88)),
+        url("bg-mujaini.jpg") center center / cover no-repeat;
+      opacity:.96;
+      pointer-events:none;
+    }
+
+    .whoami-card{
+      position:relative;
+      z-index:1;
+      background:rgba(255,255,255,.88);
+      border:1px solid var(--line);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      padding:22px 18px;
+      line-height:2.1;
+      font-size:16px;
+      white-space:pre-wrap;
+    }
+
+    .whoami-card.special-person{
+      border:1px solid rgba(184,155,94,.55);
+      box-shadow:0 10px 28px rgba(125,92,61,.16);
+      background:rgba(255,252,246,.92);
+    }
+
+    .special-mark{
+      text-align:center;
+      color:var(--gold);
+      font-size:20px;
+      margin-bottom:6px;
+      letter-spacing:2px;
+    }
+
+    .whoami-results{
+      display:grid;
+      gap:8px;
+      margin-top:12px;
+    }
+
+    .whoami-results button{
+      text-align:right;
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 14px;
+      font-family:inherit;
+      color:var(--text);
+    }
+
+    .who-badge{
+      background:#f6efe5;
+      color:var(--gold);
+      border-color:#e5d4b4;
+      font-weight:700;
+    }
+
     @media (max-width:900px){
       .person-grid,
       .admin-grid{
@@ -684,7 +767,6 @@
         <button onclick="goRoot()">الرئيسية</button>
         <button onclick="showAbout()">📜 نبذة عن قبيلة المجيني</button>
         <button onclick="showWhoAmI()">من أكون؟</button>
-        <button onclick="showHierarchyPage(rootId)">عرض الهرم</button>
         <button class="icon-btn" onclick="openAdminPassword()">⚙️</button>
       </div>
     </div>
@@ -742,6 +824,7 @@
   <div class="page hidden" id="personPage"></div>
   <div class="page hidden" id="adminPage"></div>
   <div class="page hidden" id="hierarchyPage"></div>
+  <div class="page hidden" id="whoAmIProfilePage"></div>
 
   <div class="modal" id="confirmModal">
     <div class="modal-box">
@@ -795,7 +878,7 @@
   </div>
 
   <script>
-  const contactNumber = "96896040406";
+const contactNumber = "96896040406";
 const rootId = "p1";
 const STORAGE_KEY = "mujaini_tree_app_v5";
 const DEFAULT_PASSWORD = "Mujaini34";
@@ -803,6 +886,7 @@ const DEFAULT_PASSWORD = "Mujaini34";
 const SUPABASE_URL = "https://fjjavswshxsjvocrkjox.supabase.co";
 const SUPABASE_KEY = "sb_publishable_RnfnO_UOIrny2cjCPvLoyg__pTvE9Ge";
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 async function saveMessageToSupabase(payload) {
   const { error } = await supabaseClient.from("messages").insert([payload]);
   if (error) throw error;
@@ -812,12 +896,29 @@ async function saveRequestToSupabase(payload) {
   const { error } = await supabaseClient.from("requests").insert([payload]);
   if (error) throw error;
 }
-const people = {  
+
+let people = {
       "p1": { name: "محمد بن حميد المجيني", note: "", children: ["p2","p3","p4","p5","p6","p7","p8","p9","p10"] },
 
       "p2": { name: "صالحة بنت محمد", note: "", children: [] },
       "p3": { name: "شمسة بنت محمد", note: "", children: [] },
-      "p4": { name: "عائشة بنت محمد", note: "", children: [] },
+      "p4": { name: "عائشة بنت محمد", note: "", children: ["p4a"] },
+      "p4a": { name: "ناعمه", note: "", children: ["p4a1","p4a2"] },
+      "p4a1": { name: "عبدالله بن احمد", note: "", children: ["p4a1_1","p4a1_2","p4a1_3"] },
+      "p4a1_1": { name: "احمد", note: "", children: [] },
+      "p4a1_2": { name: "يوسف", note: "", children: [] },
+      "p4a1_3": { name: "محمد", note: "", children: [] },
+      "p4a2": { name: "علي بن صالح", note: "", children: ["p4a2_1","p4a2_2","p4a2_3","p4a2_4"] },
+      "p4a2_1": { name: "صالح", note: "", children: [] },
+      "p4a2_2": { name: "عبيد", note: "", children: [] },
+      "p4a2_3": { name: "سعيد", note: "", children: [] },
+      "p4a2_4": { name: "عبدالله", note: "", children: ["p4a2_4_1","p4a2_4_2","p4a2_4_3","p4a2_4_4","p4a2_4_5","p4a2_4_6"] },
+      "p4a2_4_1": { name: "صالح", note: "", children: [] },
+      "p4a2_4_2": { name: "يوسف", note: "", children: [] },
+      "p4a2_4_3": { name: "احمد", note: "", children: [] },
+      "p4a2_4_4": { name: "يحيى", note: "", children: [] },
+      "p4a2_4_5": { name: "ناعمه", note: "", children: [] },
+      "p4a2_4_6": { name: "مريم", note: "", children: [] },
       "p5": { name: "فاطمة بنت محمد", note: "", children: [] },
 
       "p6": { name: "حسن بن محمد", note: "", children: ["p11","p12","p13","p14","p15","p15a"] },
@@ -833,7 +934,8 @@ const people = {
       "p17": { name: "خديه", note: "", children: [] },
 
       "p8": { name: "حميد بن محمد", note: "", children: [] },
-      "p9": { name: "يونس بن محمد", note: "", children: [] },
+      "p9": { name: "يونس بن محمد", note: "", children: ["p9a"] },
+      "p9a": { name: "احمد", note: "متوفي بدون أولاد - انتهاء السلالة", children: [] },
 
       "p10": { name: "جابر بن محمد", note: "الفرع الرئيسي", children: ["p18","p19","p20","p21","p22","p23","p24","p25"] },
 
@@ -859,7 +961,30 @@ const people = {
       "p39": { name: "سعيد", note: "", children: [] },
       "p40": { name: "صالح", note: "", children: [] },
 
-      "p22": { name: "علي بن جابر", note: "أمه من ضيان", children: ["p41","p42"] },
+      "p22": { name: "علي بن جابر", note: "أمه من ضيان", children: ["p41","p42","p22a","p22b"] },
+      "p22a": { name: "عبدالله بن علي", note: "", children: ["p22a1","p22a2","p22a3","p22a4","p22a5","p22a6"] },
+      "p22a1": { name: "أحمد", note: "", children: ["p22a1_1","p22a1_2","p22a1_3"] },
+      "p22a1_1": { name: "عبدالله", note: "", children: [] },
+      "p22a1_2": { name: "عذاري", note: "", children: [] },
+      "p22a1_3": { name: "سعود", note: "", children: [] },
+      "p22a2": { name: "حسن", note: "", children: ["p22a2_1","p22a2_2","p22a2_3"] },
+      "p22a2_1": { name: "علي", note: "", children: [] },
+      "p22a2_2": { name: "حمد", note: "", children: [] },
+      "p22a2_3": { name: "حمده", note: "", children: [] },
+      "p22a3": { name: "خالد", note: "لا يوجد أبناء", children: [] },
+      "p22a4": { name: "ناعمه", note: "", children: ["p22a4_1","p22a4_2","p22a4_3","p22a4_4","p22a4_5"] },
+      "p22a4_1": { name: "فهد", note: "", children: [] },
+      "p22a4_2": { name: "هند", note: "", children: [] },
+      "p22a4_3": { name: "شما", note: "", children: [] },
+      "p22a4_4": { name: "سند", note: "", children: [] },
+      "p22a4_5": { name: "فجر", note: "", children: [] },
+      "p22a5": { name: "منى", note: "", children: ["p22a5_1","p22a5_2","p22a5_3"] },
+      "p22a5_1": { name: "مهره", note: "", children: [] },
+      "p22a5_2": { name: "ميره", note: "", children: [] },
+      "p22a5_3": { name: "راشد", note: "", children: [] },
+      "p22a6": { name: "شريفة", note: "", children: ["p22a6_1","p22a6_2"] },
+      "p22a6_1": { name: "ميثه", note: "", children: [] },
+      "p22a6_2": { name: "علياء", note: "", children: [] },
 
       "p41": { name: "حمود بن علي", note: "", children: ["p43","p44","p45","p46","p47","p48","p49","p50","p51","p52","p53","p54"] },
 
@@ -935,6 +1060,64 @@ const people = {
       "p54": { name: "كوثر", note: "", children: ["p54_1"] },
       "p54_1": { name: "محمد", note: "", children: [] },
 
+      "p22b": { name: "عائشه بنت علي", note: "نسخة مطابقة لفرع حمود بن علي لأنهما زوجان", children: ["qp43","qp44","qp45","qp46","qp47","qp48","qp49","qp50","qp51","qp52","qp53","qp54"] },
+      "qp43": { name: "أحمد", note: "", children: [] },
+      "qp44": { name: "بدر", note: "", children: ["qp44_1","qp44_2","qp44_3"] },
+      "qp44_1": { name: "هاجر", note: "", children: [] },
+      "qp44_2": { name: "وصايف", note: "", children: [] },
+      "qp44_3": { name: "عبدالله", note: "", children: [] },
+      "qp45": { name: "محمد", note: "", children: ["qp45_1","qp45_2","qp45_3","qp45_4","qp45_5"] },
+      "qp45_1": { name: "ميثه", note: "", children: ["qp45_1a","qp45_1b"] },
+      "qp45_1a": { name: "عذبه", note: "", children: [] },
+      "qp45_1b": { name: "ذياب", note: "", children: [] },
+      "qp45_2": { name: "خديجه", note: "", children: [] },
+      "qp45_3": { name: "قصايد", note: "", children: [] },
+      "qp45_4": { name: "فراس", note: "", children: [] },
+      "qp45_5": { name: "احمد", note: "", children: [] },
+      "qp46": { name: "علي", note: "", children: ["qp46_1","qp46_2","qp46_3","qp46_4","qp46_5"] },
+      "qp46_1": { name: "هشام", note: "", children: ["qp46_1a","qp46_1b"] },
+      "qp46_1a": { name: "عبدالرحمن", note: "", children: [] },
+      "qp46_1b": { name: "احمد", note: "", children: [] },
+      "qp46_2": { name: "حمود", note: "", children: [] },
+      "qp46_3": { name: "عالية", note: "", children: [] },
+      "qp46_4": { name: "عائشه", note: "", children: [] },
+      "qp46_5": { name: "مريم", note: "", children: [] },
+      "qp47": { name: "هشام", note: "", children: ["qp47_1","qp47_2"] },
+      "qp47_1": { name: "عبدالرحمن", note: "", children: [] },
+      "qp47_2": { name: "احمد", note: "", children: [] },
+      "qp48": { name: "جابر", note: "", children: ["qp48_1","qp48_2","qp48_3","qp48_4"] },
+      "qp48_1": { name: "حمود", note: "", children: [] },
+      "qp48_2": { name: "عائشه", note: "", children: [] },
+      "qp48_3": { name: "مريم", note: "", children: [] },
+      "qp48_4": { name: "سماء", note: "", children: [] },
+      "qp49": { name: "هيثم", note: "", children: [] },
+      "qp50": { name: "فهد", note: "", children: ["qp50_1"] },
+      "qp50_1": { name: "خالد", note: "", children: [] },
+      "qp51": { name: "مريم", note: "", children: ["qp51_1","qp51_2","qp51_3","qp51_4","qp51_5"] },
+      "qp51_1": { name: "ايمان", note: "", children: [] },
+      "qp51_2": { name: "فاطمه", note: "", children: [] },
+      "qp51_3": { name: "سعيد", note: "", children: [] },
+      "qp51_4": { name: "احمد", note: "", children: [] },
+      "qp51_5": { name: "محمد", note: "", children: ["qp51_5a"] },
+      "qp51_5a": { name: "علي", note: "", children: [] },
+      "qp52": { name: "علياء", note: "", children: ["qp52_1","qp52_2","qp52_3","qp52_4"] },
+      "qp52_1": { name: "محمد", note: "", children: ["qp52_1a","qp52_1b"] },
+      "qp52_1a": { name: "عذبه", note: "", children: [] },
+      "qp52_1b": { name: "ذياب", note: "", children: [] },
+      "qp52_2": { name: "خديجه", note: "", children: ["qp52_2a","qp52_2b"] },
+      "qp52_2a": { name: "محمد", note: "", children: [] },
+      "qp52_2b": { name: "مريم", note: "", children: [] },
+      "qp52_3": { name: "صفيه", note: "", children: ["qp52_3a","qp52_3b","qp52_3c"] },
+      "qp52_3a": { name: "سلطان", note: "", children: [] },
+      "qp52_3b": { name: "ريم", note: "", children: [] },
+      "qp52_3c": { name: "لمى", note: "", children: [] },
+      "qp52_4": { name: "مريم", note: "", children: ["qp52_4a","qp52_4b"] },
+      "qp52_4a": { name: "جابر", note: "", children: [] },
+      "qp52_4b": { name: "ملاذ", note: "", children: [] },
+      "qp53": { name: "بلقيس", note: "", children: ["qp53_1"] },
+      "qp53_1": { name: "عبدالله", note: "", children: [] },
+      "qp54": { name: "كوثر", note: "", children: ["qp54_1"] },
+      "qp54_1": { name: "محمد", note: "", children: [] },
       "p42": { name: "فاطمة بنت علي", note: "", children: ["p55","p56"] },
 
       "p55": { name: "عائشه", note: "", children: ["p55_1","p55_2","p55_3","p55_4","p55_5","p55_6","p55_7","p55_8","p55_9","p55_10","p55_11","p55_12","p55_13"] },
@@ -999,7 +1182,13 @@ const people = {
       "p56": { name: "مريم", note: "", children: [] },
 
       "p23": { name: "مريم بنت جابر", note: "", children: ["p57"] },
-      "p57": { name: "عبدالله بن علي", note: "", children: [] },
+      "p57": { name: "عبدالله بن علي", note: "", children: ["p57_1","p57_2","p57_3","p57_4","p57_5","p57_6"] },
+      "p57_1": { name: "يحيى", note: "", children: [] },
+      "p57_2": { name: "يوسف", note: "", children: [] },
+      "p57_3": { name: "احمد", note: "", children: [] },
+      "p57_4": { name: "صالح", note: "", children: [] },
+      "p57_5": { name: "مريم", note: "", children: [] },
+      "p57_6": { name: "ناعمه", note: "", children: [] },
 
       "p24": { name: "عبدالله بن جابر", note: "أمه من الخضراء", children: [] },
 
@@ -1276,6 +1465,143 @@ const people = {
     let appState = loadState();
     let hierarchyTrail = [rootId];
 
+
+    function scrollToTopInstant() {
+      window.scrollTo({ top: 0, behavior: "auto" });
+    }
+
+    function flattenPeopleForSupabase() {
+      const rows = [];
+      function walk(id, parentId = null, sortOrder = 0) {
+        const node = people[id];
+        if (!node) return;
+        rows.push({
+          id,
+          name: node.name || "",
+          note: node.note || "",
+          parent_id: parentId,
+          sort_order: sortOrder
+        });
+        (node.children || []).forEach((childId, index) => walk(childId, id, index));
+      }
+      walk(rootId, null, 0);
+      return rows;
+    }
+
+    function buildPeopleFromSupabaseRows(rows) {
+      const map = {};
+      rows.forEach(row => {
+        map[row.id] = { name: row.name || "", note: row.note || "", children: [] };
+      });
+      rows.forEach(row => {
+        if (row.parent_id && map[row.parent_id]) map[row.parent_id].children.push(row.id);
+      });
+      rows.forEach(row => {
+        if (row.parent_id && map[row.parent_id]) {
+          map[row.parent_id].children.sort((a, b) => {
+            const ra = rows.find(x => x.id === a)?.sort_order ?? 0;
+            const rb = rows.find(x => x.id === b)?.sort_order ?? 0;
+            return ra - rb;
+          });
+        }
+      });
+      return map;
+    }
+
+    async function tryInitPeopleFromSupabase() {
+      try {
+        const { data, error } = await supabaseClient
+          .from("people")
+          .select("id,name,note,parent_id,sort_order")
+          .order("sort_order", { ascending: true });
+
+        if (error) {
+          console.warn("People table not ready, fallback to local data.", error);
+          return false;
+        }
+
+        peopleTableAvailable = true;
+
+        if (!data || !data.length) {
+          const seedRows = flattenPeopleForSupabase();
+          const seedRes = await supabaseClient.from("people").upsert(seedRows);
+          if (seedRes.error) {
+            console.warn("Unable to seed people table, fallback to local data.", seedRes.error);
+            return false;
+          }
+          const reload = await supabaseClient
+            .from("people")
+            .select("id,name,note,parent_id,sort_order")
+            .order("sort_order", { ascending: true });
+          if (reload.error || !reload.data || !reload.data.length) return false;
+          people = buildPeopleFromSupabaseRows(reload.data);
+          peopleSource = "supabase";
+          return true;
+        }
+
+        people = buildPeopleFromSupabaseRows(data);
+        peopleSource = "supabase";
+        return true;
+      } catch (e) {
+        console.warn("Supabase people init failed, fallback to local data.", e);
+        return false;
+      }
+    }
+
+    async function addPersonPersist(parentId, name, note = "") {
+      const newId = "u" + Date.now() + Math.floor(Math.random() * 1000);
+      people[newId] = { name: name.trim(), note: note.trim(), children: [] };
+      if (!people[parentId].children.includes(newId)) people[parentId].children.push(newId);
+
+      if (peopleTableAvailable) {
+        const sortOrder = Math.max((people[parentId].children || []).length - 1, 0);
+        const { error } = await supabaseClient.from("people").insert([{
+          id: newId,
+          name: name.trim(),
+          note: note.trim(),
+          parent_id: parentId,
+          sort_order: sortOrder
+        }]);
+        if (error) {
+          console.warn("Supabase insert failed; retained locally.", error);
+        }
+      }
+
+      return newId;
+    }
+
+    function renderHierarchyCard(cid, selectedChild, levelIndex) {
+      const child = people[cid];
+      const status = getStatus(cid);
+      return `
+        <div class="hier-card ${selectedChild === cid ? "selected" : ""}">
+          <div class="name-row">
+            <div class="name" onclick="event.stopPropagation(); showPersonPage('${cid}')">${child.name}${appState.settings.showCounts ? ` (${getChildrenCount(cid)})` : ""}</div>
+            <div class="badges">
+              <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${cid}')">طلب إضافة</div>
+              <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${cid}')">نسب</div>
+              <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${cid}')">هرم</div>
+              <div class="small-badge who-badge" onclick="event.stopPropagation(); openWhoAmIForPerson('${cid}')">من؟</div>
+              ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(cid))}</div>` : ""}
+            </div>
+          </div>
+          <div class="meta">
+            عدد الأبناء المباشرين: ${getChildrenCount(cid)}<br>
+            إجمالي الأشخاص تحت الفرع: ${getDescendantsCount(cid)}<br>
+            ${child.note ? `ملاحظة: ${child.note}<br>` : ""}
+          </div>
+          ${status && appState.settings.showStatuses ? `<div class="status-badge">${status}</div>` : ""}
+        </div>
+      `;
+    }
+
+    async function initApp() {
+      await tryInitPeopleFromSupabase();
+      renderQuickBranches();
+      routeToHash();
+      scrollToTopInstant();
+    }
+
     function defaultState() {
       return {
         adminPassword: DEFAULT_PASSWORD,
@@ -1345,36 +1671,6 @@ const people = {
         }
       }
       return matrix[b.length][a.length];
-    }
-
-    function similarityScore(query, target) {
-      query = normalizeArabic(query);
-      target = normalizeArabic(target);
-      if (!query || !target) return 0;
-      if (target.indexOf(query) !== -1) return 100;
-
-      const queryParts = query.split(" ").filter(Boolean);
-      const targetParts = target.split(" ").filter(Boolean);
-
-      let partHits = 0;
-      for (let i = 0; i < queryParts.length; i++) {
-        for (let j = 0; j < targetParts.length; j++) {
-          if (
-            targetParts[j].indexOf(queryParts[i]) !== -1 ||
-            queryParts[i].indexOf(targetParts[j]) !== -1
-          ) {
-            partHits++;
-            break;
-          }
-        }
-      }
-
-      const partScore = (partHits / Math.max(queryParts.length, 1)) * 70;
-      const distance = levenshtein(query, target);
-      const maxLen = Math.max(query.length, target.length) || 1;
-      const editScore = Math.max(0, 30 - (distance / maxLen) * 30);
-
-      return partScore + editScore;
     }
 
     function hasChildren(id) {
@@ -1507,12 +1803,47 @@ const people = {
       };
     }
 
+    function splitNameWords(name) {
+      return normalizeArabic(name).split(" ").filter(Boolean);
+    }
+
+    function scoreNameOnlySearch(query, name) {
+      const q = normalizeArabic(query);
+      const n = normalizeArabic(name);
+
+      if (!q || !n) return 0;
+
+      const qWords = q.split(" ").filter(Boolean);
+      const nWords = n.split(" ").filter(Boolean);
+
+      let score = 0;
+
+      if (n === q) score += 500;
+      if (n.includes(q)) score += 250;
+
+      qWords.forEach(qw => {
+        nWords.forEach(nw => {
+          if (nw === qw) score += 120;
+          else if (nw.startsWith(qw)) score += 70;
+          else if (nw.includes(qw)) score += 35;
+        });
+      });
+
+      const dist = levenshtein(q, n);
+      const maxLen = Math.max(q.length, n.length) || 1;
+      const similarity = 1 - (dist / maxLen);
+      score += Math.max(0, similarity * 40);
+
+      return score;
+    }
+
     function hideAllPages() {
       document.getElementById("mainPage").classList.add("hidden");
       document.getElementById("aboutPage").classList.add("hidden");
       document.getElementById("personPage").classList.add("hidden");
       document.getElementById("adminPage").classList.add("hidden");
       document.getElementById("hierarchyPage").classList.add("hidden");
+      document.getElementById("whoAmIProfilePage").classList.add("hidden");
     }
 
     function showTreePage() {
@@ -1542,6 +1873,12 @@ const people = {
       }
       if (h === "about") return showAbout(false);
       if (h === "whoami") return showWhoAmI(false);
+      if (h.startsWith("whoami-person=")) {
+        const id = h.split("=")[1];
+        if (people[id]) showWhoAmIProfile(id, false);
+        else { showWhoAmI(false); }
+        return;
+      }
       if (people[h]) {
         showTreePage();
         currentPerson = h;
@@ -1619,37 +1956,37 @@ const people = {
     }
 
     async function submitAddRequest() {
-  const childName = document.getElementById("reqChildName").value.trim();
-  const childrenText = document.getElementById("reqChildrenText").value.trim();
-  const senderName = document.getElementById("reqSenderName").value.trim();
-  const details = document.getElementById("reqDetails").value.trim();
+      const childName = document.getElementById("reqChildName").value.trim();
+      const childrenText = document.getElementById("reqChildrenText").value.trim();
+      const senderName = document.getElementById("reqSenderName").value.trim();
+      const details = document.getElementById("reqDetails").value.trim();
 
-  if (!pendingParentRequestId) {
-    alert("لم يتم تحديد الأب.");
-    return;
-  }
+      if (!pendingParentRequestId) {
+        alert("لم يتم تحديد الأب.");
+        return;
+      }
 
-  if (!childName) {
-    alert("اكتب الاسم المطلوب إضافته.");
-    return;
-  }
+      if (!childName) {
+        alert("اكتب الاسم المطلوب إضافته.");
+        return;
+      }
 
-  try {
-    await saveRequestToSupabase({
-      parent_id: pendingParentRequestId,
-      child_name: childName,
-      children_text: childrenText || "",
-      sender_name: senderName || "بدون اسم",
-      details: details || "",
-      status: "pending"
-    });
+      try {
+        await saveRequestToSupabase({
+          parent_id: pendingParentRequestId,
+          child_name: childName,
+          children_text: childrenText || "",
+          sender_name: senderName || "بدون اسم",
+          details: details || "",
+          status: "pending"
+        });
 
-    closeAddRequestModal();
-    alert("تم إرسال طلب الإضافة إلى الإدارة.");
-  } catch (e) {
-    console.error(e);
-    alert("تعذر إرسال الطلب حاليًا");
-  }
+        closeAddRequestModal();
+        alert("تم إرسال طلب الإضافة إلى الإدارة.");
+      } catch (e) {
+        console.error(e);
+        alert("تعذر إرسال الطلب حاليًا");
+      }
     }
 
     function openLineageModal(id) {
@@ -1672,6 +2009,7 @@ const people = {
         currentPerson = id;
         history.pushState({ personId: id }, "", "#" + id);
         showTreePage();
+        scrollToTopInstant();
         render(id);
       } else {
         showConfirmModal(id);
@@ -1685,7 +2023,9 @@ const people = {
       document.getElementById("searchInput").value = "";
       history.pushState({ personId: rootId }, "", "#" + rootId);
       showTreePage();
+      scrollToTopInstant();
       render(rootId);
+      scrollToTopInstant();
     }
 
     function goBack() {
@@ -1711,9 +2051,18 @@ const people = {
     function renderQuickBranches() {
       const box = document.getElementById("quickBranches");
       box.innerHTML = "";
-      branchRoots().forEach(id => {
+
+      if (currentPerson === rootId) {
+        box.style.display = "none";
+        return;
+      }
+
+      box.style.display = "flex";
+
+      const children = people[currentPerson]?.children || [];
+      children.forEach(id => {
         const btn = document.createElement("button");
-        btn.textContent = people[id].name + " (" + getChildrenCount(id) + ")";
+        btn.textContent = people[id].name;
         btn.onclick = () => handleClick(id);
         box.appendChild(btn);
       });
@@ -1746,6 +2095,7 @@ const people = {
               <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${id}')">طلب إضافة</div>
               <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${id}')">نسب</div>
               <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${id}')">هرم</div>
+              <div class="small-badge who-badge" onclick="event.stopPropagation(); openWhoAmIForPerson('${id}')">من؟</div>
               ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(id))}</div>` : ""}
             </div>
           </div>
@@ -1762,6 +2112,8 @@ const people = {
 
     function render(id) {
       showTreePage();
+      currentPerson = id;
+
       document.getElementById("title").textContent = people[id].name;
       renderBreadcrumb();
       renderQuickBranches();
@@ -1769,6 +2121,23 @@ const people = {
 
       const content = document.getElementById("content");
       const children = people[id].children || [];
+
+      if (id === rootId) {
+        content.className = "cards";
+        content.innerHTML = `
+          <div class="card no-children" style="text-align:center;" onclick="showHierarchyPage('${rootId}')">
+            <div class="name-row" style="justify-content:center;">
+              <div class="name">${people[id].name}</div>
+            </div>
+            <div class="meta">
+              اضغط على الاسم لبدء الهرم التدريجي من الأبناء مباشرة.
+            </div>
+            <div class="tag">ابدأ عرض الهرم</div>
+          </div>
+        `;
+        return;
+      }
+
       if (!children.length) {
         content.innerHTML = `
           <div class="card no-children">
@@ -1778,6 +2147,7 @@ const people = {
                 <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${id}')">طلب إضافة</div>
                 <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${id}')">نسب</div>
                 <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${id}')">هرم</div>
+                <div class="small-badge who-badge" onclick="event.stopPropagation(); openWhoAmIForPerson('${id}')">من؟</div>
                 ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(id))}</div>` : ""}
               </div>
             </div>
@@ -1786,48 +2156,49 @@ const people = {
         `;
         return;
       }
+
       content.className = "cards";
       content.innerHTML = children.map(childId => renderCard(childId)).join("");
     }
 
     function renderSearchResults(keyword) {
       const results = [];
+
       for (const key in people) {
         const person = people[key];
-        const scoreName = similarityScore(keyword, person.name);
-        const scoreNote = similarityScore(keyword, person.note || "");
-        const finalScore = Math.max(scoreName, scoreNote);
-        if (finalScore >= 35) results.push({ id: key, score: finalScore });
+        const score = scoreNameOnlySearch(keyword, person.name);
+        if (score >= 60) results.push({ id: key, score });
       }
-      results.sort((a,b)=>b.score-a.score);
+
+      results.sort((a, b) => b.score - a.score);
 
       showTreePage();
+      scrollToTopInstant();
       document.getElementById("title").textContent = "نتائج البحث";
       document.getElementById("breadcrumb").innerHTML = "";
       document.getElementById("quickBranches").innerHTML = "";
+      document.getElementById("quickBranches").style.display = "none";
 
       let top = `عدد النتائج: <strong>${results.length}</strong>`;
-      if (results.length > 0 && results[0].score < 100) {
-        top += `<br>هل تقصد: <strong>${people[results[0].id].name}</strong>`;
-      }
+      if (results.length > 0) top += `<br>أقرب نتيجة: <strong>${people[results[0].id].name}</strong>`;
       document.getElementById("infoBar").innerHTML = top;
 
       const html = results.length
-        ? results.map(r => `
+        ? results.map((r, idx) => `
           <div class="card ${hasChildren(r.id) ? "" : "no-children"}" onclick="${hasChildren(r.id) ? `handleClick('${r.id}')` : `showConfirmModal('${r.id}')`}">
             <div class="name-row">
-              <div class="name">${people[r.id].name}</div>
+              <div class="name">${people[r.id].name}${idx === 0 ? ' <span style="font-size:12px;color:var(--gold);">• الأقرب</span>' : ''}</div>
               <div class="badges">
                 <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${r.id}')">طلب إضافة</div>
                 <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${r.id}')">نسب</div>
                 <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${r.id}')">هرم</div>
+                <div class="small-badge who-badge" onclick="event.stopPropagation(); openWhoAmIForPerson('${r.id}')">من؟</div>
                 ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(r.id))}</div>` : ""}
               </div>
             </div>
             <div class="meta">
-              التسلسل: ${getLineageText(r.id)}<br>
               عدد الأبناء المباشرين: ${getChildrenCount(r.id)}<br>
-              درجة التقارب: ${Math.round(r.score)}%
+              الجيل: ${generationLabelShort(getGeneration(r.id))}
             </div>
           </div>
         `).join("")
@@ -1836,11 +2207,118 @@ const people = {
       document.getElementById("content").innerHTML = html;
     }
 
+
+    const SPECIAL_PERSON_PATH = ["محمد بن حميد المجيني", "جابر بن محمد", "أحمد بن جابر", "حسن بن أحمد", "علي", "محمد"];
+    const FEMALE_FIRST_NAMES = new Set(["عائشة","عائشه","فاطمة","فاطمه","صالحة","صالحه","شمسة","شمسه","شيخة","شيخه","خديجة","خديجه","آمنة","امنه","مريم","نعيمة","نعيمه","أمينة","امينه","زينب","عليا","علياء","بلقيس","كوثر","مهره","ميره","شريفة","شريفه","منى","ناعمه","هند","شما","فجر","هاجر","وصايف","ميثه","عذبه","خديجه","قصايد","عالية","عاليه","عائشه","ايمان","صفيه","ملاذ","سجى","شذى","ريماس","اروى","لولوه","دانة","بشاير","نوف","سندس","روح","حليمه","هبه","مروى","حوراء","رؤى","اسماء","سعيدة","سعيده","شموخ","حور","حلا","حصه","زمزم","روح","ليان","رتان","ساره","نوف","عذاري"]);
+
+    function inferGender(id) {
+      const name = (people[id]?.name || "").trim();
+      if (name.includes("بنت")) return "f";
+      const first = name.split(" ")[0];
+      return FEMALE_FIRST_NAMES.has(first) ? "f" : "m";
+    }
+
+    function getSiblings(id) {
+      const parentId = getParentId(id);
+      if (!parentId) return [];
+      return (people[parentId].children || []).filter(cid => cid !== id);
+    }
+
+    function getGrandchildren(id) {
+      const out = [];
+      (people[id]?.children || []).forEach(cid => {
+        (people[cid]?.children || []).forEach(gid => out.push(gid));
+      });
+      return out;
+    }
+
+    function isSpecialPerson(id) {
+      const names = getLineage(id).map(pid => normalizeArabic(people[pid].name));
+      const target = SPECIAL_PERSON_PATH.map(normalizeArabic);
+      return JSON.stringify(names) === JSON.stringify(target);
+    }
+
+    function openWhoAmIForPerson(id) {
+      showWhoAmIProfile(id);
+    }
+
+    function buildWhoAmIText(id) {
+      const person = people[id];
+      const generation = getGeneration(id);
+      const parentId = getParentId(id);
+      const siblings = getSiblings(id).map(pid => people[pid].name);
+      const children = (people[id].children || []).map(pid => people[pid].name);
+      const grandchildren = getGrandchildren(id).map(pid => people[pid].name);
+      const gender = inferGender(id);
+      const lineageText = getLineage(id).map(pid => people[pid].name).join(" بن ");
+
+      if (isSpecialPerson(id)) {
+        const lines = [];
+        lines.push(`${person.name}`);
+        lines.push(`مرحبًا بكم في صفحة ${person.name}، أحد أبناء هذا الفرع المبارك، ومن الأسماء المرتبطة بإعداد هذا العمل والعناية بتفاصيله.`);
+        lines.push(`ويمتد نسبه في الشجرة إلى محمد بن حميد المجيني، ويقع ضمن الجيل ${generation} من هذا التسلسل المبارك.`);
+        if (parentId) lines.push(`والده هو: ${people[parentId].name}.`);
+        if (siblings.length) lines.push(`وإخوته المسجلون في الشجرة هم: ${siblings.join("، ")}.`);
+        if (children.length) lines.push(`وأبناؤه المسجلون في الشجرة هم: ${children.join("، ")}, ما شاء الله.`);
+        if (grandchildren.length) lines.push(`وإذا كان له أحفاد مسجلون في الشجرة، فيظهر هنا: لديه أحفاد، ما شاء الله، ربي يحفظهم ويجعلهم قرة عين له.`);
+        lines.push(`ومن النبذة الخاصة به في هذا العمل، أنه من الأسماء التي ارتبطت بجمع هذه الشجرة والعناية بها، وقد استغرق هذا العمل في جمعه وترتيبه ومراجعته وإعداده أكثر من خمس سنوات، في سبيل حفظ الأسماء، وربط الفروع، وتوثيق التسلسل، وإظهار هذا الإرث العائلي بصورة مرتبة ومشرفة تليق بالجميع.`);
+        lines.push(`كما تتضمن هذه الصفحة رسالة شكر وامتنان لكل من تعاون في هذا العمل، وساهم في جمع الأسماء، أو تصحيح المعلومات، أو ربط الفروع، أو دعم هذا المشروع بالكلمة الطيبة والاهتمام والمتابعة، فلكل من كانت له بصمة فيه جزيل الشكر والتقدير والدعاء.`);
+        lines.push(`اللهم بارك له في عمره وأهله وذريته، واجعل له ذكرًا طيبًا في الدنيا، ونورًا ورحمة في الآخرة، واحفظه ومن يحب، واغفر له ولوالديه ولجميع الأحياء والأموات من أهله وقرابته.`);
+        return lines.join("\n\n");
+      }
+
+      const pronoun = gender === "f" ? "أنتِ" : "أنتَ";
+      const lines = [];
+      lines.push(`${pronoun} ${lineageText},`);
+      lines.push(`ويمتد نسبك في الشجرة إلى محمد بن حميد المجيني، ${gender === "f" ? "وتقعين" : "وتقع"} ضمن الجيل ${generation} من هذا التسلسل المبارك.`);
+      if (parentId) lines.push(`والدك هو: ${people[parentId].name}.`);
+      if (siblings.length) lines.push(`وإخوتك المسجلون في الشجرة هم: ${siblings.join("، ")}.`);
+      if (children.length) lines.push(`وأبناؤك المسجلون هم: ${children.join("، ")}, ما شاء الله.`);
+      else lines.push(`ولا يظهر في الشجرة الحالية أبناء مسجلون لك.`);
+      if (grandchildren.length) lines.push(`وإذا كان لك أحفاد مسجلون في الشجرة، فيظهر هنا: لديك أحفاد، ما شاء الله، ربي يحفظهم ويجعلهم قرة عين لك.`);
+      lines.push(`اللهم احفظ أحياءنا، وارحم أمواتنا، وبارك لنا في الذرية والأهل، واجعل هذا العمل شاهدًا لنا لا علينا، وسببًا في صلة الرحم والمودة والدعاء الطيب.`);
+      return lines.join("\n\n");
+    }
+
+    function typeWriterText(el, text, speed = 14) {
+      el.textContent = "";
+      let i = 0;
+      function tick() {
+        if (i >= text.length) return;
+        el.textContent += text.charAt(i);
+        i += 1;
+        setTimeout(tick, speed);
+      }
+      tick();
+    }
+
+    function showWhoAmIProfile(id, pushHash = true) {
+      currentView = "whoami-profile";
+      currentPerson = id;
+      hideAllPages();
+      scrollToTopInstant();
+      const page = document.getElementById("whoAmIProfilePage");
+      page.classList.remove("hidden");
+      const special = isSpecialPerson(id);
+      page.innerHTML = `
+        <div class="whoami-bg panel" style="padding:14px;">
+          <div class="whoami-card ${special ? "special-person" : ""}">
+            ${special ? `<div class="special-mark">✦</div>` : ""}
+            <div id="whoAmITypedText"></div>
+          </div>
+        </div>
+      `;
+      typeWriterText(document.getElementById("whoAmITypedText"), buildWhoAmIText(id), 14);
+      if (pushHash) history.pushState({ whoamiPerson:id }, "", `#whoami-person=${id}`);
+    }
+
     function showAbout(pushHash = true) {
       currentView = "about";
       hideAllPages();
       const page = document.getElementById("aboutPage");
       page.classList.remove("hidden");
+      scrollToTopInstant();
+      scrollToTopInstant();
       page.innerHTML = `
         <div class="about-wrap">
           <div class="about-box">
@@ -1976,17 +2454,21 @@ const people = {
       hideAllPages();
       const page = document.getElementById("aboutPage");
       page.classList.remove("hidden");
+      scrollToTopInstant();
       page.innerHTML = `
-        <div class="about-box">
-          <h2>من أكون؟</h2>
-          <div class="top-note">اكتب اسمك، وسيظهر لك أقرب تطابق وموقعك في الشجرة.</div>
-          <div class="note-form">
-            <input class="field" id="whoInput" placeholder="اكتب الاسم..." />
-            <button class="btn-main" onclick="runWhoAmI()">بحث</button>
-            <div id="whoResult"></div>
+        <div class="about-wrap">
+          <div class="about-box">
+            <h2>من أكون؟</h2>
+            <div class="top-note">ابحث عن الاسم، ثم اضغط على النتيجة لفتح البطاقة التعريفية التفاعلية.</div>
+            <div class="note-form">
+              <input class="field" id="whoInput" placeholder="ابحث عن الاسم..." />
+              <div id="whoResult" class="whoami-results"></div>
+            </div>
           </div>
         </div>
       `;
+      const input = document.getElementById("whoInput");
+      input.addEventListener("input", runWhoAmI);
       if (pushHash) history.pushState({ whoami:true }, "", "#whoami");
     }
 
@@ -1997,23 +2479,15 @@ const people = {
         out.innerHTML = "";
         return;
       }
-      let best = null;
+      const results = [];
       for (const id in people) {
-        const score = similarityScore(q, people[id].name);
-        if (!best || score > best.score) best = { id, score };
+        const score = scoreNameOnlySearch(q, people[id].name);
+        if (score >= 60) results.push({ id, score });
       }
-      if (!best || best.score < 35) {
-        out.innerHTML = `<div class="list-item">لم يتم العثور على نتيجة مناسبة.</div>`;
-        return;
-      }
-      out.innerHTML = `
-        <div class="list-item">
-          <strong>هل تقصد: ${people[best.id].name}</strong><br>
-          <span class="small">التسلسل: ${getLineageText(best.id)}</span><br><br>
-          <button class="btn-main" onclick="showPersonPage('${best.id}')">فتح الملف</button>
-          <button class="btn-soft" onclick="showTreePage(); render('${best.id}')">فتح داخل الشجرة</button>
-        </div>
-      `;
+      results.sort((a,b)=>b.score-a.score);
+      out.innerHTML = results.length
+        ? results.slice(0, 20).map(r => `<button onclick="showWhoAmIProfile('${r.id}')">${people[r.id].name}</button>`).join("")
+        : `<div class="list-item">لا توجد نتائج مطابقة.</div>`;
     }
 
     function showPersonPage(id, pushHash = true) {
@@ -2022,6 +2496,7 @@ const people = {
       hideAllPages();
       const page = document.getElementById("personPage");
       page.classList.remove("hidden");
+      scrollToTopInstant();
 
       const person = people[id];
       const lineage = getLineageText(id);
@@ -2033,8 +2508,8 @@ const people = {
         <div class="person-page">
           <div class="title">${person.name}</div>
           <div class="person-grid">
-            <div class="subbox">
-              <h3>بيانات الشخص</h3>
+            <div class="subbox ${isSpecialPerson(id) ? "special-person" : ""}">
+              <h3>بطاقة تعريفية</h3>
               <div class="meta">
                 الجيل: <strong>${generationLabelShort(getGeneration(id))}</strong><br>
                 التسلسل: <strong>${lineage}</strong><br>
@@ -2078,6 +2553,8 @@ const people = {
       hideAllPages();
       const page = document.getElementById("hierarchyPage");
       page.classList.remove("hidden");
+      scrollToTopInstant();
+      scrollToTopInstant();
 
       hierarchyTrail = buildTrailForHierarchy(startId);
       renderHierarchyPage();
@@ -2103,7 +2580,7 @@ const people = {
       let rows = `
         <div class="hierarchy-box">
           <div class="title">عرض الهرم</div>
-          <div class="top-note">اضغط أي اسم في الصفوف للتنقل داخل الهرم مع الاحتفاظ بالتسلسل السابق.</div>
+          <div class="top-note">اضغط على الاسم لفتح صفحة الفرع، أو على زر هرم داخل البطاقة لفتح هرم هذا الشخص فقط.</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:14px;">
             <button class="btn-main" onclick="showHierarchyPage(rootId)">الرجوع لأصل الهرم</button>
             <button class="btn-soft" onclick="showTreePage(); render('${selected}')">فتح داخل الشجرة</button>
@@ -2130,11 +2607,7 @@ const people = {
           <div class="hierarchy-row">
             <div class="hierarchy-row-title">أبناء ${people[parentId].name}</div>
             <div class="hierarchy-cards">
-              ${children.map(cid => `
-                <div class="hier-card ${selectedChild === cid ? "selected" : ""}" onclick="hierarchySelect(${i}, '${cid}')">
-                  ${people[cid].name}
-                </div>
-              `).join("")}
+              ${children.map(cid => renderHierarchyCard(cid, selectedChild, i)).join("")}
             </div>
           </div>
         `;
@@ -2145,30 +2618,30 @@ const people = {
     }
 
     async function submitPublicMessage() {
-  const name = document.getElementById("msgName").value.trim();
-  const type = document.getElementById("msgType").value;
-  const body = document.getElementById("msgBody").value.trim();
+      const name = document.getElementById("msgName").value.trim();
+      const type = document.getElementById("msgType").value;
+      const body = document.getElementById("msgBody").value.trim();
 
-  if (!body) {
-    alert("اكتب الرسالة أولًا");
-    return;
-  }
+      if (!body) {
+        alert("اكتب الرسالة أولًا");
+        return;
+      }
 
-  try {
-    await saveMessageToSupabase({
-      msg_type: type,
-      sender_name: name || "بدون اسم",
-      body: body
-    });
+      try {
+        await saveMessageToSupabase({
+          msg_type: type,
+          sender_name: name || "بدون اسم",
+          body: body
+        });
 
-    document.getElementById("msgName").value = "";
-    document.getElementById("msgBody").value = "";
-    alert("تم إرسال الرسالة");
-  } catch (e) {
-    console.error(e);
-    alert("تعذر إرسال الرسالة حاليًا");
-  }
-}
+        document.getElementById("msgName").value = "";
+        document.getElementById("msgBody").value = "";
+        alert("تم إرسال الرسالة");
+      } catch (e) {
+        console.error(e);
+        alert("تعذر إرسال الرسالة حاليًا");
+      }
+    }
 
     function openAdminPassword() {
       document.getElementById("adminPasswordInput").value = "";
@@ -2194,21 +2667,21 @@ const people = {
       hideAllPages();
       const page = document.getElementById("adminPage");
       page.classList.remove("hidden");
+      scrollToTopInstant();
 
       const { data: requestsData } = await supabaseClient
-  .from("requests")
-  .select("*")
-  .order("id", { ascending: false });
+        .from("requests")
+        .select("*")
+        .order("id", { ascending: false });
 
-const { data: messagesData } = await supabaseClient
-  .from("messages")
-  .select("*")
-  .order("id", { ascending: false });
+      const { data: messagesData } = await supabaseClient
+        .from("messages")
+        .select("*")
+        .order("id", { ascending: false });
 
       page.innerHTML = `
         <div class="admin-page">
           <div class="title">صفحة الإدارة</div>
-          <div class="top-note">هذه الصفحة تعمل محليًا على المتصفح الحالي. الرسائل والطلبات والوسوم والنسخة الاحتياطية محفوظة محليًا في هذا الجهاز.</div>
 
           <div class="admin-tabs">
             <button onclick="switchAdminTab('overview')">الرئيسية</button>
@@ -2231,8 +2704,7 @@ const { data: messagesData } = await supabaseClient
       switchAdminTab("overview");
     }
 
-function renderAdminSections(requestsData = [],
-messagesData = []) {
+    function renderAdminSections(requestsData = [], messagesData = []) {
       const statusOptions = ["", "مكتمل", "يحتاج مراجعة", "قيد المراجعة", "مؤكد", "شفهي"];
       const generationStats = getGenerationStats();
       const duplicateList = detectDuplicateNames();
@@ -2265,15 +2737,15 @@ messagesData = []) {
             <h3>💬 الرسائل والملاحظات</h3>
             <div class="list-box">
               ${
-                appState.messages.length
-                  ? appState.messages.map((m, idx)=>`
+                messagesData.length
+                  ? messagesData.map((m)=>`
                     <div class="list-item">
-                      <strong>${m.type}</strong> — ${m.name}<br>
-                      <span class="small">${m.time}</span>
-                      <div style="margin-top:8px;line-height:1.9;">${m.body}</div>
+                      <strong>${m.msg_type || ""}</strong> — ${m.sender_name || "بدون اسم"}<br>
+                      <span class="small">${m.created_at ? new Date(m.created_at).toLocaleString("ar") : ""}</span>
+                      <div style="margin-top:8px;line-height:1.9;">${m.body || ""}</div>
                       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
-                        <button class="btn-soft" onclick="copyText(${JSON.stringify(m.body)})">نسخ</button>
-                        <button class="btn-danger" onclick="deleteMessage(${idx})">حذف</button>
+                        <button class="btn-soft" onclick="copyText(${JSON.stringify(m.body || "")})">نسخ</button>
+                        <button class="btn-danger" onclick="deleteSupabaseMessage(${m.id})">حذف</button>
                       </div>
                     </div>
                   `).join("")
@@ -2288,18 +2760,18 @@ messagesData = []) {
             <h3>طلبات الإضافة</h3>
             <div class="list-box">
               ${
-                appState.requests.length
-                  ? appState.requests.map((r, idx)=>`
+                requestsData.length
+                  ? requestsData.map((r)=>`
                     <div class="list-item">
-                      <strong>${r.type}</strong> — ${r.target}<br>
-                      <span class="small">${r.time}</span><br>
-                      ${r.senderName ? `<span class="small">المرسل: ${r.senderName}</span><br>` : ""}
-                      ${r.childName ? `<span class="small">الاسم المطلوب إضافته: ${r.childName}</span><br>` : ""}
-                      ${r.childrenText ? `<span class="small">الأبناء المقترحون: ${r.childrenText}</span><br>` : ""}
-                      <div style="margin-top:8px;line-height:1.9;white-space:pre-line;">${r.body}</div>
+                      <strong>إضافة</strong> — ${(people[r.parent_id] ? people[r.parent_id].name : r.parent_id) || "غير معروف"}<br>
+                      <span class="small">${r.created_at ? new Date(r.created_at).toLocaleString("ar") : ""}</span><br>
+                      ${r.sender_name ? `<span class="small">المرسل: ${r.sender_name}</span><br>` : ""}
+                      ${r.child_name ? `<span class="small">الاسم المطلوب إضافته: ${r.child_name}</span><br>` : ""}
+                      ${r.children_text ? `<span class="small">الأبناء المقترحون: ${r.children_text}</span><br>` : ""}
+                      ${r.details ? `<div style="margin-top:8px;line-height:1.9;white-space:pre-line;">${r.details}</div>` : ""}
                       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
-                        <button class="btn-ok" onclick="markRequestDone(${idx})">اعتماد</button>
-                        <button class="btn-danger" onclick="deleteRequest(${idx})">حذف</button>
+                        <button class="btn-ok" onclick="markSupabaseRequestDone(${r.id})">اعتماد</button>
+                        <button class="btn-danger" onclick="deleteSupabaseRequest(${r.id})">حذف</button>
                       </div>
                     </div>
                   `).join("")
@@ -2442,7 +2914,11 @@ messagesData = []) {
           <div class="admin-grid">
             <div class="subbox">
               <h3>نسخة احتياطية / تصدير</h3>
-              <button class="btn-main" onclick="exportBackup()">تصدير JSON</button>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn-main" onclick="exportBackup()">تصدير JSON</button>
+                <button class="btn-soft" onclick="exportAllNamesPDF()">PDF جميع الأسماء</button>
+                <button class="btn-soft" onclick="exportLatestUpdatePDF()">PDF آخر تحديث</button>
+              </div>
             </div>
             <div class="subbox">
               <h3>استيراد حالة محلية</h3>
@@ -2490,6 +2966,30 @@ messagesData = []) {
       switchAdminTab("messages");
     }
 
+    async function deleteSupabaseMessage(id) {
+      const { error } = await supabaseClient.from("messages").delete().eq("id", id);
+      if (error) {
+        console.error(error);
+        alert("تعذر حذف الرسالة");
+        return;
+      }
+      alert("تم حذف الرسالة");
+      showAdminPage();
+      switchAdminTab("messages");
+    }
+
+    async function deleteSupabaseRequest(id) {
+      const { error } = await supabaseClient.from("requests").delete().eq("id", id);
+      if (error) {
+        console.error(error);
+        alert("تعذر حذف الطلب");
+        return;
+      }
+      alert("تم حذف الطلب");
+      showAdminPage();
+      switchAdminTab("requests");
+    }
+
     function createPersonNode(name, note = "") {
       const newId = "u" + Date.now() + Math.floor(Math.random() * 1000);
       people[newId] = {
@@ -2500,17 +3000,16 @@ messagesData = []) {
       return newId;
     }
 
-    function adminAddPerson() {
+    async function adminAddPerson() {
       const parentId = document.getElementById("adminParentSelect").value;
       const newName = document.getElementById("adminNewName").value.trim();
       const newNote = document.getElementById("adminNewNote").value.trim();
       if (!newName) return alert("اكتب الاسم الجديد");
 
-      const newId = createPersonNode(newName, newNote);
-      people[parentId].children.push(newId);
+      await addPersonPersist(parentId, newName, newNote);
 
       logChange("إضافة اسم جديد: " + newName + " تحت " + people[parentId].name);
-      alert("تمت الإضافة محليًا داخل هذه النسخة");
+      alert(peopleTableAvailable ? "تمت الإضافة عالميًا" : "تمت الإضافة محليًا داخل هذه النسخة");
       showAdminPage();
       switchAdminTab("add");
       render(currentPerson);
@@ -2542,6 +3041,55 @@ messagesData = []) {
       logChange("حذف طلب");
       showAdminPage();
       switchAdminTab("requests");
+    }
+
+    async function markSupabaseRequestDone(id) {
+      const { data, error } = await supabaseClient
+        .from("requests")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error || !data) {
+        console.error(error);
+        alert("تعذر قراءة الطلب");
+        return;
+      }
+
+      const parentId = data.parent_id;
+      const childName = String(data.child_name || "").trim();
+
+      if (!people[parentId] || !childName) {
+        alert("بيانات الطلب ناقصة");
+        return;
+      }
+
+      const mainChildId = await addPersonPersist(parentId, childName, "");
+
+      if (data.children_text && String(data.children_text).trim()) {
+        const childrenNames = String(data.children_text)
+          .split(",")
+          .map(name => name.trim())
+          .filter(Boolean);
+
+        for (const name of childrenNames) {
+          await addPersonPersist(mainChildId, name, "");
+        }
+      }
+
+      logChange("اعتماد طلب وإضافة الاسم: " + childName + " تحت " + people[parentId].name);
+
+      const delRes = await supabaseClient.from("requests").delete().eq("id", id);
+      if (delRes.error) {
+        console.error(delRes.error);
+        alert("تمت الإضافة محليًا لكن تعذر حذف الطلب من Supabase");
+        return;
+      }
+
+      alert("تم اعتماد الطلب");
+      showAdminPage();
+      switchAdminTab("requests");
+      render(currentPerson);
     }
 
     function markRequestDone(idx) {
@@ -2636,6 +3184,56 @@ messagesData = []) {
       URL.revokeObjectURL(url);
     }
 
+    function exportAllNamesPDF() {
+      const names = Object.keys(people).map(id => people[id].name).join("<br>");
+      const win = window.open("", "_blank");
+      win.document.write(`
+        <html dir="rtl" lang="ar">
+        <head>
+          <meta charset="UTF-8">
+          <title>جميع الأسماء</title>
+          <style>
+            body{font-family:Tahoma,Arial,sans-serif;padding:30px;line-height:2;color:#222}
+            h1{color:#8f6b4c}
+          </style>
+        </head>
+        <body>
+          <h1>جميع الأسماء في الشجرة</h1>
+          <div>${names}</div>
+        </body>
+        </html>
+      `);
+      win.document.close();
+      win.focus();
+      win.print();
+    }
+
+    function exportLatestUpdatePDF() {
+      const latest = appState.changeLog[0]?.text || "لا يوجد تحديث محفوظ";
+      const time = appState.changeLog[0]?.time || "";
+      const win = window.open("", "_blank");
+      win.document.write(`
+        <html dir="rtl" lang="ar">
+        <head>
+          <meta charset="UTF-8">
+          <title>آخر تحديث</title>
+          <style>
+            body{font-family:Tahoma,Arial,sans-serif;padding:30px;line-height:2;color:#222}
+            h1{color:#8f6b4c}
+          </style>
+        </head>
+        <body>
+          <h1>آخر تحديث</h1>
+          <div><strong>${latest}</strong></div>
+          <div style="margin-top:10px;">${time}</div>
+        </body>
+        </html>
+      `);
+      win.document.close();
+      win.focus();
+      win.print();
+    }
+
     function importBackup() {
       const txt = document.getElementById("backupImport").value.trim();
       if (!txt) return alert("الصق JSON أولًا");
@@ -2676,8 +3274,20 @@ messagesData = []) {
       renderSearchResults(keyword);
     });
 
-    renderQuickBranches();
-    routeToHash();
+    let lastScrollY = window.scrollY;
+    const topbarEl = document.querySelector(".topbar");
+    window.addEventListener("scroll", () => {
+      const currentY = window.scrollY;
+      if (!topbarEl) return;
+      if (currentY > lastScrollY + 12 && currentY > 80) {
+        topbarEl.classList.add("is-hidden");
+      } else if (currentY < lastScrollY - 8) {
+        topbarEl.classList.remove("is-hidden");
+      }
+      lastScrollY = currentY;
+    }, { passive: true });
+
+    initApp();
   </script>
 </body>
-</html>
+  </html>
