@@ -961,7 +961,7 @@ let people = {
       "p39": { name: "سعيد", note: "", children: [] },
       "p40": { name: "صالح", note: "", children: [] },
 
-      "p22": { name: "علي بن جابر", note: "أمه من ضيان", children: ["p41","p42","p22a","p22b"] },
+      "p22": { name: "علي بن جابر", note: "أمه من ضيان", children: ["p41","p42"] },
       "p22a": { name: "عبدالله بن علي", note: "", children: ["p22a1","p22a2","p22a3","p22a4","p22a5","p22a6"] },
       "p22a1": { name: "أحمد", note: "", children: ["p22a1_1","p22a1_2","p22a1_3"] },
       "p22a1_1": { name: "عبدالله", note: "", children: [] },
@@ -1348,7 +1348,7 @@ let people = {
       "p106": { name: "فاطمة", note: "", children: [] },
       "p107": { name: "أمل", note: "", children: [] },
 
-      "p73": { name: "علي بن أحمد", note: "", children: ["p108","p109","p110","p111","p112","p113","p114","p115","p116"] },
+      "p73": { name: "علي بن أحمد", note: "", children: ["p108","p109","p110","p111","p112","p113","p114","p115","p116","p22a","p22b"] },
       "p108": { name: "يونس", note: "", children: [] },
       "p109": { name: "عبدالله", note: "", children: [] },
       "p110": { name: "محمد", note: "", children: [] },
@@ -1468,6 +1468,16 @@ let people = {
 
     function scrollToTopInstant() {
       window.scrollTo({ top: 0, behavior: "auto" });
+    }
+
+    function scrollToFirstChildSlow() {
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          const firstCard = document.querySelector('.page:not(.hidden) .cards .card');
+          const target = firstCard || document.querySelector('.page:not(.hidden) .title');
+          if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 40);
+      });
     }
 
     function flattenPeopleForSupabase() {
@@ -1738,7 +1748,7 @@ let people = {
     }
 
     function getStatus(id) {
-      return appState.statuses[id] || "قيد المراجعة";
+      return appState.statuses[id] || "";
     }
 
     function setStatus(id, value) {
@@ -2080,33 +2090,43 @@ let people = {
       html += "التسلسل: <strong>" + getLineageText(id) + "</strong><br>";
       html += "عدد الأجيال في الشجرة: <strong>" + totalGenerations + "</strong><br>";
       if (node.note) html += "ملاحظة: <strong>" + node.note + "</strong><br>";
-      const st = getStatus(id);
+      const st = getStatus(id) || (hasChildren(id) ? "قيد المراجعة" : "");
       if (st && appState.settings.showStatuses) html += "حالة الفرع: <strong>" + st + "</strong>";
       document.getElementById("infoBar").innerHTML = html;
     }
 
     function renderCard(id) {
       const child = people[id];
-      const status = getStatus(id);
+      const isParent = hasChildren(id);
+      const status = getStatus(id) || (isParent ? "قيد المراجعة" : "");
+      const directChildren = getChildrenCount(id);
+      const totalDesc = getDescendantsCount(id);
+      let grandChildren = 0;
+      (child.children || []).forEach(cid => {
+        grandChildren += getChildrenCount(cid);
+      });
       return `
-        <div class="card ${hasChildren(id) ? "" : "no-children"}" onclick="handleClick('${id}')">
+        <div class="card ${isParent ? "" : "no-children"}" onclick="handleClick('${id}')">
           <div class="name-row">
-            <div class="name">${child.name}${appState.settings.showCounts ? ` (${getChildrenCount(id)})` : ""}</div>
+            <div class="name">${child.name}${appState.settings.showCounts ? ` (${directChildren})` : ""}</div>
             <div class="badges">
               <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${id}')">طلب إضافة</div>
               <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${id}')">نسب</div>
-              <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${id}')">هرم</div>
               <div class="small-badge who-badge" onclick="event.stopPropagation(); openWhoAmIForPerson('${id}')">من؟</div>
               ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(id))}</div>` : ""}
             </div>
           </div>
           <div class="meta">
-            عدد الأبناء المباشرين: ${getChildrenCount(id)}<br>
-            إجمالي الأشخاص تحت الفرع: ${getDescendantsCount(id)}<br>
+            عدد الأبناء: ${directChildren}<br>
+            عدد الأحفاد: ${grandChildren}<br>
+            إجمالي الذرية: ${totalDesc}<br>
             ${child.note ? `ملاحظة: ${child.note}<br>` : ""}
+            ${status ? `الحالة: ${status}<br>` : ""}
           </div>
-          ${status && appState.settings.showStatuses ? `<div class="status-badge">${status}</div>` : ""}
-          <div class="tag">${hasChildren(id) ? "اضغط لعرض الفرع" : "اضغط لطلب الإضافة"}</div>
+          <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+            <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${id}')">هرم</div>
+          </div>
+          <div class="tag">${isParent ? "اضغط لعرض الأبناء" : "اضغط لعرض البيانات"}</div>
         </div>
       `;
     }
@@ -2147,12 +2167,12 @@ let people = {
               <div class="badges">
                 <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${id}')">طلب إضافة</div>
                 <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${id}')">نسب</div>
-                <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${id}')">هرم</div>
                 <div class="small-badge who-badge" onclick="event.stopPropagation(); openWhoAmIForPerson('${id}')">من؟</div>
                 ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(id))}</div>` : ""}
               </div>
             </div>
             <div class="meta">لا توجد أسماء أبناء مسجلة حاليًا لهذا الفرع.</div>
+            <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;"><div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${id}')">هرم</div></div>
           </div>
         `;
         return;
@@ -2192,14 +2212,16 @@ let people = {
               <div class="badges">
                 <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${r.id}')">طلب إضافة</div>
                 <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${r.id}')">نسب</div>
-                <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${r.id}')">هرم</div>
-                <div class="small-badge who-badge" onclick="event.stopPropagation(); openWhoAmIForPerson('${r.id}')">من؟</div>
+                                <div class="small-badge who-badge" onclick="event.stopPropagation(); openWhoAmIForPerson('${r.id}')">من؟</div>
                 ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(r.id))}</div>` : ""}
               </div>
             </div>
             <div class="meta">
               عدد الأبناء المباشرين: ${getChildrenCount(r.id)}<br>
               الجيل: ${generationLabelShort(getGeneration(r.id))}
+            </div>
+            <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+              <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${r.id}')">هرم</div>
             </div>
           </div>
         `).join("")
@@ -2497,7 +2519,6 @@ let people = {
       hideAllPages();
       const page = document.getElementById("personPage");
       page.classList.remove("hidden");
-      scrollToTopInstant();
 
       const person = people[id];
       const children = person.children || [];
@@ -2518,6 +2539,7 @@ let people = {
       `;
 
       if (pushHash) history.pushState({ personPage:id }, "", "#person=" + id);
+      scrollToFirstChildSlow();
     }
 
     function showHierarchyPage(startId = rootId, pushHash = true) {
@@ -2525,8 +2547,6 @@ let people = {
       hideAllPages();
       const page = document.getElementById("hierarchyPage");
       page.classList.remove("hidden");
-      scrollToTopInstant();
-      scrollToTopInstant();
 
       hierarchyTrail = buildTrailForHierarchy(startId);
       renderHierarchyPage();
@@ -2587,6 +2607,7 @@ let people = {
 
       rows += `</div>`;
       page.innerHTML = rows;
+      scrollToFirstChildSlow();
     }
 
     async function submitPublicMessage() {
