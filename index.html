@@ -810,8 +810,7 @@
       <button class="btn-main" onclick="goRoot()">الرجوع للجذر</button>
       <button class="btn-main" onclick="goBack()">رجوع خطوة</button>
       <button class="btn-main" onclick="shareCurrent()">مشاركة الرابط</button>
-      <button class="btn-main" onclick="showHierarchyPage(currentPerson)">هرم الفرع الحالي</button>
-    </div>
+          </div>
 
     <div class="title" id="title">محمد بن حميد المجيني</div>
     <div class="breadcrumb" id="breadcrumb"></div>
@@ -2621,7 +2620,7 @@ let people = {
         <div class="hierarchy-row">
           <div class="hierarchy-row-title">الأصل</div>
           <div class="hierarchy-cards">
-            <div class="hier-card selected" onclick="showHierarchyPage('${rootId}')">${people[rootId].name}</div>
+            <div class="hier-card selected" onclick="showPersonPage('${rootId}')"><div class="name">${people[rootId].name}</div><div class="badges" style="margin-top:8px;justify-content:center;"><div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${rootId}')">هرم</div></div></div>
           </div>
         </div>
       `;
