@@ -3146,12 +3146,6 @@ if (!h) {
         logChange("اعتماد طلب: " + item.type + " - " + item.target);
       }
 
-if (item?.id) {
-  await supabaseClient
-    .from("requests")
-    .delete()
-    .eq("id", item.id);
-}
       showAdminPage();
       switchAdminTab("requests");
       render(currentPerson);
