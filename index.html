@@ -1507,7 +1507,22 @@ let people = {
       walk(rootId, null, 0);
       return rows;
     }
+    
+async function syncPeopleToSupabase() {
+  const rows = flattenPeopleForSupabase();
 
+  const { error } = await supabaseClient
+    .from("people")
+    .upsert(rows, { onConflict: "id" });
+
+  if (error) {
+    console.error("Supabase sync error:", error);
+    alert("تعذر رفع الأسماء إلى people");
+    return false;
+  }
+
+  return true;
+}
     function buildPeopleFromSupabaseRows(rows) {
       const map = {};
       rows.forEach(row => {
