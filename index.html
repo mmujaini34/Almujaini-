@@ -1632,6 +1632,7 @@ async function syncPeopleToSupabase() {
 
     async function initApp() {
       await tryInitPeopleFromSupabase();
+      await syncPeopleToSupabase();
       renderQuickBranches();
       routeToHash();
     }
