@@ -2684,6 +2684,8 @@ if (!h) {
         .select("*")
         .order("id", { ascending: false });
 
+      currentAdminRequests = requestsData || [];
+
       page.innerHTML = `
         <div class="admin-page">
           <div class="title">صفحة الإدارة</div>
