@@ -3100,7 +3100,7 @@ if (!h) {
     }
 
     function markRequestDone(idx) {
-      const item = appState.requests[idx];
+      const item = currentAdminRequests[idx];
       if (!item) return;
 
       if (item.type === "إضافة" && item.parentId && item.childName) {
@@ -3131,9 +3131,12 @@ if (!h) {
         logChange("اعتماد طلب: " + item.type + " - " + item.target);
       }
 
-      appState.requests.splice(idx, 1);
-      saveState();
-
+if (item?.id) {
+  await supabaseClient
+    .from("requests")
+    .delete()
+    .eq("id", item.id);
+}
       showAdminPage();
       switchAdminTab("requests");
       render(currentPerson);
