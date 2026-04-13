@@ -1855,8 +1855,12 @@ let people = {
     }
 
     function routeToHash() {
-      const h = location.hash.replace("#","");
-      if (!h) {
+      const params = new URLSearchParams(location.search);
+const h = params.get("person") ? "person=" + params.get("person")
+  : params.get("hierarchy") ? "hierarchy=" + params.get("hierarchy")
+  : location.hash.replace("#", "");
+
+if (!h) {
         showTreePage();
         render(rootId);
         return;
