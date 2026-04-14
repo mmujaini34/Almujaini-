@@ -3111,14 +3111,7 @@ if (!h) {
   switchAdminTab("requests");
   render(currentPerson);
 }
-
-          logChange("اعتماد طلب وإضافة الاسم: " + childName + " تحت " + people[parentId].name);
-        } else {
-          logChange("تم اعتماد طلب لكن تعذر الإضافة لعدم اكتمال البيانات");
-        }
-      } else {
-
-      function handleClick(id) {
+    function handleClick(id) {
   currentPerson = id;
   showPersonPage(id);
 }
