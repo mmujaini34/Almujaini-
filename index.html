@@ -3117,8 +3117,7 @@ if (!h) {
 
         childrenNames.forEach(name => {
           const subChildId = createPersonNode(name);
-          people[mainChildId].children.push(subChildId);
-        });
+          people[mainChildId].children.push(subChildId);}
       }
 
       logChange("اعتماد طلب وإضافة الاسم: " + childName + " تحت " + people[parentId].name);
