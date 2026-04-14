@@ -2043,15 +2043,10 @@ if (!h) {
     function closeLineageModal() {
       document.getElementById("lineageModal").classList.remove("active");
     }
-
     function handleClick(id) {
-      currentPerson = id;
-      if (currentView === "hierarchy") {
-        showPersonPage(id);
-      } else {
-        showPersonPage(id);
-      }
-
+  currentPerson = id;
+  showPersonPage(id);
+}
     function goRoot() {
       currentView = "tree";
       historyStack = [rootId];
