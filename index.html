@@ -3227,15 +3227,35 @@ function buildSimpleLineageFromPerson(id) {
 
       const parentId = data.parent_id;
       const childName = String(data.child_name || "").trim();
-
-      if (!people[parentId] || !childName) {
-        alert("بيانات الطلب ناقصة");
-        return;
+      const detailsText = String(data.details || "").trim();
+      function splitSimpleNames(text) {
+  return text
+    .replace(/[،,\n\r\t]+/g, " ")
+    .split(/\s+/)
+    .map(name => name.trim())
+    .filter(Boolean);
       }
 
-      const mainChildId = await addPersonPersist(parentId, childName, "");
+      if (!people[parentId]) {
+  alert("بيانات الطلب ناقصة");
+  return;
+      }
+      
+let addedNames = [];
+      
+      let mainChildId = null;
 
-      if (data.children_text && String(data.children_text).trim()) {
+if (detailsText && !detailsText.includes("الأبناء")) {
+  const names = splitSimpleNames(detailsText);
+  for (const name of names) {
+    await addPersonPersist(parentId, name, "");
+    addedNames.push(name);
+  }
+} else if (childName) {
+  mainChildId = await addPersonPersist(parentId, childName, "");
+  addedNames.push(childName);
+}
+      if (mainChildId && data.children_text && String(data.children_text).trim()) {
         const childrenNames = String(data.children_text)
           .split(",")
           .map(name => name.trim())
@@ -3246,7 +3266,7 @@ function buildSimpleLineageFromPerson(id) {
         }
       }
 
-      logChange("اعتماد طلب وإضافة الاسم: " + childName + " تحت " + people[parentId].name);
+      logChange("اعتماد طلب وإضافة الأسماء: " + addedNames.join("، ") + " تحت " + people[parentId].name);
 
       const delRes = await supabaseClient.from("requests").delete().eq("id", id);
       if (delRes.error) {
