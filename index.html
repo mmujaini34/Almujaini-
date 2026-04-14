@@ -3212,7 +3212,7 @@ function buildSimpleLineageFromPerson(id) {
       switchAdminTab("requests");
     }
 
-    async function markSupabaseRequestDone(id) {
+async function markSupabaseRequestDone(id) {
   const { data, error } = await supabaseClient
     .from("requests")
     .select("*")
@@ -3230,7 +3230,7 @@ function buildSimpleLineageFromPerson(id) {
   const detailsText = String(data.details || "").trim();
 
   function splitSimpleNames(text) {
-    return text
+    return String(text || "")
       .replace(/[،,\n\r\t]+/g, " ")
       .split(/\s+/)
       .map(name => name.trim())
@@ -3238,7 +3238,7 @@ function buildSimpleLineageFromPerson(id) {
   }
 
   function parseStructuredFamilies(text) {
-    const lines = text
+    const lines = String(text || "")
       .split(/\n+/)
       .map(line => line.trim())
       .filter(Boolean);
@@ -3251,16 +3251,18 @@ function buildSimpleLineageFromPerson(id) {
       const normalized = line.replace(/\s+/g, " ").trim();
 
       if (
-        normalized === "الابناء" ||
         normalized === "الأبناء" ||
+        normalized === "الابناء" ||
+        normalized.startsWith("الأبناء:") ||
         normalized.startsWith("الابناء:") ||
-        normalized.startsWith("الأبناء:")
+        normalized.startsWith("الأبناء :") ||
+        normalized.startsWith("الابناء :")
       ) {
         waitingChildren = true;
 
         const inlineChildren = normalized
-          .replace(/^الأبناء:\s*/, "")
-          .replace(/^الابناء:\s*/, "")
+          .replace(/^الأبناء\s*:\s*/, "")
+          .replace(/^الابناء\s*:\s*/, "")
           .trim();
 
         if (inlineChildren && currentParent) {
@@ -3303,23 +3305,10 @@ function buildSimpleLineageFromPerson(id) {
 
   let addedNames = [];
 
-  if (detailsText && detailsText.includes("ابناء")) {
-    const groups = parseStructuredFamilies(detailsText);
-
-    if (!groups.length) {
-      alert("تعذر فهم صيغة الطلب");
-      return;
-    }
-
-    for (const group of groups) {
-      const mainChildId = await addPersonPersist(parentId, group.name, "");
-      addedNames.push(group.name);
-
-      for (const subName of group.children) {
-        await addPersonPersist(mainChildId, subName, "");
-      }
-    }
-  } else if (detailsText && (detailsText.includes("الأبناء") || detailsText.includes("الابناء"))) {
+  if (
+    detailsText &&
+    (detailsText.includes("الأبناء") || detailsText.includes("الابناء"))
+  ) {
     const groups = parseStructuredFamilies(detailsText);
 
     if (!groups.length) {
@@ -3378,7 +3367,8 @@ function buildSimpleLineageFromPerson(id) {
   showAdminPage();
   switchAdminTab("requests");
   render(currentPerson);
-  }
+}
+    
 function goRoot() {
   currentView = "tree";
   historyStack = [rootId];
