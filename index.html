@@ -3092,30 +3092,6 @@ if (!h) {
       switchAdminTab("requests");
       render(currentPerson);
     }
-      function markRequestDone(idx) {
-  alert("اختبار");
-      }
-
-      logChange("اعتماد طلب وإضافة الاسم: " + childName + " تحت " + people[parentId].name);
-    } else {
-      logChange("تم اعتماد طلب لكن تعذر الإضافة لعدم اكتمال البيانات");
-    }
-  } else {
-    logChange("اعتماد طلب: " + item.type + " - " + item.target);
-  }
-
-  appState.requests.splice(idx, 1);
-  saveState();
-
-  showAdminPage();
-  switchAdminTab("requests");
-  render(currentPerson);
-}
-    function handleClick(id) {
-  currentPerson = id;
-  showPersonPage(id);
-}
-
 function goRoot() {
   currentView = "tree";
   historyStack = [rootId];
