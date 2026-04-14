@@ -1999,37 +1999,38 @@ if (!h) {
     }
 
     async function submitAddRequest() {
-      const childName = document.getElementById("reqChildName").value.trim();
-      const childrenText = document.getElementById("reqChildrenText").value.trim();
-      const senderName = document.getElementById("reqSenderName").value.trim();
-      const details = document.getElementById("reqDetails").value.trim();
+    async function submitAddRequest() {
+  const childName = document.getElementById("reqChildName").value.trim();
+  const childrenText = document.getElementById("reqChildrenText").value.trim();
+  const senderName = document.getElementById("reqSenderName").value.trim();
+  const details = document.getElementById("reqDetails").value.trim();
 
-      if (!pendingParentRequestId) {
-        alert("لم يتم تحديد الأب.");
-        return;
-      }
+  if (!pendingParentRequestId) {
+    alert("لم يتم تحديد الأب.");
+    return;
+  }
 
-      if (!childName) {
-        alert("اكتب الاسم المطلوب إضافته.");
-        return;
-      }
+  if (!childName && !details) {
+    alert("اكتب الاسم المطلوب إضافته أو اكتب الأسماء في خانة التفاصيل.");
+    return;
+  }
 
-      try {
-        await saveRequestToSupabase({
-          parent_id: pendingParentRequestId,
-          child_name: childName,
-          children_text: childrenText || "",
-          sender_name: senderName || "بدون اسم",
-          details: details || "",
-          status: "pending"
-        });
+  try {
+    await saveRequestToSupabase({
+      parent_id: pendingParentRequestId,
+      child_name: childName || "",
+      children_text: childrenText || "",
+      sender_name: senderName || "بدون اسم",
+      details: details || "",
+      status: "pending"
+    });
 
-        closeAddRequestModal();
-        alert("تم إرسال طلب الإضافة إلى الإدارة.");
-      } catch (e) {
-        console.error(e);
-        alert("تعذر إرسال الطلب حاليًا");
-      }
+    closeAddRequestModal();
+    alert("تم إرسال طلب الإضافة إلى الإدارة.");
+  } catch (e) {
+    console.error(e);
+    alert("تعذر إرسال الطلب حاليًا");
+  }
     }
 
     function openLineageModal(id) {
@@ -3213,72 +3214,81 @@ function buildSimpleLineageFromPerson(id) {
     }
 
     async function markSupabaseRequestDone(id) {
-      const { data, error } = await supabaseClient
-        .from("requests")
-        .select("*")
-        .eq("id", id)
-        .single();
+  const { data, error } = await supabaseClient
+    .from("requests")
+    .select("*")
+    .eq("id", id)
+    .single();
 
-      if (error || !data) {
-        console.error(error);
-        alert("تعذر قراءة الطلب");
-        return;
-      }
-
-      const parentId = data.parent_id;
-      const childName = String(data.child_name || "").trim();
-      const detailsText = String(data.details || "").trim();
-      function splitSimpleNames(text) {
-  return text
-    .replace(/[،,\n\r\t]+/g, " ")
-    .split(/\s+/)
-    .map(name => name.trim())
-    .filter(Boolean);
-      }
-
-      if (!people[parentId]) {
-  alert("بيانات الطلب ناقصة");
-  return;
-      }
-      
-let addedNames = [];
-      
-      let mainChildId = null;
-
-if (detailsText && !detailsText.includes("الأبناء")) {
-  const names = splitSimpleNames(detailsText);
-  for (const name of names) {
-    await addPersonPersist(parentId, name, "");
-    addedNames.push(name);
+  if (error || !data) {
+    console.error(error);
+    alert("تعذر قراءة الطلب");
+    return;
   }
-} else if (childName) {
-  mainChildId = await addPersonPersist(parentId, childName, "");
-  addedNames.push(childName);
-}
-      if (mainChildId && data.children_text && String(data.children_text).trim()) {
-        const childrenNames = String(data.children_text)
-          .split(",")
-          .map(name => name.trim())
-          .filter(Boolean);
 
-        for (const name of childrenNames) {
-          await addPersonPersist(mainChildId, name, "");
-        }
+  const parentId = data.parent_id;
+  const childName = String(data.child_name || "").trim();
+  const detailsText = String(data.details || "").trim();
+
+  function splitSimpleNames(text) {
+    return text
+      .replace(/[،,\n\r\t]+/g, " ")
+      .split(/\s+/)
+      .map(name => name.trim())
+      .filter(Boolean);
+  }
+
+  if (!people[parentId]) {
+    alert("بيانات الطلب ناقصة");
+    return;
+  }
+
+  let addedNames = [];
+  let mainChildId = null;
+
+  if (detailsText && !detailsText.includes("الأبناء")) {
+    const names = splitSimpleNames(detailsText);
+
+    for (const name of names) {
+      await addPersonPersist(parentId, name, "");
+      addedNames.push(name);
+    }
+  } else if (childName) {
+    mainChildId = await addPersonPersist(parentId, childName, "");
+    addedNames.push(childName);
+
+    if (data.children_text && String(data.children_text).trim()) {
+      const childrenNames = String(data.children_text)
+        .split(/[،,]+/)
+        .map(name => name.trim())
+        .filter(Boolean);
+
+      for (const name of childrenNames) {
+        await addPersonPersist(mainChildId, name, "");
       }
+    }
+  } else {
+    alert("لا توجد بيانات كافية لاعتماد الطلب");
+    return;
+  }
 
-      logChange("اعتماد طلب وإضافة الأسماء: " + addedNames.join("، ") + " تحت " + people[parentId].name);
+  logChange("اعتماد طلب وإضافة الأسماء: " + addedNames.join("، ") + " تحت " + people[parentId].name);
 
-      const delRes = await supabaseClient.from("requests").delete().eq("id", id);
-      if (delRes.error) {
-        console.error(delRes.error);
-        alert("تمت الإضافة محليًا لكن تعذر حذف الطلب من Supabase");
-        return;
-      }
+  const delRes = await supabaseClient
+    .from("requests")
+    .delete()
+    .eq("id", id);
 
-      alert("تم اعتماد الطلب");
-      showAdminPage();
-      switchAdminTab("requests");
-      render(currentPerson);
+  if (delRes.error) {
+    console.error(delRes.error);
+    alert("تمت الإضافة محليًا لكن تعذر حذف الطلب من Supabase");
+    return;
+  }
+
+  alert("تم اعتماد الطلب");
+  showAdminPage();
+  switchAdminTab("requests");
+  render(currentPerson);
     }
 function goRoot() {
   currentView = "tree";
