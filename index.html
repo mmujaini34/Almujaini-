@@ -2278,7 +2278,41 @@ if (!h) {
     function openWhoAmIForPerson(id) {
       showWhoAmIProfile(id);
     }
+function buildSimpleLineageFromPerson(id) {
+  const path = getLineage(id).slice().reverse();
 
+  const names = path.map((pid, index) => {
+    const fullName = (people[pid]?.name || "").trim();
+
+    if (index === 0) {
+      return fullName.split(" ")[0] || fullName;
+    }
+
+    const parts = fullName.split(" ").filter(Boolean);
+
+    if (parts.length >= 1) {
+      return parts[0];
+    }
+
+    return fullName;
+  });
+
+  if (!names.length) return "";
+
+  const gender = inferGender(id);
+  let result = names[0];
+
+  if (names.length >= 2) {
+    result += gender === "f" ? " بنت " + names[1] : " بن " + names[1];
+  }
+
+  for (let i = 2; i < names.length; i++) {
+    result += " بن " + names[i];
+  }
+
+  return result;
+}
+    
     function buildWhoAmIText(id) {
       const person = people[id];
       const generation = getGeneration(id);
@@ -2287,9 +2321,9 @@ if (!h) {
       const children = (people[id].children || []).map(pid => people[pid].name);
       const grandchildren = getGrandchildren(id).map(pid => people[pid].name);
       const gender = inferGender(id);
-      const lineageText = getLineage(id).map(pid => people[pid].name).join(" بن ");
-
+      const lineageText = buildSimpleLineageFromPerson(id);
       if (isSpecialPerson(id)) {
+        
         const lines = [];
         lines.push(`${person.name}`);
         lines.push(`مرحبًا بكم في صفحة ${person.name}، أحد أبناء هذا الفرع المبارك، ومن الأسماء المرتبطة بإعداد هذا العمل والعناية بتفاصيله.`);
