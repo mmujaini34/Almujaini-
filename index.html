@@ -2831,7 +2831,16 @@ function buildSimpleLineageFromPerson(id) {
                 <button class="btn-main" onclick="adminAddPerson()">إضافة</button>
               </div>
             </div>
-
+<div class="subbox" style="margin-top:14px;">
+  <h3>تعديل اسم موجود</h3>
+  <div class="note-form">
+    <select class="field" id="adminEditPersonSelect">
+      ${Object.keys(people).map(id => `<option value="${id}">${people[id].name}</option>`).join("")}
+    </select>
+    <input class="field" id="adminEditPersonName" placeholder="الاسم الجديد" />
+    <button class="btn-main" onclick="adminRenamePerson()">حفظ التعديل</button>
+  </div>
+</div>
             <div class="subbox">
               <h3>وسم/حالة الفرع</h3>
               <div class="note-form">
