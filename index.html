@@ -3213,6 +3213,7 @@ function buildSimpleLineageFromPerson(id) {
     }
 
     async function markSupabaseRequestDone(id) {
+  coasync function markSupabaseRequestDone(id) {
   const { data, error } = await supabaseClient
     .from("requests")
     .select("*")
@@ -3237,15 +3238,105 @@ function buildSimpleLineageFromPerson(id) {
       .filter(Boolean);
   }
 
+  function parseStructuredFamilies(text) {
+    const lines = text
+      .split(/\n+/)
+      .map(line => line.trim())
+      .filter(Boolean);
+
+    const result = [];
+    let currentParent = null;
+    let waitingChildren = false;
+
+    for (const line of lines) {
+      const normalized = line.replace(/\s+/g, " ").trim();
+
+      if (
+        normalized === "الابناء" ||
+        normalized === "الأبناء" ||
+        normalized.startsWith("الابناء:") ||
+        normalized.startsWith("الأبناء:")
+      ) {
+        waitingChildren = true;
+
+        const inlineChildren = normalized
+          .replace(/^الأبناء:\s*/, "")
+          .replace(/^الابناء:\s*/, "")
+          .trim();
+
+        if (inlineChildren && currentParent) {
+          currentParent.children = splitSimpleNames(inlineChildren);
+          waitingChildren = false;
+        }
+        continue;
+      }
+
+      if (!currentParent) {
+        currentParent = {
+          name: normalized,
+          children: []
+        };
+        result.push(currentParent);
+        continue;
+      }
+
+      if (waitingChildren) {
+        currentParent.children = splitSimpleNames(normalized);
+        waitingChildren = false;
+        currentParent = null;
+        continue;
+      }
+
+      currentParent = {
+        name: normalized,
+        children: []
+      };
+      result.push(currentParent);
+    }
+
+    return result;
+  }
+
   if (!people[parentId]) {
     alert("بيانات الطلب ناقصة");
     return;
   }
 
   let addedNames = [];
-  let mainChildId = null;
 
-  if (detailsText && !detailsText.includes("الأبناء")) {
+  if (detailsText && detailsText.includes("ابناء")) {
+    const groups = parseStructuredFamilies(detailsText);
+
+    if (!groups.length) {
+      alert("تعذر فهم صيغة الطلب");
+      return;
+    }
+
+    for (const group of groups) {
+      const mainChildId = await addPersonPersist(parentId, group.name, "");
+      addedNames.push(group.name);
+
+      for (const subName of group.children) {
+        await addPersonPersist(mainChildId, subName, "");
+      }
+    }
+  } else if (detailsText && (detailsText.includes("الأبناء") || detailsText.includes("الابناء"))) {
+    const groups = parseStructuredFamilies(detailsText);
+
+    if (!groups.length) {
+      alert("تعذر فهم صيغة الطلب");
+      return;
+    }
+
+    for (const group of groups) {
+      const mainChildId = await addPersonPersist(parentId, group.name, "");
+      addedNames.push(group.name);
+
+      for (const subName of group.children) {
+        await addPersonPersist(mainChildId, subName, "");
+      }
+    }
+  } else if (detailsText) {
     const names = splitSimpleNames(detailsText);
 
     for (const name of names) {
@@ -3253,7 +3344,7 @@ function buildSimpleLineageFromPerson(id) {
       addedNames.push(name);
     }
   } else if (childName) {
-    mainChildId = await addPersonPersist(parentId, childName, "");
+    const mainChildId = await addPersonPersist(parentId, childName, "");
     addedNames.push(childName);
 
     if (data.children_text && String(data.children_text).trim()) {
@@ -3288,7 +3379,7 @@ function buildSimpleLineageFromPerson(id) {
   showAdminPage();
   switchAdminTab("requests");
   render(currentPerson);
-    }
+  }
 function goRoot() {
   currentView = "tree";
   historyStack = [rootId];
