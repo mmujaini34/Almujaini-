@@ -2034,13 +2034,13 @@ if (!h) {
     }
 
     function openLineageModal(id) {
-      const path = getLineage(id).reverse();
-      document.getElementById("lineageModalBody").innerHTML = `
-        <div class="lineage-chain">
-          ${path.map(pid => `<div class="lineage-item">${people[pid].name}</div>`).join("")}
-        </div>
-      `;
-      document.getElementById("lineageModal").classList.add("active");
+  const path = getLineage(id).reverse();
+  document.getElementById("lineageModalBody").innerHTML = `
+    <div class="lineage-chain">
+      ${path.map(pid => `<div class="lineage-item">${people[pid].name}</div>`).join("")}
+    </div>
+  `;
+  document.getElementById("lineageModal").classList.add("active");
     }
 
     function closeLineageModal() {
