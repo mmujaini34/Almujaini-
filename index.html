@@ -3104,6 +3104,59 @@ function buildSimpleLineageFromPerson(id) {
   switchAdminTab("add");
   render(currentPerson);
     }
+    async function adminDeletePerson() {
+  const personId = document.getElementById("adminDeletePersonSelect").value;
+
+  if (!personId) {
+    alert("اختر الاسم أولًا");
+    return;
+  }
+
+  if (personId === rootId) {
+    alert("لا يمكن حذف الجذر");
+    return;
+  }
+
+  if (!people[personId]) {
+    alert("الاسم غير موجود");
+    return;
+  }
+
+  if ((people[personId].children || []).length > 0) {
+    alert("لا يمكن حذف اسم لديه أبناء حاليًا");
+    return;
+  }
+
+  const parentId = getParentId(personId);
+  if (!parentId || !people[parentId]) {
+    alert("تعذر العثور على الأب");
+    return;
+  }
+
+  const deletedName = people[personId].name;
+
+  people[parentId].children = people[parentId].children.filter(id => id !== personId);
+  delete people[personId];
+
+  if (peopleTableAvailable) {
+    const { error } = await supabaseClient
+      .from("people")
+      .delete()
+      .eq("id", personId);
+
+    if (error) {
+      console.error(error);
+      alert("تم الحذف محليًا لكن تعذر تحديث Supabase");
+      return;
+    }
+  }
+
+  logChange("حذف اسم: " + deletedName);
+  alert("تم حذف الاسم");
+  showAdminPage();
+  switchAdminTab("add");
+  render(currentPerson);
+    }
 
     function adminSetStatus() {
       const id = document.getElementById("statusPersonSelect").value;
