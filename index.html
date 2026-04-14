@@ -3096,28 +3096,8 @@ if (!h) {
       switchAdminTab("requests");
       render(currentPerson);
     }
-
-    function markRequestDone(idx) {
-  const item = appState.requests[idx];
-  if (!item) return;
-
-  if (item.type === "إضافة" && item.parentId && item.childName) {
-    const parentId = item.parentId;
-    const childName = String(item.childName || "").trim();
-
-    if (people[parentId] && childName) {
-      const mainChildId = createPersonNode(childName);
-      people[parentId].children.push(mainChildId);
-
-      if (item.childrenText && String(item.childrenText).trim()) {
-        const childrenNames = String(item.childrenText)
-          .split(",")
-          .map(name => name.trim())
-          .filter(Boolean);
-
-        childrenNames.forEach(name => {
-          const subChildId = createPersonNode(name);
-          people[mainChildId].children.push(subChildId);}
+      function markRequestDone(idx) {
+  alert("اختبار");
       }
 
       logChange("اعتماد طلب وإضافة الاسم: " + childName + " تحت " + people[parentId].name);
