@@ -3118,9 +3118,10 @@ function buildSimpleLineageFromPerson(id) {
   }
 
   const lineage = getLineage(personId)
-    .map(id => people[id].name)
-    .reverse()
-    .join(" ← ");
+  .slice(0, -1)
+  .reverse()
+  .map(id => people[id].name)
+  .join(" ← ");
 
   box.innerHTML = `
     <strong>الاسم المحدد للحذف:</strong><br>
