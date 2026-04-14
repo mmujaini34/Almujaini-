@@ -2847,6 +2847,10 @@ function buildSimpleLineageFromPerson(id) {
     <select class="field" id="adminDeletePersonSelect">
       ${Object.keys(people).map(id => `<option value="${id}">${people[id].name}</option>`).join("")}
     </select>
+
+    <button class="btn-soft" onclick="previewDeletePerson()">عرض التسلسل قبل الحذف</button>
+    <div id="deletePreviewBox" class="top-note"></div>
+
     <button class="btn-danger" onclick="adminDeletePerson()">حذف الاسم</button>
   </div>
 </div>
@@ -3103,6 +3107,27 @@ function buildSimpleLineageFromPerson(id) {
   showAdminPage();
   switchAdminTab("add");
   render(currentPerson);
+    }
+    function previewDeletePerson() {
+  const personId = document.getElementById("adminDeletePersonSelect").value;
+  const box = document.getElementById("deletePreviewBox");
+
+  if (!personId || !people[personId]) {
+    box.innerHTML = "لم يتم العثور على الاسم.";
+    return;
+  }
+
+  const lineage = getLineage(personId)
+    .map(id => people[id].name)
+    .reverse()
+    .join(" ← ");
+
+  box.innerHTML = `
+    <strong>الاسم المحدد للحذف:</strong><br>
+    ${people[personId].name}<br><br>
+    <strong>تسلسله في الشجرة:</strong><br>
+    ${lineage}
+  `;
     }
     async function adminDeletePerson() {
   const personId = document.getElementById("adminDeletePersonSelect").value;
