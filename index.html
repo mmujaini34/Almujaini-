@@ -3060,6 +3060,41 @@ function buildSimpleLineageFromPerson(id) {
       switchAdminTab("add");
       render(currentPerson);
     }
+    async function adminRenamePerson() {
+  const personId = document.getElementById("adminEditPersonSelect").value;
+  const newName = document.getElementById("adminEditPersonName").value.trim();
+
+  if (!personId || !newName) {
+    alert("اختر الاسم واكتب الاسم الجديد");
+    return;
+  }
+
+  if (!people[personId]) {
+    alert("الاسم غير موجود");
+    return;
+  }
+
+  people[personId].name = newName;
+
+  if (peopleTableAvailable) {
+    const { error } = await supabaseClient
+      .from("people")
+      .update({ name: newName })
+      .eq("id", personId);
+
+    if (error) {
+      console.error(error);
+      alert("تم التعديل محليًا لكن تعذر تحديث Supabase");
+      return;
+    }
+  }
+
+  logChange("تعديل اسم: " + personId + " إلى " + newName);
+  alert("تم تعديل الاسم");
+  showAdminPage();
+  switchAdminTab("add");
+  render(currentPerson);
+    }
 
     function adminSetStatus() {
       const id = document.getElementById("statusPersonSelect").value;
