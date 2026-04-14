@@ -3213,7 +3213,6 @@ function buildSimpleLineageFromPerson(id) {
     }
 
     async function markSupabaseRequestDone(id) {
-  coasync function markSupabaseRequestDone(id) {
   const { data, error } = await supabaseClient
     .from("requests")
     .select("*")
