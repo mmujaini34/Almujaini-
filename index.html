@@ -3121,14 +3121,248 @@ if (!h) {
           logChange("تم اعتماد طلب لكن تعذر الإضافة لعدم اكتمال البيانات");
         }
       } else {
-        logChange("اعتماد طلب: " + item.type + " - " + item.target);
+
+      function handleClick(id) {
+  currentPerson = id;
+  showPersonPage(id);
+}
+
+function goRoot() {
+  currentView = "tree";
+  historyStack = [rootId];
+  currentPerson = rootId;
+  document.getElementById("searchInput").value = "";
+  history.pushState({ personId: rootId }, "", "#" + rootId);
+  showTreePage();
+  render(rootId);
+}
+
+function goBack() {
+  history.back();
+}
+
+function renderBreadcrumb() {
+  const b = document.getElementById("breadcrumb");
+  b.innerHTML = "";
+  historyStack.forEach((personId, index) => {
+    const btn = document.createElement("button");
+    btn.textContent = people[personId].name;
+    btn.onclick = () => {
+      historyStack = historyStack.slice(0, index + 1);
+      currentPerson = personId;
+      history.pushState({ personId }, "", "#" + personId);
+      render(personId);
+    };
+    b.appendChild(btn);
+  });
+}
+
+function renderQuickBranches() {
+  const box = document.getElementById("quickBranches");
+  box.innerHTML = "";
+
+  if (currentPerson === rootId) {
+    box.style.display = "none";
+    return;
+  }
+
+  box.style.display = "flex";
+  const children = people[currentPerson]?.children || [];
+  children.forEach(id => {
+    const btn = document.createElement("button");
+    btn.textContent = people[id].name + " (" + getChildrenCount(id) + ")";
+    btn.onclick = () => handleClick(id);
+    box.appendChild(btn);
+  });
+}
+
+function renderInfoBar(id) {
+  const node = people[id];
+  const gStats = getGenerationStats();
+  const totalGenerations = Object.keys(gStats).length;
+
+  let html = "";
+  html += "عدد الأبناء المباشرين: <strong>" + getChildrenCount(id) + "</strong><br>";
+  html += "إجمالي الأشخاص تحت هذا الفرع: <strong>" + getDescendantsCount(id) + "</strong><br>";
+  html += "التسلسل: <strong>" + getLineageText(id) + "</strong><br>";
+  html += "عدد الأجيال في الشجرة: <strong>" + totalGenerations + "</strong><br>";
+  if (node.note) html += "ملاحظة: <strong>" + node.note + "</strong><br>";
+  document.getElementById("infoBar").innerHTML = html;
+}
+
+function renderCard(id) {
+  const child = people[id];
+  const isParent = hasChildren(id);
+  const directChildren = getChildrenCount(id);
+  const totalDesc = getDescendantsCount(id);
+  let grandChildren = 0;
+  (child.children || []).forEach(cid => {
+    grandChildren += getChildrenCount(cid);
+  });
+  return `
+    <div class="card ${isParent ? "" : "no-children"}" onclick="handleClick('${id}')">
+      <div class="name-row">
+        <div class="name">${child.name}${appState.settings.showCounts ? ` (${directChildren})` : ""}</div>
+        <div class="badges">
+          <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${id}')">طلب إضافة</div>
+          <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${id}')">نسب</div>
+          <div class="small-badge who-badge" onclick="event.stopPropagation(); openWhoAmIForPerson('${id}')">من؟</div>
+          ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(id))}</div>` : ""}
+        </div>
+      </div>
+      <div class="meta">
+        عدد الأبناء: ${directChildren}<br>
+        عدد الأحفاد: ${grandChildren}<br>
+        إجمالي الذرية: ${totalDesc}<br>
+        ${child.note ? `ملاحظة: ${child.note}<br>` : ""}
+      </div>
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+        <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${id}')">هرم</div>
+      </div>
+    </div>
+  `;
+}
+
+function render(id) {
+  showTreePage();
+  currentPerson = id;
+
+  document.getElementById("title").textContent = people[id].name;
+  renderBreadcrumb();
+  renderQuickBranches();
+  renderInfoBar(id);
+
+  const content = document.getElementById("content");
+  const children = people[id].children || [];
+
+  if (id === rootId) {
+    content.className = "cards";
+    content.innerHTML = `
+      <div class="card no-children" style="text-align:center;" onclick="showHierarchyPage('${rootId}')">
+        <div class="name-row" style="justify-content:center;">
+          <div class="name">${people[id].name}</div>
+        </div>
+        <div class="meta">
+          اضغط على الاسم لبدء الهرم التدريجي من الأبناء مباشرة.
+        </div>
+        <div class="tag">ابدأ عرض الهرم</div>
+      </div>
+    `;
+    return;
+  }
+
+  if (!children.length) {
+    content.innerHTML = `
+      <div class="card no-children">
+        <div class="name-row">
+          <div class="name">${people[id].name}</div>
+          <div class="badges">
+            <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${id}')">طلب إضافة</div>
+            <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${id}')">نسب</div>
+            <div class="small-badge who-badge" onclick="event.stopPropagation(); openWhoAmIForPerson('${id}')">من؟</div>
+            ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(id))}</div>` : ""}
+          </div>
+        </div>
+        <div class="meta">لا توجد أسماء أبناء مسجلة حاليًا لهذا الفرع.</div>
+        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+          <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${id}')">هرم</div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  content.className = "cards";
+  content.innerHTML = children.map(childId => renderCard(childId)).join("");
+}
+
+function renderSearchResults(keyword) {
+  const results = [];
+
+  for (const key in people) {
+    const person = people[key];
+    const score = scoreNameOnlySearch(keyword, person.name);
+    if (score >= 60) results.push({ id: key, score });
+  }
+
+  results.sort((a, b) => b.score - a.score);
+
+  showTreePage();
+  document.getElementById("title").textContent = "نتائج البحث";
+  document.getElementById("breadcrumb").innerHTML = "";
+  document.getElementById("quickBranches").innerHTML = "";
+  document.getElementById("quickBranches").style.display = "none";
+
+  let top = `عدد النتائج: <strong>${results.length}</strong>`;
+  if (results.length > 0) top += `<br>أقرب نتيجة: <strong>${people[results[0].id].name}</strong>`;
+  document.getElementById("infoBar").innerHTML = top;
+
+  const html = results.length
+    ? results.map((r, idx) => `
+      <div class="card ${hasChildren(r.id) ? "" : "no-children"}" onclick="${hasChildren(r.id) ? `handleClick('${r.id}')` : `showConfirmModal('${r.id}')`}">
+        <div class="name-row">
+          <div class="name">${people[r.id].name}${idx === 0 ? ' <span style="font-size:12px;color:var(--gold);">• الأقرب</span>' : ''}</div>
+          <div class="badges">
+            <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${r.id}')">طلب إضافة</div>
+            <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${r.id}')">نسب</div>
+            <div class="small-badge who-badge" onclick="event.stopPropagation(); openWhoAmIForPerson('${r.id}')">من؟</div>
+            ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(r.id))}</div>` : ""}
+          </div>
+        </div>
+        <div class="meta">
+          عدد الأبناء المباشرين: ${getChildrenCount(r.id)}<br>
+          الجيل: ${generationLabelShort(getGeneration(r.id))}
+        </div>
+        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+          <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${r.id}')">هرم</div>
+        </div>
+      </div>
+    `).join("")
+    : `<div class="card"><div class="meta">لا توجد نتائج مطابقة.</div></div>`;
+
+  document.getElementById("content").innerHTML = html;
+}
+
+function markRequestDone(idx) {
+  const item = appState.requests[idx];
+  if (!item) return;
+
+  if (item.type === "إضافة" && item.parentId && item.childName) {
+    const parentId = item.parentId;
+    const childName = String(item.childName || "").trim();
+
+    if (people[parentId] && childName) {
+      const mainChildId = createPersonNode(childName);
+      people[parentId].children.push(mainChildId);
+
+      if (item.childrenText && String(item.childrenText).trim()) {
+        const childrenNames = String(item.childrenText)
+          .split(",")
+          .map(name => name.trim())
+          .filter(Boolean);
+
+        childrenNames.forEach(name => {
+          const subChildId = createPersonNode(name);
+          people[mainChildId].children.push(subChildId);
+        });
       }
 
-      showAdminPage();
-      switchAdminTab("requests");
-      render(currentPerson);
+      logChange("اعتماد طلب وإضافة الاسم: " + childName + " تحت " + people[parentId].name);
+    } else {
+      logChange("تم اعتماد طلب لكن تعذر الإضافة لعدم اكتمال البيانات");
     }
+  } else {
+    logChange("اعتماد طلب: " + item.type + " - " + item.target);
+  }
 
+  appState.requests.splice(idx, 1);
+  saveState();
+
+  showAdminPage();
+  switchAdminTab("requests");
+  render(currentPerson);
+    }
+        
     function runRelation() {
       const a = document.getElementById("relationA").value;
       const b = document.getElementById("relationB").value;
