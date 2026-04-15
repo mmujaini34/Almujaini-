@@ -3813,87 +3813,94 @@ function markRequestDone(idx) {
 </script>
 
 
-<script id="final-admin-fix-v1">
+<script id="final-password-fix-v3">
 (function(){
-  const ADMIN_ACCOUNTS = {
-    master:   { password: 'Mmujaini34', label: 'المالك الرئيسي', allowedTabs: ['overview','messages','requests','add','duplicates','stats','account-manager','spouse-copy'] },
-    manager:  { password: 'Mujaini1',   label: 'مدير',           allowedTabs: ['overview','messages','requests','add','duplicates','stats','spouse-copy'] },
-    editor:   { password: 'Mujaini2',   label: 'محرر',           allowedTabs: ['overview','messages','requests','add','spouse-copy'] },
-    reviewer: { password: 'Mujaini3',   label: 'مراجع',          allowedTabs: ['overview','messages','requests','stats'] }
+  const ROLE_CONFIG = {
+    master: {label:'المالك الرئيسي', allowedTabs:['overview','messages','requests','add','relation','duplicates','stats']},
+    manager:{label:'مدير', allowedTabs:['overview','messages','requests','add','duplicates','stats']},
+    editor: {label:'محرر', allowedTabs:['overview','messages','requests','add']},
+    reviewer:{label:'مراجع', allowedTabs:['overview','messages','requests','stats']}
   };
 
-  function getSession(){
-    try { return JSON.parse(sessionStorage.getItem('mujaini_admin_session_final') || 'null'); } catch(e){ return null; }
-  }
-  function setSession(obj){
-    if (obj) sessionStorage.setItem('mujaini_admin_session_final', JSON.stringify(obj));
-    else sessionStorage.removeItem('mujaini_admin_session_final');
-  }
-  function currentRole(){
-    const s = getSession();
-    return s && ADMIN_ACCOUNTS[s.role] ? s.role : null;
-  }
-  function currentCfg(){
-    const r = currentRole();
-    return r ? ADMIN_ACCOUNTS[r] : null;
-  }
-  function allowedTabs(){
-    const cfg = currentCfg();
-    return cfg ? cfg.allowedTabs.slice() : [];
-  }
-
-  function detectRoleByPassword(pwd){
-    for (const [role, cfg] of Object.entries(ADMIN_ACCOUNTS)) {
-      if (cfg.password === pwd) return role;
-    }
+  function detectRole(password){
+    if (password === 'Mmujaini34') return 'master';
+    if (password === 'Mujaini1') return 'manager';
+    if (password === 'Mujaini2') return 'editor';
+    if (password === 'Mujaini3') return 'reviewer';
     return null;
   }
 
-  function buttonTab(btn){
+  function saveSession(role){
+    const session = {role: role};
+    try { sessionStorage.setItem('mujaini_admin_session_v2', JSON.stringify(session)); } catch(e){}
+    window.__adminSession = session;
+    window.__adminRole = role;
+    return session;
+  }
+
+  function getSession(){
+    try {
+      return window.__adminSession || JSON.parse(sessionStorage.getItem('mujaini_admin_session_v2') || 'null');
+    } catch(e){
+      return null;
+    }
+  }
+
+  function getAllowedTabs(){
+    const s = getSession();
+    const role = s && s.role;
+    return role && ROLE_CONFIG[role] ? ROLE_CONFIG[role].allowedTabs.slice() : [];
+  }
+
+  function getTabNameFromButton(btn){
     const onclick = btn.getAttribute('onclick') || '';
     const m = onclick.match(/switchAdminTab\('([^']+)'\)/);
     return m ? m[1] : '';
   }
 
-  function injectAdminMeta(){
+  function addRoleBox(){
     const page = document.getElementById('adminPage');
     if (!page || page.classList.contains('hidden')) return;
-    const top = page.querySelector('.admin-page');
-    if (!top) return;
-
-    let box = page.querySelector('#finalAdminRoleBox');
+    const s = getSession();
+    if (!s || !ROLE_CONFIG[s.role]) return;
+    let box = page.querySelector('#adminRoleBoxFinal');
     if (!box) {
       box = document.createElement('div');
-      box.id = 'finalAdminRoleBox';
-      box.style.cssText = 'background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin:10px 0;line-height:1.9';
-      const title = top.querySelector('.title');
+      box.id = 'adminRoleBoxFinal';
+      box.className = 'admin-role-box';
+      const adminPage = page.querySelector('.admin-page');
+      const title = adminPage && adminPage.querySelector('.title');
       if (title) title.insertAdjacentElement('afterend', box);
-      else top.prepend(box);
+      else if (adminPage) adminPage.prepend(box);
     }
-    const cfg = currentCfg();
-    box.innerHTML = cfg ? `<strong>المستوى الحالي:</strong> ${cfg.label}` : '';
+    box.innerHTML = '<strong>المستوى الحالي:</strong> ' + ROLE_CONFIG[s.role].label;
+  }
 
-    let actions = page.querySelector('#finalAdminTopActions');
-    if (!actions) {
-      actions = document.createElement('div');
-      actions.id = 'finalAdminTopActions';
-      actions.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px';
-      actions.innerHTML = `<button class="btn-danger" type="button" onclick="logoutAdminFinal()">خروج من الإدارة</button>`;
-      box.insertAdjacentElement('afterend', actions);
+  function addLogoutButton(){
+    const page = document.getElementById('adminPage');
+    if (!page || page.classList.contains('hidden')) return;
+    let holder = page.querySelector('#adminTopActionsFinal');
+    if (!holder) {
+      holder = document.createElement('div');
+      holder.id = 'adminTopActionsFinal';
+      holder.className = 'admin-top-actions';
+      holder.innerHTML = '<button class="btn-danger" type="button" onclick="logoutAdminFinal()">خروج من الإدارة</button>';
+      const anchor = page.querySelector('#adminRoleBoxFinal') || page.querySelector('.title');
+      if (anchor) anchor.insertAdjacentElement('afterend', holder);
     }
   }
 
-  function filterAdminByRole(){
+  function filterAdminTabs(){
     const page = document.getElementById('adminPage');
     if (!page || page.classList.contains('hidden')) return;
-    const allowed = allowedTabs();
+    const allowed = getAllowedTabs();
     page.querySelectorAll('.admin-tabs button').forEach(btn => {
-      const tab = buttonTab(btn);
-      btn.style.display = allowed.includes(tab) ? '' : 'none';
+      const name = getTabNameFromButton(btn);
+      btn.style.display = allowed.includes(name) ? '' : 'none';
     });
     page.querySelectorAll('.admin-section').forEach(sec => {
-      const tab = sec.id.replace(/^admin-/, '');
-      if (allowed.includes(tab)) {
+      const name = sec.id.replace(/^admin-/, '');
+      if (allowed.includes(name)) {
         sec.style.display = '';
       } else {
         sec.style.display = 'none';
@@ -3904,48 +3911,56 @@ function markRequestDone(idx) {
     if (!active || active.style.display === 'none') {
       const first = allowed[0];
       if (first && typeof window.switchAdminTab === 'function') {
-        window.switchAdminTab(first);
+        try { window.switchAdminTab(first); } catch(e){}
       }
     }
   }
 
   window.logoutAdminFinal = function(){
-    setSession(null);
+    try { sessionStorage.removeItem('mujaini_admin_session_v2'); } catch(e){}
+    window.__adminSession = null;
+    window.__adminRole = null;
     const input = document.getElementById('adminPasswordInput');
     if (input) input.value = '';
-    if (typeof showTreePage === 'function') showTreePage();
-    if (typeof render === 'function' && typeof rootId !== 'undefined') render(rootId);
-  };
-
-  window.openAdminPassword = function(){
-    const input = document.getElementById('adminPasswordInput');
-    if (input) input.value = '';
-    document.getElementById('adminPasswordModal').classList.add('active');
-  };
-
-  window.closeAdminPassword = function(){
-    document.getElementById('adminPasswordModal').classList.remove('active');
+    if (typeof window.closeAdminPassword === 'function') {
+      try { window.closeAdminPassword(); } catch(e){}
+    }
+    if (typeof window.showTreePage === 'function') {
+      try { window.showTreePage(); } catch(e){}
+    }
+    if (typeof window.render === 'function' && typeof window.rootId !== 'undefined') {
+      try { window.render(window.rootId); } catch(e){}
+    }
   };
 
   window.enterAdmin = function(){
     const input = document.getElementById('adminPasswordInput');
     const pwd = input ? input.value.trim() : '';
-    const role = detectRoleByPassword(pwd);
+    const role = detectRole(pwd);
     if (!role) {
       alert('كلمة المرور غير صحيحة');
       return;
     }
-    setSession({ role });
-    window.closeAdminPassword();
-    if (typeof showAdminPage === 'function') showAdminPage();
+    saveSession(role);
+    if (typeof window.closeAdminPassword === 'function') {
+      try { window.closeAdminPassword(); } catch(e){}
+    }
+    if (typeof window.showAdminPage === 'function') {
+      Promise.resolve(window.showAdminPage()).then(function(){
+        addRoleBox();
+        addLogoutButton();
+        filterAdminTabs();
+      });
+    }
   };
 
   const originalShowAdminPage = window.showAdminPage;
   if (typeof originalShowAdminPage === 'function') {
     window.showAdminPage = async function(){
       const out = await originalShowAdminPage.apply(this, arguments);
-      injectAdminMeta();
-      filterAdminByRole();
+      addRoleBox();
+      addLogoutButton();
+      filterAdminTabs();
       return out;
     };
   }
@@ -3953,17 +3968,11 @@ function markRequestDone(idx) {
   const originalSwitchAdminTab = window.switchAdminTab;
   if (typeof originalSwitchAdminTab === 'function') {
     window.switchAdminTab = function(name){
-      if (!allowedTabs().includes(name)) return;
+      const allowed = getAllowedTabs();
+      if (allowed.length && !allowed.includes(name)) return;
       return originalSwitchAdminTab.apply(this, arguments);
     };
   }
-
-  document.addEventListener('DOMContentLoaded', function(){
-    const s = getSession();
-    if (s && ADMIN_ACCOUNTS[s.role] && typeof showAdminPage === 'function') {
-      showAdminPage();
-    }
-  });
 })();
 </script>
 
@@ -4132,87 +4141,94 @@ function markRequestDone(idx) {
 </script>
 
 
-<script id="final-admin-fix-v1">
+<script id="final-password-fix-v3">
 (function(){
-  const ADMIN_ACCOUNTS = {
-    master:   { password: 'Mmujaini34', label: 'المالك الرئيسي', allowedTabs: ['overview','messages','requests','add','duplicates','stats','account-manager','spouse-copy'] },
-    manager:  { password: 'Mujaini1',   label: 'مدير',           allowedTabs: ['overview','messages','requests','add','duplicates','stats','spouse-copy'] },
-    editor:   { password: 'Mujaini2',   label: 'محرر',           allowedTabs: ['overview','messages','requests','add','spouse-copy'] },
-    reviewer: { password: 'Mujaini3',   label: 'مراجع',          allowedTabs: ['overview','messages','requests','stats'] }
+  const ROLE_CONFIG = {
+    master: {label:'المالك الرئيسي', allowedTabs:['overview','messages','requests','add','relation','duplicates','stats']},
+    manager:{label:'مدير', allowedTabs:['overview','messages','requests','add','duplicates','stats']},
+    editor: {label:'محرر', allowedTabs:['overview','messages','requests','add']},
+    reviewer:{label:'مراجع', allowedTabs:['overview','messages','requests','stats']}
   };
 
-  function getSession(){
-    try { return JSON.parse(sessionStorage.getItem('mujaini_admin_session_final') || 'null'); } catch(e){ return null; }
-  }
-  function setSession(obj){
-    if (obj) sessionStorage.setItem('mujaini_admin_session_final', JSON.stringify(obj));
-    else sessionStorage.removeItem('mujaini_admin_session_final');
-  }
-  function currentRole(){
-    const s = getSession();
-    return s && ADMIN_ACCOUNTS[s.role] ? s.role : null;
-  }
-  function currentCfg(){
-    const r = currentRole();
-    return r ? ADMIN_ACCOUNTS[r] : null;
-  }
-  function allowedTabs(){
-    const cfg = currentCfg();
-    return cfg ? cfg.allowedTabs.slice() : [];
-  }
-
-  function detectRoleByPassword(pwd){
-    for (const [role, cfg] of Object.entries(ADMIN_ACCOUNTS)) {
-      if (cfg.password === pwd) return role;
-    }
+  function detectRole(password){
+    if (password === 'Mmujaini34') return 'master';
+    if (password === 'Mujaini1') return 'manager';
+    if (password === 'Mujaini2') return 'editor';
+    if (password === 'Mujaini3') return 'reviewer';
     return null;
   }
 
-  function buttonTab(btn){
+  function saveSession(role){
+    const session = {role: role};
+    try { sessionStorage.setItem('mujaini_admin_session_v2', JSON.stringify(session)); } catch(e){}
+    window.__adminSession = session;
+    window.__adminRole = role;
+    return session;
+  }
+
+  function getSession(){
+    try {
+      return window.__adminSession || JSON.parse(sessionStorage.getItem('mujaini_admin_session_v2') || 'null');
+    } catch(e){
+      return null;
+    }
+  }
+
+  function getAllowedTabs(){
+    const s = getSession();
+    const role = s && s.role;
+    return role && ROLE_CONFIG[role] ? ROLE_CONFIG[role].allowedTabs.slice() : [];
+  }
+
+  function getTabNameFromButton(btn){
     const onclick = btn.getAttribute('onclick') || '';
     const m = onclick.match(/switchAdminTab\('([^']+)'\)/);
     return m ? m[1] : '';
   }
 
-  function injectAdminMeta(){
+  function addRoleBox(){
     const page = document.getElementById('adminPage');
     if (!page || page.classList.contains('hidden')) return;
-    const top = page.querySelector('.admin-page');
-    if (!top) return;
-
-    let box = page.querySelector('#finalAdminRoleBox');
+    const s = getSession();
+    if (!s || !ROLE_CONFIG[s.role]) return;
+    let box = page.querySelector('#adminRoleBoxFinal');
     if (!box) {
       box = document.createElement('div');
-      box.id = 'finalAdminRoleBox';
-      box.style.cssText = 'background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin:10px 0;line-height:1.9';
-      const title = top.querySelector('.title');
+      box.id = 'adminRoleBoxFinal';
+      box.className = 'admin-role-box';
+      const adminPage = page.querySelector('.admin-page');
+      const title = adminPage && adminPage.querySelector('.title');
       if (title) title.insertAdjacentElement('afterend', box);
-      else top.prepend(box);
+      else if (adminPage) adminPage.prepend(box);
     }
-    const cfg = currentCfg();
-    box.innerHTML = cfg ? `<strong>المستوى الحالي:</strong> ${cfg.label}` : '';
+    box.innerHTML = '<strong>المستوى الحالي:</strong> ' + ROLE_CONFIG[s.role].label;
+  }
 
-    let actions = page.querySelector('#finalAdminTopActions');
-    if (!actions) {
-      actions = document.createElement('div');
-      actions.id = 'finalAdminTopActions';
-      actions.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px';
-      actions.innerHTML = `<button class="btn-danger" type="button" onclick="logoutAdminFinal()">خروج من الإدارة</button>`;
-      box.insertAdjacentElement('afterend', actions);
+  function addLogoutButton(){
+    const page = document.getElementById('adminPage');
+    if (!page || page.classList.contains('hidden')) return;
+    let holder = page.querySelector('#adminTopActionsFinal');
+    if (!holder) {
+      holder = document.createElement('div');
+      holder.id = 'adminTopActionsFinal';
+      holder.className = 'admin-top-actions';
+      holder.innerHTML = '<button class="btn-danger" type="button" onclick="logoutAdminFinal()">خروج من الإدارة</button>';
+      const anchor = page.querySelector('#adminRoleBoxFinal') || page.querySelector('.title');
+      if (anchor) anchor.insertAdjacentElement('afterend', holder);
     }
   }
 
-  function filterAdminByRole(){
+  function filterAdminTabs(){
     const page = document.getElementById('adminPage');
     if (!page || page.classList.contains('hidden')) return;
-    const allowed = allowedTabs();
+    const allowed = getAllowedTabs();
     page.querySelectorAll('.admin-tabs button').forEach(btn => {
-      const tab = buttonTab(btn);
-      btn.style.display = allowed.includes(tab) ? '' : 'none';
+      const name = getTabNameFromButton(btn);
+      btn.style.display = allowed.includes(name) ? '' : 'none';
     });
     page.querySelectorAll('.admin-section').forEach(sec => {
-      const tab = sec.id.replace(/^admin-/, '');
-      if (allowed.includes(tab)) {
+      const name = sec.id.replace(/^admin-/, '');
+      if (allowed.includes(name)) {
         sec.style.display = '';
       } else {
         sec.style.display = 'none';
@@ -4223,48 +4239,56 @@ function markRequestDone(idx) {
     if (!active || active.style.display === 'none') {
       const first = allowed[0];
       if (first && typeof window.switchAdminTab === 'function') {
-        window.switchAdminTab(first);
+        try { window.switchAdminTab(first); } catch(e){}
       }
     }
   }
 
   window.logoutAdminFinal = function(){
-    setSession(null);
+    try { sessionStorage.removeItem('mujaini_admin_session_v2'); } catch(e){}
+    window.__adminSession = null;
+    window.__adminRole = null;
     const input = document.getElementById('adminPasswordInput');
     if (input) input.value = '';
-    if (typeof showTreePage === 'function') showTreePage();
-    if (typeof render === 'function' && typeof rootId !== 'undefined') render(rootId);
-  };
-
-  window.openAdminPassword = function(){
-    const input = document.getElementById('adminPasswordInput');
-    if (input) input.value = '';
-    document.getElementById('adminPasswordModal').classList.add('active');
-  };
-
-  window.closeAdminPassword = function(){
-    document.getElementById('adminPasswordModal').classList.remove('active');
+    if (typeof window.closeAdminPassword === 'function') {
+      try { window.closeAdminPassword(); } catch(e){}
+    }
+    if (typeof window.showTreePage === 'function') {
+      try { window.showTreePage(); } catch(e){}
+    }
+    if (typeof window.render === 'function' && typeof window.rootId !== 'undefined') {
+      try { window.render(window.rootId); } catch(e){}
+    }
   };
 
   window.enterAdmin = function(){
     const input = document.getElementById('adminPasswordInput');
     const pwd = input ? input.value.trim() : '';
-    const role = detectRoleByPassword(pwd);
+    const role = detectRole(pwd);
     if (!role) {
       alert('كلمة المرور غير صحيحة');
       return;
     }
-    setSession({ role });
-    window.closeAdminPassword();
-    if (typeof showAdminPage === 'function') showAdminPage();
+    saveSession(role);
+    if (typeof window.closeAdminPassword === 'function') {
+      try { window.closeAdminPassword(); } catch(e){}
+    }
+    if (typeof window.showAdminPage === 'function') {
+      Promise.resolve(window.showAdminPage()).then(function(){
+        addRoleBox();
+        addLogoutButton();
+        filterAdminTabs();
+      });
+    }
   };
 
   const originalShowAdminPage = window.showAdminPage;
   if (typeof originalShowAdminPage === 'function') {
     window.showAdminPage = async function(){
       const out = await originalShowAdminPage.apply(this, arguments);
-      injectAdminMeta();
-      filterAdminByRole();
+      addRoleBox();
+      addLogoutButton();
+      filterAdminTabs();
       return out;
     };
   }
@@ -4272,17 +4296,11 @@ function markRequestDone(idx) {
   const originalSwitchAdminTab = window.switchAdminTab;
   if (typeof originalSwitchAdminTab === 'function') {
     window.switchAdminTab = function(name){
-      if (!allowedTabs().includes(name)) return;
+      const allowed = getAllowedTabs();
+      if (allowed.length && !allowed.includes(name)) return;
       return originalSwitchAdminTab.apply(this, arguments);
     };
   }
-
-  document.addEventListener('DOMContentLoaded', function(){
-    const s = getSession();
-    if (s && ADMIN_ACCOUNTS[s.role] && typeof showAdminPage === 'function') {
-      showAdminPage();
-    }
-  });
 })();
 </script>
 
@@ -4510,87 +4528,94 @@ document.addEventListener('DOMContentLoaded',function(){ensureExtraUI();const qb
 </script>
 
 
-<script id="final-admin-fix-v1">
+<script id="final-password-fix-v3">
 (function(){
-  const ADMIN_ACCOUNTS = {
-    master:   { password: 'Mmujaini34', label: 'المالك الرئيسي', allowedTabs: ['overview','messages','requests','add','duplicates','stats','account-manager','spouse-copy'] },
-    manager:  { password: 'Mujaini1',   label: 'مدير',           allowedTabs: ['overview','messages','requests','add','duplicates','stats','spouse-copy'] },
-    editor:   { password: 'Mujaini2',   label: 'محرر',           allowedTabs: ['overview','messages','requests','add','spouse-copy'] },
-    reviewer: { password: 'Mujaini3',   label: 'مراجع',          allowedTabs: ['overview','messages','requests','stats'] }
+  const ROLE_CONFIG = {
+    master: {label:'المالك الرئيسي', allowedTabs:['overview','messages','requests','add','relation','duplicates','stats']},
+    manager:{label:'مدير', allowedTabs:['overview','messages','requests','add','duplicates','stats']},
+    editor: {label:'محرر', allowedTabs:['overview','messages','requests','add']},
+    reviewer:{label:'مراجع', allowedTabs:['overview','messages','requests','stats']}
   };
 
-  function getSession(){
-    try { return JSON.parse(sessionStorage.getItem('mujaini_admin_session_final') || 'null'); } catch(e){ return null; }
-  }
-  function setSession(obj){
-    if (obj) sessionStorage.setItem('mujaini_admin_session_final', JSON.stringify(obj));
-    else sessionStorage.removeItem('mujaini_admin_session_final');
-  }
-  function currentRole(){
-    const s = getSession();
-    return s && ADMIN_ACCOUNTS[s.role] ? s.role : null;
-  }
-  function currentCfg(){
-    const r = currentRole();
-    return r ? ADMIN_ACCOUNTS[r] : null;
-  }
-  function allowedTabs(){
-    const cfg = currentCfg();
-    return cfg ? cfg.allowedTabs.slice() : [];
-  }
-
-  function detectRoleByPassword(pwd){
-    for (const [role, cfg] of Object.entries(ADMIN_ACCOUNTS)) {
-      if (cfg.password === pwd) return role;
-    }
+  function detectRole(password){
+    if (password === 'Mmujaini34') return 'master';
+    if (password === 'Mujaini1') return 'manager';
+    if (password === 'Mujaini2') return 'editor';
+    if (password === 'Mujaini3') return 'reviewer';
     return null;
   }
 
-  function buttonTab(btn){
+  function saveSession(role){
+    const session = {role: role};
+    try { sessionStorage.setItem('mujaini_admin_session_v2', JSON.stringify(session)); } catch(e){}
+    window.__adminSession = session;
+    window.__adminRole = role;
+    return session;
+  }
+
+  function getSession(){
+    try {
+      return window.__adminSession || JSON.parse(sessionStorage.getItem('mujaini_admin_session_v2') || 'null');
+    } catch(e){
+      return null;
+    }
+  }
+
+  function getAllowedTabs(){
+    const s = getSession();
+    const role = s && s.role;
+    return role && ROLE_CONFIG[role] ? ROLE_CONFIG[role].allowedTabs.slice() : [];
+  }
+
+  function getTabNameFromButton(btn){
     const onclick = btn.getAttribute('onclick') || '';
     const m = onclick.match(/switchAdminTab\('([^']+)'\)/);
     return m ? m[1] : '';
   }
 
-  function injectAdminMeta(){
+  function addRoleBox(){
     const page = document.getElementById('adminPage');
     if (!page || page.classList.contains('hidden')) return;
-    const top = page.querySelector('.admin-page');
-    if (!top) return;
-
-    let box = page.querySelector('#finalAdminRoleBox');
+    const s = getSession();
+    if (!s || !ROLE_CONFIG[s.role]) return;
+    let box = page.querySelector('#adminRoleBoxFinal');
     if (!box) {
       box = document.createElement('div');
-      box.id = 'finalAdminRoleBox';
-      box.style.cssText = 'background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin:10px 0;line-height:1.9';
-      const title = top.querySelector('.title');
+      box.id = 'adminRoleBoxFinal';
+      box.className = 'admin-role-box';
+      const adminPage = page.querySelector('.admin-page');
+      const title = adminPage && adminPage.querySelector('.title');
       if (title) title.insertAdjacentElement('afterend', box);
-      else top.prepend(box);
+      else if (adminPage) adminPage.prepend(box);
     }
-    const cfg = currentCfg();
-    box.innerHTML = cfg ? `<strong>المستوى الحالي:</strong> ${cfg.label}` : '';
+    box.innerHTML = '<strong>المستوى الحالي:</strong> ' + ROLE_CONFIG[s.role].label;
+  }
 
-    let actions = page.querySelector('#finalAdminTopActions');
-    if (!actions) {
-      actions = document.createElement('div');
-      actions.id = 'finalAdminTopActions';
-      actions.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px';
-      actions.innerHTML = `<button class="btn-danger" type="button" onclick="logoutAdminFinal()">خروج من الإدارة</button>`;
-      box.insertAdjacentElement('afterend', actions);
+  function addLogoutButton(){
+    const page = document.getElementById('adminPage');
+    if (!page || page.classList.contains('hidden')) return;
+    let holder = page.querySelector('#adminTopActionsFinal');
+    if (!holder) {
+      holder = document.createElement('div');
+      holder.id = 'adminTopActionsFinal';
+      holder.className = 'admin-top-actions';
+      holder.innerHTML = '<button class="btn-danger" type="button" onclick="logoutAdminFinal()">خروج من الإدارة</button>';
+      const anchor = page.querySelector('#adminRoleBoxFinal') || page.querySelector('.title');
+      if (anchor) anchor.insertAdjacentElement('afterend', holder);
     }
   }
 
-  function filterAdminByRole(){
+  function filterAdminTabs(){
     const page = document.getElementById('adminPage');
     if (!page || page.classList.contains('hidden')) return;
-    const allowed = allowedTabs();
+    const allowed = getAllowedTabs();
     page.querySelectorAll('.admin-tabs button').forEach(btn => {
-      const tab = buttonTab(btn);
-      btn.style.display = allowed.includes(tab) ? '' : 'none';
+      const name = getTabNameFromButton(btn);
+      btn.style.display = allowed.includes(name) ? '' : 'none';
     });
     page.querySelectorAll('.admin-section').forEach(sec => {
-      const tab = sec.id.replace(/^admin-/, '');
-      if (allowed.includes(tab)) {
+      const name = sec.id.replace(/^admin-/, '');
+      if (allowed.includes(name)) {
         sec.style.display = '';
       } else {
         sec.style.display = 'none';
@@ -4601,48 +4626,56 @@ document.addEventListener('DOMContentLoaded',function(){ensureExtraUI();const qb
     if (!active || active.style.display === 'none') {
       const first = allowed[0];
       if (first && typeof window.switchAdminTab === 'function') {
-        window.switchAdminTab(first);
+        try { window.switchAdminTab(first); } catch(e){}
       }
     }
   }
 
   window.logoutAdminFinal = function(){
-    setSession(null);
+    try { sessionStorage.removeItem('mujaini_admin_session_v2'); } catch(e){}
+    window.__adminSession = null;
+    window.__adminRole = null;
     const input = document.getElementById('adminPasswordInput');
     if (input) input.value = '';
-    if (typeof showTreePage === 'function') showTreePage();
-    if (typeof render === 'function' && typeof rootId !== 'undefined') render(rootId);
-  };
-
-  window.openAdminPassword = function(){
-    const input = document.getElementById('adminPasswordInput');
-    if (input) input.value = '';
-    document.getElementById('adminPasswordModal').classList.add('active');
-  };
-
-  window.closeAdminPassword = function(){
-    document.getElementById('adminPasswordModal').classList.remove('active');
+    if (typeof window.closeAdminPassword === 'function') {
+      try { window.closeAdminPassword(); } catch(e){}
+    }
+    if (typeof window.showTreePage === 'function') {
+      try { window.showTreePage(); } catch(e){}
+    }
+    if (typeof window.render === 'function' && typeof window.rootId !== 'undefined') {
+      try { window.render(window.rootId); } catch(e){}
+    }
   };
 
   window.enterAdmin = function(){
     const input = document.getElementById('adminPasswordInput');
     const pwd = input ? input.value.trim() : '';
-    const role = detectRoleByPassword(pwd);
+    const role = detectRole(pwd);
     if (!role) {
       alert('كلمة المرور غير صحيحة');
       return;
     }
-    setSession({ role });
-    window.closeAdminPassword();
-    if (typeof showAdminPage === 'function') showAdminPage();
+    saveSession(role);
+    if (typeof window.closeAdminPassword === 'function') {
+      try { window.closeAdminPassword(); } catch(e){}
+    }
+    if (typeof window.showAdminPage === 'function') {
+      Promise.resolve(window.showAdminPage()).then(function(){
+        addRoleBox();
+        addLogoutButton();
+        filterAdminTabs();
+      });
+    }
   };
 
   const originalShowAdminPage = window.showAdminPage;
   if (typeof originalShowAdminPage === 'function') {
     window.showAdminPage = async function(){
       const out = await originalShowAdminPage.apply(this, arguments);
-      injectAdminMeta();
-      filterAdminByRole();
+      addRoleBox();
+      addLogoutButton();
+      filterAdminTabs();
       return out;
     };
   }
@@ -4650,17 +4683,11 @@ document.addEventListener('DOMContentLoaded',function(){ensureExtraUI();const qb
   const originalSwitchAdminTab = window.switchAdminTab;
   if (typeof originalSwitchAdminTab === 'function') {
     window.switchAdminTab = function(name){
-      if (!allowedTabs().includes(name)) return;
+      const allowed = getAllowedTabs();
+      if (allowed.length && !allowed.includes(name)) return;
       return originalSwitchAdminTab.apply(this, arguments);
     };
   }
-
-  document.addEventListener('DOMContentLoaded', function(){
-    const s = getSession();
-    if (s && ADMIN_ACCOUNTS[s.role] && typeof showAdminPage === 'function') {
-      showAdminPage();
-    }
-  });
 })();
 </script>
 
