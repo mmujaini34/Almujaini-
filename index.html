@@ -883,6 +883,12 @@ const contactNumber = "96896040406";
 const rootId = "p1";
 const STORAGE_KEY = "mujaini_tree_app_v5";
 const DEFAULT_PASSWORD = "Mmujaini34";
+const ADMIN_ACCOUNTS_DEFAULT = {
+  master: { label: "الماستر", password: "Mmujaini34", tabs: ["overview","messages","requests","add","relation","spouse","duplicates","stats","archive","backup","settings"] },
+  manager: { label: "المدير", password: "Mujaini1", tabs: ["overview","messages","requests","add","relation","spouse","duplicates","stats","archive","backup","settings"] },
+  editor: { label: "المحرر", password: "Mujaini2", tabs: ["overview","messages","requests","add","relation","spouse"] },
+  reviewer: { label: "المراجع", password: "Mujaini3", tabs: ["overview","messages","requests","relation","stats","archive"] }
+};
 
 const SUPABASE_URL = "https://fjjavswshxsjvocrkjox.supabase.co";
 const SUPABASE_KEY = "sb_publishable_RnfnO_UOIrny2cjCPvLoyg__pTvE9Ge";
@@ -1642,6 +1648,8 @@ async function syncPeopleToSupabase() {
     function defaultState() {
       return {
         adminPassword: DEFAULT_PASSWORD,
+        adminAccounts: JSON.parse(JSON.stringify(ADMIN_ACCOUNTS_DEFAULT)),
+        currentAdminRole: null,
         messages: [],
         requests: [],
         changeLog: [],
@@ -2726,6 +2734,7 @@ function buildSimpleLineageFromPerson(id) {
             <button onclick="switchAdminTab('requests')">طلبات الإضافة</button>
             <button onclick="switchAdminTab('add')">إضافة وتعديل</button>
             <button onclick="switchAdminTab('relation')">صلة القرابة</button>
+            <button onclick="switchAdminTab('spouse')">نسخ بين زوجين</button>
             <button onclick="switchAdminTab('duplicates')">الكشف والتضارب</button>
             <button onclick="switchAdminTab('stats')">الإحصائيات</button>
             <button onclick="switchAdminTab('archive')">الأرشيف</button>
@@ -2892,6 +2901,28 @@ function buildSimpleLineageFromPerson(id) {
             <div class="subbox">
               <h3>النسب الفردي</h3>
               <div class="meta">متاح أيضًا من الزر الصغير بجانب كل اسم.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-section" id="admin-spouse">
+          <div class="admin-grid">
+            <div class="subbox">
+              <h3>نسخ بين زوجين</h3>
+              <div class="top-note">ينسخ الأبناء من الشخص الأول إلى الشخص الثاني بدون حذف أبناء الأول وبدون تكرار الموجود أصلًا عند الثاني.</div>
+              <div class="note-form">
+                <input class="field" id="spouseSearchA" placeholder="ابحث عن الشخص الأول..." oninput="filterSpouseOptions('A')" />
+                <select class="field" id="spouseA">${Object.keys(people).map(id => `<option value="${id}">${people[id].name}</option>`).join("")}</select>
+                <input class="field" id="spouseSearchB" placeholder="ابحث عن الشخص الثاني..." oninput="filterSpouseOptions('B')" />
+                <select class="field" id="spouseB">${Object.keys(people).map(id => `<option value="${id}">${people[id].name}</option>`).join("")}</select>
+                <button class="btn-main" onclick="previewSpouseCopy()">معاينة النسخ</button>
+                <div id="spouseCopyPreview"></div>
+                <button class="btn-ok" onclick="runSpouseCopy()">تنفيذ النسخ</button>
+              </div>
+            </div>
+            <div class="subbox">
+              <h3>ملاحظة</h3>
+              <div class="meta">هذه الأداة داخل الإدارة فقط، ومخصصة للحالات التي يكون فيها الزوجان في فرعين مختلفين لكن لهما الأبناء أنفسهم.</div>
             </div>
           </div>
         </div>
@@ -3694,6 +3725,226 @@ function markRequestDone(idx) {
       }
       lastScrollY = currentY;
     }, { passive: true });
+
+
+    function getCurrentAdminAccount() {
+      const role = appState.currentAdminRole || "master";
+      const all = appState.adminAccounts || ADMIN_ACCOUNTS_DEFAULT;
+      return all[role] || all.master;
+    }
+
+    function getAllowedTabs() {
+      const account = getCurrentAdminAccount();
+      return Array.isArray(account.tabs) ? account.tabs : ADMIN_ACCOUNTS_DEFAULT.master.tabs;
+    }
+
+    function applyAdminPermissionsUI() {
+      const allowed = getAllowedTabs();
+      document.querySelectorAll(".admin-tabs button").forEach(btn => {
+        const m = btn.getAttribute("onclick")?.match(/switchAdminTab\('([^']+)'\)/);
+        if (!m) return;
+        btn.style.display = allowed.includes(m[1]) ? "" : "none";
+      });
+      const title = document.querySelector("#adminPage .title");
+      if (title) {
+        const info = document.createElement("div");
+        info.className = "top-note";
+        info.textContent = "الحساب الحالي: " + getCurrentAdminAccount().label;
+        title.insertAdjacentElement("afterend", info);
+      }
+    }
+
+    function enterAdmin() {
+      const pwd = document.getElementById("adminPasswordInput").value.trim();
+      const accounts = appState.adminAccounts || ADMIN_ACCOUNTS_DEFAULT;
+      let matchedRole = null;
+      for (const [role, acc] of Object.entries(accounts)) {
+        if (pwd === acc.password) {
+          matchedRole = role;
+          break;
+        }
+      }
+      if (!matchedRole) {
+        alert("كلمة المرور غير صحيحة");
+        return;
+      }
+      appState.currentAdminRole = matchedRole;
+      saveState();
+      closeAdminPassword();
+      showAdminPage();
+    }
+
+    async function showAdminPage() {
+      currentView = "admin";
+      hideAllPages();
+      const page = document.getElementById("adminPage");
+      page.classList.remove("hidden");
+
+      const { data: requestsData } = await supabaseClient.from("requests").select("*").order("id", { ascending: false });
+      const { data: messagesData } = await supabaseClient.from("messages").select("*").order("id", { ascending: false });
+      currentAdminRequests = requestsData || [];
+
+      page.innerHTML = `
+        <div class="admin-page">
+          <div class="title">صفحة الإدارة</div>
+
+          <div class="admin-tabs">
+            <button onclick="switchAdminTab('overview')">الرئيسية</button>
+            <button onclick="switchAdminTab('messages')">الرسائل</button>
+            <button onclick="switchAdminTab('requests')">طلبات الإضافة</button>
+            <button onclick="switchAdminTab('add')">إضافة وتعديل</button>
+            <button onclick="switchAdminTab('relation')">صلة القرابة</button>
+            <button onclick="switchAdminTab('spouse')">نسخ بين زوجين</button>
+            <button onclick="switchAdminTab('duplicates')">الكشف والتضارب</button>
+            <button onclick="switchAdminTab('stats')">الإحصائيات</button>
+            <button onclick="switchAdminTab('archive')">الأرشيف</button>
+            <button onclick="switchAdminTab('backup')">نسخة احتياطية</button>
+            <button onclick="switchAdminTab('settings')">الإعدادات</button>
+            <button class="btn-danger" onclick="logoutAdmin()">خروج</button>
+          </div>
+
+          <div id="adminSectionHolder">
+            ${renderAdminSections(requestsData || [], messagesData || [])}
+          </div>
+        </div>
+      `;
+      applyAdminPermissionsUI();
+      const allowed = getAllowedTabs();
+      switchAdminTab(allowed[0] || "overview");
+    }
+
+    function logoutAdmin() {
+      appState.currentAdminRole = null;
+      saveState();
+      hideAllPages();
+      document.getElementById("mainPage").classList.remove("hidden");
+      currentView = "tree";
+      render(rootId);
+    }
+
+    function switchAdminTab(name) {
+      const allowed = getAllowedTabs();
+      if (!allowed.includes(name)) return;
+      document.querySelectorAll(".admin-section").forEach(s => s.classList.remove("active"));
+      const el = document.getElementById("admin-" + name);
+      if (el) el.classList.add("active");
+    }
+
+    function relationLabelAdvanced(idA, idB) {
+      if (idA === idB) return {label:"أنت نفس الشخص", summary:"الاسمان يعودان لنفس الشخص."};
+      const pathA = getLineage(idA);
+      const pathB = getLineage(idB);
+      let i = 0;
+      while (i < pathA.length && i < pathB.length && pathA[i] === pathB[i]) i++;
+      const common = pathA[i - 1];
+      const upA = pathA.length - i;
+      const upB = pathB.length - i;
+      let label = "قريبك";
+      if (upB === 1 && upA === 0) label = "أبوك";
+      else if (upB === 2 && upA === 0) label = "جدك";
+      else if (upA === 1 && upB === 0) label = "ابنك";
+      else if (upA === 2 && upB === 0) label = "حفيدك";
+      else if (upA === 1 && upB === 1) label = "أخوك أو أختك";
+      else if (upA === 0 && upB >= 3) label = "أحد أجدادك";
+      else if (upB === 0 && upA >= 3) label = "أحد أحفادك";
+      else if (upA === 1 && upB === 2) label = "عمك أو خالك";
+      else if (upA === 2 && upB === 1) label = "ابن أخيك أو ابن أختك";
+      else if (upA === 2 && upB === 2) label = "ابن عمك أو ابن خالك";
+      else if (upA === 2 && upB === 3) label = "ولد ابن عمك أو ولد ابن خالك";
+      else if (upA === 3 && upB === 2) label = "ابن عم أبيك أو ابن خال أبيك";
+      else if (upA === 3 && upB === 1) label = "عم أبيك أو خال أبيك";
+      return {
+        label,
+        summary: `الأصل المشترك الأقرب: ${common ? people[common].name : "غير معروف"}`
+      };
+    }
+
+    function runRelation() {
+      const a = document.getElementById("relationA").value;
+      const b = document.getElementById("relationB").value;
+      const r = relationLabelAdvanced(a,b);
+      const box = document.getElementById("relationResult");
+      box.innerHTML = `
+        <div class="list-item" style="margin-top:10px; line-height:2;">
+          <strong>${people[b].name}</strong> هو <strong>${r.label}</strong> بالنسبة إلى <strong>${people[a].name}</strong>.<br>
+          <span class="small">${r.summary}</span>
+        </div>
+      `;
+    }
+
+    function filterSpouseOptions(side) {
+      const q = normalizeArabic(document.getElementById('spouseSearch' + side).value || "");
+      const sel = document.getElementById('spouse' + side);
+      if (!sel) return;
+      const current = sel.value;
+      sel.innerHTML = Object.keys(people).filter(id => {
+        const n = normalizeArabic(people[id].name);
+        return !q || n.includes(q);
+      }).map(id => `<option value="${id}">${people[id].name}</option>`).join("");
+      if ([...sel.options].some(o => o.value === current)) sel.value = current;
+    }
+
+    function cloneSubtree(sourceId) {
+      const newId = "p" + Math.random().toString(36).slice(2,10);
+      people[newId] = {
+        name: people[sourceId].name,
+        note: people[sourceId].note || "",
+        children: []
+      };
+      (people[sourceId].children || []).forEach(cid => {
+        const childClone = cloneSubtree(cid);
+        people[newId].children.push(childClone);
+      });
+      return newId;
+    }
+
+    function previewSpouseCopy() {
+      const a = document.getElementById("spouseA").value;
+      const b = document.getElementById("spouseB").value;
+      const box = document.getElementById("spouseCopyPreview");
+      if (!a || !b || !people[a] || !people[b]) {
+        box.innerHTML = '<div class="list-item">اختر الاسمين أولًا.</div>';
+        return;
+      }
+      const targetNames = new Set((people[b].children || []).map(cid => normalizeArabic(people[cid].name)));
+      const toCopy = (people[a].children || []).filter(cid => !targetNames.has(normalizeArabic(people[cid].name)));
+      box.innerHTML = `
+        <div class="list-item" style="margin-top:10px; line-height:2;">
+          من: <strong>${people[a].name}</strong><br>
+          إلى: <strong>${people[b].name}</strong><br>
+          عدد الأبناء الذين سيُنسخون: <strong>${toCopy.length}</strong><br>
+          ${toCopy.length ? toCopy.map(cid => '• ' + people[cid].name).join('<br>') : 'لا يوجد أبناء جدد للنسخ.'}
+        </div>`;
+    }
+
+    function runSpouseCopy() {
+      const a = document.getElementById("spouseA").value;
+      const b = document.getElementById("spouseB").value;
+      if (!a || !b || !people[a] || !people[b]) {
+        alert("اختر الاسمين أولًا");
+        return;
+      }
+      if (a === b) {
+        alert("لا يمكن النسخ إلى نفس الشخص");
+        return;
+      }
+      const targetNames = new Set((people[b].children || []).map(cid => normalizeArabic(people[cid].name)));
+      let copied = 0;
+      (people[a].children || []).forEach(cid => {
+        const norm = normalizeArabic(people[cid].name);
+        if (!targetNames.has(norm)) {
+          const cloned = cloneSubtree(cid);
+          people[b].children.push(cloned);
+          targetNames.add(norm);
+          copied++;
+        }
+      });
+      saveState();
+      logChange(`نسخ أبناء بين زوجين: من ${people[a].name} إلى ${people[b].name} (${copied})`);
+      alert(copied ? `تم نسخ ${copied} من الأبناء` : "لا يوجد أبناء جدد للنسخ");
+      previewSpouseCopy();
+      render(currentPerson);
+    }
 
     initApp();
   </script>
