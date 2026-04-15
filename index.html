@@ -789,7 +789,7 @@
       <button class="btn-main" onclick="shareCurrent()">مشاركة الرابط</button>
           </div>
 
-    <div class="title" id="title">محمد بن حميد المجيني</div>
+    <div class="title" id="title">محمد حميد المجيني</div>
     <div class="breadcrumb" id="breadcrumb"></div>
     <div class="quick-branches" id="quickBranches"></div>
     <div class="stats-strip" id="infoBar"></div>
@@ -2150,7 +2150,7 @@ if (!h) {
       showTreePage();
       currentPerson = id;
 
-      document.getElementById("title").textContent = people[id].name;
+      document.getElementById("title").textContent = (id === rootId ? "محمد حميد المجيني" : people[id].name);
       renderBreadcrumb();
       renderQuickBranches();
       renderInfoBar(id);
@@ -3480,14 +3480,14 @@ function render(id) {
   if (id === rootId) {
     content.className = "cards";
     content.innerHTML = `
-      <div class="card no-children" style="text-align:center;" onclick="showHierarchyPage('${rootId}')">
+      <div class="card no-children" style="text-align:center;" onclick="showPersonPage('${rootId}')">
         <div class="name-row" style="justify-content:center;">
-          <div class="name">${people[id].name}</div>
+          <div class="name">محمد بن حميد المجيني</div>
         </div>
         <div class="meta">
-          اضغط على الاسم لبدء الهرم التدريجي من الأبناء مباشرة.
+          اضغط على البطاقة للدخول إلى الأبناء مباشرة.
         </div>
-        <div class="tag">ابدأ عرض الهرم</div>
+        <div class="tag">دخول إلى الأبناء</div>
       </div>
     `;
     return;
@@ -3662,10 +3662,6 @@ function markRequestDone(idx) {
     function exportLatestUpdatePDF(){ alert("تم إيقاف التصدير مؤقتًا في هذه النسخة النظيفة."); }
 
     function importBackup(){ alert("تم إيقاف الاستيراد مؤقتًا في هذه النسخة النظيفة."); }
-      } catch(e) {
-        alert("JSON غير صحيح");
-      }
-    }
 
     if (!history.state) history.replaceState({ personId: rootId }, "", "#" + rootId);
 
