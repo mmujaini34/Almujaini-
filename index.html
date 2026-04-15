@@ -2,198 +2,6 @@
 <html lang="ar" dir="rtl">
 <head>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-(function(){
-  const ALL_ADMIN_TABS = {
-    overview:'الرئيسية',
-    messages:'الرسائل',
-    requests:'طلبات الإضافة',
-    add:'إضافة وتعديل',
-    relation:'صلة القرابة',
-    duplicates:'الكشف والتضارب',
-    stats:'الإحصائيات',
-    archive:'الأرشيف',
-    trash:'سلة المحذوفات',
-    backup:'نسخة احتياطية',
-    settings:'الإعدادات'
-  };
-
-  function clone(v){ return JSON.parse(JSON.stringify(v)); }
-
-  function ensureAdminAccountsShape(){
-    appState.adminAccounts = appState.adminAccounts || clone(ADMIN_ACCOUNTS);
-    Object.keys(appState.adminAccounts).forEach(key=>{
-      const acc = appState.adminAccounts[key] || {};
-      if(!Array.isArray(acc.tabs)) acc.tabs = [];
-      if(typeof acc.enabled === 'undefined') acc.enabled = true;
-      if(!acc.label) acc.label = key;
-      if(!acc.roleName) acc.roleName = key;
-      appState.adminAccounts[key] = acc;
-    });
-  }
-
-  const _getAdminAccountsOriginal = typeof getAdminAccounts === 'function' ? getAdminAccounts : null;
-  getAdminAccounts = function(){
-    ensureAdminAccountsShape();
-    return appState.adminAccounts || (_getAdminAccountsOriginal ? _getAdminAccountsOriginal() : clone(ADMIN_ACCOUNTS));
-  };
-
-  findAdminAccountByPassword = function(password){
-    const accounts = getAdminAccounts();
-    return Object.entries(accounts).find(([key, account]) => account && account.enabled !== false && account.password === password) || null;
-  };
-
-  function currentIsMaster(){
-    return !!(currentAdminSession && currentAdminSession.key === 'master');
-  }
-
-  function renderAdvancedAdminSettings(){
-    const box = document.getElementById('adminSettings');
-    const btn = document.getElementById('adminTabSettingsBtn');
-    if(!box) return;
-    if(btn) btn.style.display = currentIsMaster() ? 'inline-block' : 'none';
-    if(!currentIsMaster()){
-      box.innerHTML = '<div class="subbox"><h3>صلاحيات الإدارة</h3><div class="top-note">هذه الصفحة متاحة للماستر أدمن فقط.</div></div>';
-      return;
-    }
-    ensureAdminAccountsShape();
-    const accounts = getAdminAccounts();
-    const rows = Object.entries(accounts).map(([key, acc])=>{
-      const isMaster = key === 'master';
-      const tabs = Array.isArray(acc.tabs) ? acc.tabs : [];
-      const checkboxes = Object.entries(ALL_ADMIN_TABS).map(([tab, label])=>{
-        const checked = tabs.includes(tab) ? 'checked' : '';
-        const disabled = isMaster ? 'disabled' : '';
-        return `<label style="display:flex;gap:8px;align-items:center;background:#faf5ef;border:1px solid var(--line);border-radius:10px;padding:8px;"><input type="checkbox" id="accttab_${key}_${tab}" ${checked} ${disabled}> <span>${label}</span></label>`;
-      }).join('');
-      return `
-        <div class="subbox" style="margin-bottom:14px;">
-          <h4>${escapeHtml(acc.label || key)}</h4>
-          <div class="small">المعرّف: ${escapeHtml(key)}${isMaster ? ' — حساب رئيسي ثابت' : ''}</div>
-          <div class="note-form" style="margin-top:10px;">
-            <input class="field" id="acctlabel_${key}" value="${escapeHtml(acc.label || '')}" placeholder="اسم الحساب الظاهر" ${isMaster ? 'readonly' : ''}>
-            <input class="field" id="acctrole_${key}" value="${escapeHtml(acc.roleName || '')}" placeholder="المسمى الوظيفي" ${isMaster ? 'readonly' : ''}>
-            <input class="field" id="acctpwd_${key}" value="${escapeHtml(acc.password || '')}" placeholder="كلمة المرور الجديدة">
-            <label style="display:flex;gap:8px;align-items:center;"> <input type="checkbox" id="acctenabled_${key}" ${acc.enabled !== false ? 'checked' : ''} ${isMaster ? 'disabled checked' : ''}> <span>الحساب مفعل</span></label>
-            <div class="top-note">صلاحيات الأقسام:</div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;">${checkboxes}</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="btn-main" onclick="saveAdvancedAdminAccount('${key}')">حفظ الحساب</button>
-              ${!isMaster ? `<button class="btn-danger" onclick="deleteAdvancedAdminAccount('${key}')">حذف الحساب</button>` : ''}
-            </div>
-          </div>
-        </div>`;
-    }).join('');
-
-    box.innerHTML = `
-      <div class="subbox">
-        <h3>إدارة كلمات المرور والصلاحيات المستقبلية</h3>
-        <div class="top-note">من هنا يقدر الماستر أدمن يغيّر باسورد أي حساب، يزيد أو يقلل صلاحياته، يوقفه مؤقتًا، أو ينشئ حسابات جديدة بصلاحيات مخصصة مستقبلًا.</div>
-      </div>
-      ${rows}
-      <div class="subbox">
-        <h3>إضافة حساب إدارة جديد</h3>
-        <div class="note-form">
-          <input class="field" id="newAdminKey" placeholder="معرّف داخلي بالإنجليزية مثل supervisor1">
-          <input class="field" id="newAdminLabel" placeholder="اسم الحساب الظاهر مثل Supervisor 1">
-          <input class="field" id="newAdminRoleName" placeholder="المسمى مثل مشرف فرع">
-          <input class="field" id="newAdminPassword" placeholder="كلمة المرور">
-          <div class="top-note">اختر الأقسام التي يسمح لهذا الحساب بفتحها:</div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;">
-            ${Object.entries(ALL_ADMIN_TABS).filter(([tab])=>tab!=='settings').map(([tab,label])=>`<label style="display:flex;gap:8px;align-items:center;background:#faf5ef;border:1px solid var(--line);border-radius:10px;padding:8px;"><input type="checkbox" id="newAdminTab_${tab}"> <span>${label}</span></label>`).join('')}
-          </div>
-          <button class="btn-main" onclick="addAdvancedAdminAccount()">إضافة الحساب</button>
-        </div>
-      </div>`;
-  }
-
-  window.saveAdvancedAdminAccount = function(key){
-    if(!currentIsMaster()) return alert('هذه الصلاحية للماستر فقط');
-    ensureAdminAccountsShape();
-    const accounts = getAdminAccounts();
-    const acc = accounts[key];
-    if(!acc) return alert('الحساب غير موجود');
-    const pwd = (document.getElementById('acctpwd_'+key)?.value || '').trim();
-    if(!pwd) return alert('لا يمكن ترك كلمة المرور فارغة');
-    if(key !== 'master'){
-      acc.label = (document.getElementById('acctlabel_'+key)?.value || acc.label || key).trim() || key;
-      acc.roleName = (document.getElementById('acctrole_'+key)?.value || acc.roleName || key).trim() || key;
-      acc.enabled = !!document.getElementById('acctenabled_'+key)?.checked;
-      acc.tabs = Object.keys(ALL_ADMIN_TABS).filter(tab => document.getElementById(`accttab_${key}_${tab}`)?.checked);
-      if(!acc.tabs.length) return alert('اختر قسمًا واحدًا على الأقل');
-      if(acc.tabs.includes('settings')) acc.tabs = acc.tabs.filter(t => t !== 'settings');
-    } else {
-      acc.enabled = true;
-      acc.tabs = Object.keys(ALL_ADMIN_TABS);
-    }
-    acc.password = pwd;
-    appState.adminAccounts[key] = acc;
-    saveState();
-    if(currentAdminSession && currentAdminSession.key === key){
-      currentAdminSession = { key, label: acc.label, roleName: acc.roleName, tabs: acc.tabs.slice() };
-      saveAdminSession();
-    }
-    logChange('تحديث صلاحيات/باسورد الحساب: ' + (acc.label || key));
-    renderAdvancedAdminSettings();
-    alert('تم حفظ الحساب');
-  };
-
-  window.deleteAdvancedAdminAccount = function(key){
-    if(!currentIsMaster()) return alert('هذه الصلاحية للماستر فقط');
-    if(key === 'master') return alert('لا يمكن حذف حساب الماستر');
-    ensureAdminAccountsShape();
-    if(!appState.adminAccounts[key]) return alert('الحساب غير موجود');
-    const label = appState.adminAccounts[key].label || key;
-    delete appState.adminAccounts[key];
-    saveState();
-    logChange('حذف حساب إدارة: ' + label);
-    renderAdvancedAdminSettings();
-    alert('تم حذف الحساب');
-  };
-
-  window.addAdvancedAdminAccount = function(){
-    if(!currentIsMaster()) return alert('هذه الصلاحية للماستر فقط');
-    ensureAdminAccountsShape();
-    const key = (document.getElementById('newAdminKey')?.value || '').trim().toLowerCase();
-    const label = (document.getElementById('newAdminLabel')?.value || '').trim();
-    const roleName = (document.getElementById('newAdminRoleName')?.value || '').trim();
-    const password = (document.getElementById('newAdminPassword')?.value || '').trim();
-    if(!key || !/^[a-z0-9_\-]+$/.test(key)) return alert('اكتب معرّفًا داخليًا بالإنجليزية والأرقام فقط');
-    if(appState.adminAccounts[key]) return alert('هذا المعرّف موجود مسبقًا');
-    if(!label || !roleName || !password) return alert('أكمل جميع الحقول');
-    const tabs = Object.keys(ALL_ADMIN_TABS).filter(tab => tab !== 'settings' && document.getElementById('newAdminTab_'+tab)?.checked);
-    if(!tabs.length) return alert('اختر صلاحية واحدة على الأقل');
-    appState.adminAccounts[key] = { password, label, roleName, tabs, enabled:true };
-    saveState();
-    logChange('إضافة حساب إدارة جديد: ' + label);
-    renderAdvancedAdminSettings();
-    alert('تمت إضافة الحساب الجديد');
-  };
-
-  const _showAdminPage = typeof showAdminPage === 'function' ? showAdminPage : null;
-  if(_showAdminPage){
-    showAdminPage = async function(requestedTab){
-      await _showAdminPage(requestedTab);
-      renderAdvancedAdminSettings();
-    };
-  }
-
-  const _switchAdminTab = typeof switchAdminTab === 'function' ? switchAdminTab : null;
-  if(_switchAdminTab){
-    switchAdminTab = function(tabName){
-      _switchAdminTab(tabName);
-      if(tabName === 'adminSettings' || tabName === 'settings') renderAdvancedAdminSettings();
-    };
-  }
-
-  ensureAdminAccountsShape();
-  if(currentAdminSession){
-    const acc = getAdminAccounts()[currentAdminSession.key];
-    if(!acc || acc.enabled === false){ logoutAdmin(); }
-  }
-})();
-
-</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>شجرة عائلة محمد بن حميد المجيني</title>
@@ -932,69 +740,6 @@
       font-weight:700;
     }
 
-    .protected-name{
-      -webkit-user-select:none;
-      user-select:none;
-      -webkit-touch-callout:none;
-    }
-
-    body.master-copy-enabled .protected-name{
-      -webkit-user-select:text;
-      user-select:text;
-      -webkit-touch-callout:default;
-    }
-
-    
-
-    .name.protected-name,
-    .children-item .protected-name,
-    .hier-card .protected-name,
-    .lineage-item .protected-name,
-    #whoAmIProfileCard .protected-name,
-    #personPage .protected-name{
-      -webkit-user-select:none;
-      user-select:none;
-      -webkit-touch-callout:none;
-    }
-
-    .admin-settings-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-      gap:12px;
-    }
-
-    .perm-list{
-      display:grid;
-      gap:8px;
-      margin-top:10px;
-    }
-
-    .perm-item{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      background:#faf5ef;
-      border:1px solid var(--line);
-      border-radius:12px;
-      padding:10px 12px;
-    }
-
-    .perm-item label{
-      flex:1;
-      cursor:pointer;
-    }
-
-    .master-only-note{
-      background:#fff7e8;
-      border:1px solid #eadab7;
-      color:#8d6f36;
-      border-radius:14px;
-      padding:12px;
-      line-height:1.9;
-      margin-bottom:12px;
-    }
-
     @media (max-width:900px){
       .person-grid,
       .admin-grid{
@@ -1014,6 +759,7 @@
       .lineage-item{min-width:140px}
     }
   </style>
+<style id="oai-user-fixes-style">#breadcrumb,#quickBranches{display:none !important}.action-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:10px}.action-btn{border:1px solid var(--line);background:#f6efe5;color:var(--text);border-radius:999px;padding:8px 6px;font-size:12px;text-align:center;cursor:pointer;user-select:none}.action-btn:hover{background:#eadfce}.action-btn.gen{background:#f4efdf;color:#846830;border-color:#eadab7}.action-btn.rel{background:#efe4d5;color:var(--main)}.picker-header{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap}.picker-list{display:grid;gap:8px;max-height:45vh;overflow:auto}.picker-item{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;background:#faf5ef;border:1px solid var(--line);border-radius:12px;padding:10px}.picker-item-name{font-weight:700}.picker-btn{border:none;border-radius:10px;padding:8px 10px;cursor:pointer;font-family:inherit}.picker-open{background:#efe4d5;color:var(--text)}.picker-select{background:var(--main);color:#fff}.relation-card{position:relative;overflow:hidden;border-radius:22px;background:rgba(255,255,255,.92);border:1px solid var(--line);box-shadow:var(--shadow);padding:22px 18px;line-height:2.1}.relation-card h2{margin:0 0 8px;color:var(--main)}.relation-card .rel-big{font-size:28px;font-weight:700;color:var(--gold);text-align:center;margin:12px 0}.title-clickable{cursor:pointer}</style>
 </head>
 <body>
   <div class="topbar">
@@ -1044,9 +790,9 @@
       <button class="btn-main" onclick="shareCurrent()">مشاركة الرابط</button>
           </div>
 
-    <div class="title protected-name" id="title">محمد بن حميد المجيني</div>
+    <div class="title" id="title">محمد بن حميد المجيني</div>
     <div class="breadcrumb" id="breadcrumb"></div>
-    <div class="quick-branches hidden" id="quickBranches"></div>
+    <div class="quick-branches" id="quickBranches"></div>
     <div class="stats-strip" id="infoBar"></div>
     <div class="cards" id="content"></div>
 
@@ -1077,28 +823,8 @@
 
   <div class="page hidden" id="aboutPage"></div>
   <div class="page hidden" id="personPage"></div>
-  <div class="page hidden" id="adminPage">
-    <div class="admin-page">
-      <div id="adminPersistentNote" class="master-only-note">تبقى جلسة الإدارة مفعلة حتى الخروج اليدوي.</div>
-      <div class="admin-tabs">
-        <button id="adminTabSettingsBtn" onclick="switchAdminTab('adminSettings')">صلاحيات الإدارة</button>
-        <button onclick="switchAdminTab('adminPeople')">الأسماء</button>
-        <button onclick="switchAdminTab('adminRequests')">الطلبات</button>
-        <button onclick="switchAdminTab('adminMessages')">الرسائل</button>
-        <button onclick="switchAdminTab('adminLog')">السجل</button>
-        <button onclick="switchAdminTab('adminSearch')">البحث</button>
-        <button class="btn-danger" onclick="logoutAdmin()">خروج</button>
-      </div>
-      <div id="adminSectionsMount"></div>
-      <div class="admin-section" id="adminSettings"></div>
-      <div class="admin-section active" id="adminPeople"></div>
-      <div class="admin-section" id="adminRequests"></div>
-      <div class="admin-section" id="adminMessages"></div>
-      <div class="admin-section" id="adminLog"></div>
-      <div class="admin-section" id="adminSearch"></div>
-    </div>
-  </div>
-  <div class="page hidden" id="hierarchyPage" style="display:none !important"></div>
+  <div class="page hidden" id="adminPage"></div>
+  <div class="page hidden" id="hierarchyPage"></div>
   <div class="page hidden" id="whoAmIProfilePage"></div>
 
   <div class="modal" id="confirmModal">
@@ -1157,13 +883,7 @@
 const contactNumber = "96896040406";
 const rootId = "p1";
 const STORAGE_KEY = "mujaini_tree_app_v5";
-const ADMIN_ACCOUNTS = {
-  master: { password: "Mmujaini34", label: "Master Key", roleName: "المالك الرئيسي", tabs: ["overview","messages","requests","add","relation","duplicates","stats","archive","trash","backup","settings"] },
-  manager: { password: "Mujaini121", label: "Manager", roleName: "مدير", tabs: ["overview","messages","requests","add","relation","duplicates","stats","archive","trash","backup"] },
-  editor: { password: "Mujaini323", label: "Editor", roleName: "محرر", tabs: ["overview","requests","add","relation","duplicates","stats"] },
-  reviewer: { password: "Mujaini434", label: "Reviewer", roleName: "مراجع", tabs: ["overview","messages","requests","relation","stats"] }
-};
-const DEFAULT_PASSWORD = "Mmujaini34";
+const DEFAULT_PASSWORD = "Mujaini34";
 
 const SUPABASE_URL = "https://fjjavswshxsjvocrkjox.supabase.co";
 const SUPABASE_KEY = "sb_publishable_RnfnO_UOIrny2cjCPvLoyg__pTvE9Ge";
@@ -1762,9 +1482,7 @@ let people = {
     let modalOpen = false;
     let currentView = "tree";
     let appState = loadState();
-    appState.lockedPeople = appState.lockedPeople || {};
     let currentAdminRequests = [];
-let currentAdminSession = null;
     let peopleTableAvailable = false;
     let peopleSource = "local";
     let hierarchyTrail = [rootId];
@@ -1895,14 +1613,13 @@ async function syncPeopleToSupabase() {
       const child = people[cid];
       const status = getStatus(cid);
       return `
-        <div class="hier-card protected-name ${selectedChild === cid ? "selected" : ""}" onclick="showPersonPage('${cid}')">
+        <div class="hier-card ${selectedChild === cid ? "selected" : ""}" onclick="showPersonPage('${cid}')">
           <div class="name-row">
-            <div class="name protected-name">${child.name}${appState.settings.showCounts ? ` (${getChildrenCount(cid)})` : ""}</div>
+            <div class="name">${child.name}${appState.settings.showCounts ? ` (${getChildrenCount(cid)})` : ""}</div>
             <div class="badges">
               <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${cid}')">طلب إضافة</div>
               <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${cid}')">نسب</div>
               <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${cid}')">هرم</div>
-              <div class="small-badge" onclick="event.stopPropagation(); copyDirectPersonLink('${cid}','person')">رابط</div>
               <div class="small-badge who-badge" onclick="event.stopPropagation(); openWhoAmIForPerson('${cid}')">من؟</div>
               ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(cid))}</div>` : ""}
             </div>
@@ -1918,8 +1635,6 @@ async function syncPeopleToSupabase() {
     }
 
     async function initApp() {
-      restoreAdminSession();
-      updateCopyProtectionState();
       await tryInitPeopleFromSupabase();
       renderQuickBranches();
       routeToHash();
@@ -1928,18 +1643,10 @@ async function syncPeopleToSupabase() {
     function defaultState() {
       return {
         adminPassword: DEFAULT_PASSWORD,
-        adminAccounts: JSON.parse(JSON.stringify(ADMIN_ACCOUNTS)),
         messages: [],
         requests: [],
         changeLog: [],
-        permanentManagementLog: [],
-        deletedItems: [],
-        undoStack: [],
-        autoBackups: [],
         statuses: {},
-        lockedPeople: {},
-        seenRequestIds: [],
-        seenMessageIds: [],
         settings: {
           showCounts: true,
           showGeneration: true,
@@ -1952,13 +1659,7 @@ async function syncPeopleToSupabase() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return defaultState();
-        const loaded = { ...defaultState(), ...JSON.parse(raw) };
-        loaded.changeLog = Array.isArray(loaded.changeLog) ? loaded.changeLog : [];
-        loaded.permanentManagementLog = Array.isArray(loaded.permanentManagementLog) ? loaded.permanentManagementLog : [];
-        loaded.autoBackups = Array.isArray(loaded.autoBackups) ? loaded.autoBackups : [];
-        loaded.seenRequestIds = Array.isArray(loaded.seenRequestIds) ? loaded.seenRequestIds.map(v => Number(v)).filter(Number.isFinite) : [];
-        loaded.seenMessageIds = Array.isArray(loaded.seenMessageIds) ? loaded.seenMessageIds.map(v => Number(v)).filter(Number.isFinite) : [];
-        return loaded;
+        return { ...defaultState(), ...JSON.parse(raw) };
       } catch (e) {
         return defaultState();
       }
@@ -1968,302 +1669,13 @@ async function syncPeopleToSupabase() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
     }
 
-    function snapshotCurrentState() {
-      return {
-        people: cloneDeep(people),
-        appState: cloneDeep(appState)
-      };
-    }
-
-    function createAutoBackup(reason = "تحديث") {
-      appState.autoBackups = Array.isArray(appState.autoBackups) ? appState.autoBackups : [];
-      const backup = {
-        id: `ab_${Date.now()}_${Math.random().toString(36).slice(2,8)}`,
-        reason,
-        time: new Date().toLocaleString("ar"),
-        isoTime: new Date().toISOString(),
-        snapshot: snapshotCurrentState()
-      };
-      appState.autoBackups.unshift(backup);
-      if (appState.autoBackups.length > 20) appState.autoBackups = appState.autoBackups.slice(0, 20);
-      saveState();
-    }
-
-    function restoreAutoBackup(index) {
-      appState.autoBackups = Array.isArray(appState.autoBackups) ? appState.autoBackups : [];
-      const backup = appState.autoBackups[index];
-      if (!backup || !backup.snapshot) {
-        alert("النسخة الاحتياطية غير متوفرة.");
-        return;
-      }
-      const currentSnapshot = snapshotCurrentState();
-      appState.autoBackups.unshift({
-        id: `ab_${Date.now()}_${Math.random().toString(36).slice(2,8)}`,
-        reason: `نقطة أمان قبل استرجاع نسخة: ${backup.reason || ''}`.trim(),
-        time: new Date().toLocaleString("ar"),
-        isoTime: new Date().toISOString(),
-        snapshot: currentSnapshot
-      });
-      appState.autoBackups = appState.autoBackups.slice(0, 20);
-      people = cloneDeep(backup.snapshot.people || people);
-      appState = { ...defaultState(), ...(backup.snapshot.appState || {}) };
-      appState.autoBackups = Array.isArray(appState.autoBackups) ? appState.autoBackups : [];
-      appState.lockedPeople = appState.lockedPeople || {};
-      saveState();
-      logChange(`استرجاع نسخة احتياطية تلقائية: ${backup.reason || 'بدون وصف'}`);
-      renderCurrentView();
-      showAdminPage();
-      switchAdminTab("backup");
-      alert("تم استرجاع النسخة الاحتياطية بنجاح.");
-    }
-
-    function deleteAutoBackup(index) {
-      appState.autoBackups = Array.isArray(appState.autoBackups) ? appState.autoBackups : [];
-      const backup = appState.autoBackups[index];
-      if (!backup) return;
-      appState.autoBackups.splice(index, 1);
-      saveState();
-      logChange(`حذف نسخة احتياطية تلقائية: ${backup.reason || 'بدون وصف'}`);
-      showAdminPage();
-      switchAdminTab("backup");
-    }
-
     function logChange(text) {
-      const entry = {
+      appState.changeLog.unshift({
         text,
-        time: new Date().toLocaleString("ar"),
-        isoTime: new Date().toISOString()
-      };
-      appState.changeLog = appState.changeLog || [];
-      appState.permanentManagementLog = appState.permanentManagementLog || [];
-      appState.changeLog.unshift(entry);
-      appState.permanentManagementLog.unshift(entry);
-      if (appState.changeLog.length > 100) appState.changeLog.pop();
-      createAutoBackup(text);
-      saveState();
-    }
-
-    function cloneDeep(value) {
-      return JSON.parse(JSON.stringify(value));
-    }
-
-    function pushUndoEntry(entry) {
-      appState.undoStack = appState.undoStack || [];
-      appState.undoStack.unshift({
-        ...entry,
         time: new Date().toLocaleString("ar")
       });
-      if (appState.undoStack.length > 30) appState.undoStack.pop();
+      if (appState.changeLog.length > 100) appState.changeLog.pop();
       saveState();
-    }
-
-    async function undoLastAction() {
-      const stack = appState.undoStack || [];
-      const entry = stack[0];
-      if (!entry) {
-        alert("لا يوجد إجراء يمكن التراجع عنه");
-        return;
-      }
-
-      try {
-        if (entry.type === "add") {
-          const personId = entry.person.id;
-          const parentId = entry.parentId;
-          if (people[parentId] && Array.isArray(people[parentId].children)) {
-            people[parentId].children = people[parentId].children.filter(id => id !== personId);
-          }
-          if (people[personId]) delete people[personId];
-
-          if (peopleTableAvailable) {
-            const { error } = await supabaseClient.from("people").delete().eq("id", personId);
-            if (error) throw error;
-          }
-
-          logChange("تراجع عن إضافة: " + (entry.person.name || ""));
-        } else if (entry.type === "rename") {
-          const personId = entry.personId;
-          if (!people[personId]) {
-            alert("تعذر التراجع لأن الاسم لم يعد موجودًا");
-            return;
-          }
-          people[personId].name = entry.oldName;
-
-          if (peopleTableAvailable) {
-            const { error } = await supabaseClient.from("people").update({ name: entry.oldName }).eq("id", personId);
-            if (error) throw error;
-          }
-
-          logChange("تراجع عن تعديل الاسم: " + entry.oldName);
-        } else if (entry.type === "delete") {
-          const item = cloneDeep(entry.snapshot);
-          if (!people[item.parentId]) {
-            alert("تعذر التراجع لأن الأب الأصلي غير موجود");
-            return;
-          }
-          people[item.id] = {
-            name: item.name || "",
-            note: item.note || "",
-            children: Array.isArray(item.children) ? item.children : []
-          };
-          if (!Array.isArray(people[item.parentId].children)) people[item.parentId].children = [];
-          if (!people[item.parentId].children.includes(item.id)) people[item.parentId].children.push(item.id);
-
-          if (peopleTableAvailable) {
-            const sortOrder = Math.max((people[item.parentId].children || []).length - 1, 0);
-            const { error } = await supabaseClient.from("people").insert([{
-              id: item.id,
-              name: item.name || "",
-              note: item.note || "",
-              parent_id: item.parentId,
-              sort_order: sortOrder
-            }]);
-            if (error) throw error;
-          }
-
-          const idx = (appState.deletedItems || []).findIndex(x => x.id === item.id && x.deletedAt === item.deletedAt);
-          if (idx >= 0) appState.deletedItems.splice(idx, 1);
-
-          logChange("تراجع عن الحذف: " + (item.name || ""));
-        } else if (entry.type === "bulkDelete") {
-          const snapshots = Array.isArray(entry.snapshots) ? entry.snapshots.map(item => cloneDeep(item)) : [];
-          for (const item of snapshots) {
-            if (!people[item.parentId]) {
-              alert("تعذر التراجع عن الحذف الجماعي لأن أحد الآباء الأصليين غير موجود");
-              return;
-            }
-          }
-          for (const item of snapshots) {
-            people[item.id] = {
-              name: item.name || "",
-              note: item.note || "",
-              children: Array.isArray(item.children) ? item.children : []
-            };
-            if (!Array.isArray(people[item.parentId].children)) people[item.parentId].children = [];
-            if (!people[item.parentId].children.includes(item.id)) people[item.parentId].children.push(item.id);
-
-            if (peopleTableAvailable) {
-              const sortOrder = Math.max((people[item.parentId].children || []).length - 1, 0);
-              const { error } = await supabaseClient.from("people").insert([{
-                id: item.id,
-                name: item.name || "",
-                note: item.note || "",
-                parent_id: item.parentId,
-                sort_order: sortOrder
-              }]);
-              if (error) throw error;
-            }
-
-            const idx = (appState.deletedItems || []).findIndex(x => x.id === item.id && x.deletedAt === item.deletedAt);
-            if (idx >= 0) appState.deletedItems.splice(idx, 1);
-          }
-
-          logChange("تراجع عن الحذف الجماعي: " + snapshots.map(item => item.name || item.id).join("، "));
-        } else if (entry.type === "restore") {
-          const item = cloneDeep(entry.snapshot);
-          const restoredId = item.id;
-          if (people[item.parentId] && Array.isArray(people[item.parentId].children)) {
-            people[item.parentId].children = people[item.parentId].children.filter(id => id !== restoredId);
-          }
-          if (people[restoredId]) delete people[restoredId];
-          appState.deletedItems = appState.deletedItems || [];
-          appState.deletedItems.unshift(item);
-
-          if (peopleTableAvailable) {
-            const { error } = await supabaseClient.from("people").delete().eq("id", restoredId);
-            if (error) throw error;
-          }
-
-          logChange("تراجع عن الاسترجاع: " + (item.name || ""));
-        } else if (entry.type === "smartAdd") {
-          const addedEntries = Array.isArray(entry.addedEntries) ? cloneDeep(entry.addedEntries) : [];
-          for (const item of addedEntries.slice().reverse()) {
-            if (people[item.parentId] && Array.isArray(people[item.parentId].children)) {
-              people[item.parentId].children = people[item.parentId].children.filter(id => id !== item.id);
-            }
-            if (people[item.id]) delete people[item.id];
-            if (peopleTableAvailable) {
-              const { error } = await supabaseClient.from("people").delete().eq("id", item.id);
-              if (error) throw error;
-            }
-          }
-          logChange("تراجع عن الإدخال الذكي: " + addedEntries.map(item => item.name || item.id).join("، "));
-        } else if (entry.type === "status") {
-          const personId = entry.personId;
-          appState.statuses = appState.statuses || {};
-          if (entry.oldValue) appState.statuses[personId] = entry.oldValue;
-          else delete appState.statuses[personId];
-          logChange("تراجع عن تغيير حالة الفرع: " + (people[personId]?.name || ""));
-        } else if (entry.type === "move") {
-          const personId = entry.personId;
-          const oldParentId = entry.oldParentId;
-          const newParentId = entry.newParentId;
-          if (!people[personId] || !people[oldParentId] || !people[newParentId]) {
-            alert("تعذر التراجع عن النقل لأن بعض البيانات لم تعد موجودة");
-            return;
-          }
-          people[newParentId].children = (people[newParentId].children || []).filter(id => id !== personId);
-          if (!Array.isArray(people[oldParentId].children)) people[oldParentId].children = [];
-          if (!people[oldParentId].children.includes(personId)) people[oldParentId].children.push(personId);
-
-          if (peopleTableAvailable) {
-            const restoredSort = Math.max((people[oldParentId].children || []).length - 1, 0);
-            const { error } = await supabaseClient.from("people").update({ parent_id: oldParentId, sort_order: restoredSort }).eq("id", personId);
-            if (error) throw error;
-          }
-
-          logChange("تراجع عن نقل الاسم: " + (people[personId]?.name || ""));
-        } else if (entry.type === "merge") {
-          const source = cloneDeep(entry.sourceSnapshot);
-          const sourceId = entry.sourceId;
-          const targetId = entry.targetId;
-          const sourceParentId = entry.sourceParentId;
-          const movedChildIds = Array.isArray(entry.movedChildIds) ? entry.movedChildIds : [];
-          if (!people[targetId] || !people[sourceParentId]) {
-            alert("تعذر التراجع عن الدمج لأن بعض البيانات لم تعد موجودة");
-            return;
-          }
-          people[sourceId] = source;
-          if (!Array.isArray(people[sourceParentId].children)) people[sourceParentId].children = [];
-          if (!people[sourceParentId].children.includes(sourceId)) people[sourceParentId].children.push(sourceId);
-          people[targetId].children = (people[targetId].children || []).filter(id => !movedChildIds.includes(id));
-          people[targetId].note = entry.targetOldNote || "";
-
-          if (peopleTableAvailable) {
-            const sourceSort = Math.max((people[sourceParentId].children || []).indexOf(sourceId), 0);
-            const { error: insertErr } = await supabaseClient.from("people").insert([{
-              id: sourceId,
-              name: source.name || "",
-              note: source.note || "",
-              parent_id: sourceParentId,
-              sort_order: sourceSort
-            }]);
-            if (insertErr) throw insertErr;
-            for (let i = 0; i < movedChildIds.length; i++) {
-              const childId = movedChildIds[i];
-              const childSort = Math.max((source.children || []).indexOf(childId), 0);
-              const { error: childErr } = await supabaseClient.from("people").update({ parent_id: sourceId, sort_order: childSort }).eq("id", childId);
-              if (childErr) throw childErr;
-            }
-            const { error: targetErr } = await supabaseClient.from("people").update({ note: entry.targetOldNote || "" }).eq("id", targetId);
-            if (targetErr) throw targetErr;
-          }
-
-          logChange("تراجع عن دمج اسمين: " + (source.name || sourceId));
-        } else {
-          alert("نوع الإجراء غير مدعوم للتراجع");
-          return;
-        }
-
-        stack.shift();
-        saveState();
-        alert("تم التراجع عن آخر إجراء");
-        showAdminPage();
-        switchAdminTab("overview");
-        render(currentPerson);
-      } catch (error) {
-        console.error(error);
-        alert("تعذر التراجع عن آخر إجراء");
-      }
     }
 
     function normalizeArabic(text) {
@@ -2389,52 +1801,6 @@ async function syncPeopleToSupabase() {
       return stats;
     }
 
-    function ensureVisitStatsShape() {
-      if (!appState.visitStats || typeof appState.visitStats !== "object") {
-        appState.visitStats = { totalOpens: 0, lastOpenAt: "", daily: {}, sectionViews: { main:0, about:0, person:0, whoami:0, admin:0, hierarchy:0 } };
-      }
-      appState.visitStats.daily = appState.visitStats.daily || {};
-      appState.visitStats.sectionViews = Object.assign({ main:0, about:0, person:0, whoami:0, admin:0, hierarchy:0 }, appState.visitStats.sectionViews || {});
-    }
-
-    function getTodayKey() {
-      const d = new Date();
-      const y = d.getFullYear();
-      const m = String(d.getMonth()+1).padStart(2,"0");
-      const day = String(d.getDate()).padStart(2,"0");
-      return `${y}-${m}-${day}`;
-    }
-
-    function recordAppOpen() {
-      ensureVisitStatsShape();
-      if (sessionStorage.getItem("mujaini_open_recorded") === "1") return;
-      sessionStorage.setItem("mujaini_open_recorded", "1");
-      const today = getTodayKey();
-      appState.visitStats.totalOpens = Number(appState.visitStats.totalOpens || 0) + 1;
-      appState.visitStats.lastOpenAt = new Date().toLocaleString("ar");
-      appState.visitStats.daily[today] = Number(appState.visitStats.daily[today] || 0) + 1;
-      saveState();
-    }
-
-    function recordSectionView(sectionKey) {
-      ensureVisitStatsShape();
-      if (!sectionKey) return;
-      appState.visitStats.sectionViews[sectionKey] = Number(appState.visitStats.sectionViews[sectionKey] || 0) + 1;
-      saveState();
-    }
-
-    function resetVisitStats() {
-      if (appState.adminRole !== "master") {
-        alert("هذه الصلاحية للماستر أدمن فقط.");
-        return;
-      }
-      if (!confirm("هل تريد تصفير إحصائيات الزيارات؟")) return;
-      appState.visitStats = { totalOpens: 0, lastOpenAt: "", daily: {}, sectionViews: { main:0, about:0, person:0, whoami:0, admin:0, hierarchy:0 } };
-      addArchive("تم تصفير إحصائيات الزيارات بواسطة الماستر أدمن");
-      saveState();
-      renderAdmin();
-    }
-
     function detectDuplicateNames() {
       const freq = {};
       const out = [];
@@ -2522,7 +1888,6 @@ async function syncPeopleToSupabase() {
       currentView = "tree";
       hideAllPages();
       document.getElementById("mainPage").classList.remove("hidden");
-      recordSectionView("main");
     }
 
     function routeToHash() {
@@ -2572,54 +1937,16 @@ if (!h) {
       alert("تم النسخ");
     }
 
-    function getPublicBaseUrl() {
-      const fallback = "https://almujaini.vercel.app";
-      try {
-        if (location && /^https?:/i.test(location.origin) && !/^(file:|null)$/i.test(location.origin)) {
-          return location.origin + location.pathname.replace(/\/[^\/]*$/, "") + "/" + location.pathname.split("/").pop();
-        }
-      } catch (e) {}
-      return fallback;
-    }
-
-    function buildDirectPersonUrl(id, mode = "tree") {
-      const base = getPublicBaseUrl();
-      if (!id || !people[id]) return base;
-      if (mode === "person") return base + "?person=" + id;
-      if (mode === "hierarchy") return base + "#hierarchy=" + id;
-      if (mode === "whoami") return base + "#whoami-person=" + id;
-      return base + "#" + id;
-    }
-
-    function copyDirectPersonLink(id, mode = "tree") {
-      const url = buildDirectPersonUrl(id, mode);
-      navigator.clipboard.writeText(url);
-      alert("تم نسخ الرابط المباشر لهذا الفرع");
-    }
-
     function shareCurrent() {
-      let url = getPublicBaseUrl();
-      if (currentView === "tree") url = buildDirectPersonUrl(currentPerson, "tree");
-      if (currentView === "person") url = buildDirectPersonUrl(currentPerson, "person");
-      if (currentView === "about") url = getPublicBaseUrl() + "#about";
-      if (currentView === "whoami") url = getPublicBaseUrl() + "#whoami";
-      if (currentView === "hierarchy") url = buildDirectPersonUrl(hierarchyTrail[hierarchyTrail.length - 1], "hierarchy");
+      const base = "https://almujaini.vercel.app";
+      let url = base;
+      if (currentView === "tree") url = base + "#" + currentPerson;
+      if (currentView === "person") url = base + "#person=" + currentPerson;
+      if (currentView === "about") url = base + "#about";
+      if (currentView === "whoami") url = base + "#whoami";
+      if (currentView === "hierarchy") url = base + "#hierarchy=" + hierarchyTrail[hierarchyTrail.length - 1];
       navigator.clipboard.writeText(url);
       alert("تم نسخ الرابط");
-    }
-
-
-    function isMasterAdmin() {
-      return !!(currentAdminSession && currentAdminSession.key === "master");
-    }
-
-    function updateCopyProtectionState() {
-      document.body.classList.toggle("master-copy-enabled", isMasterAdmin());
-    }
-
-    function canCopyFromTarget(target) {
-      if (isMasterAdmin()) return true;
-      return !(target && target.closest && target.closest(".protected-name"));
     }
 
     function openWhatsApp(id) {
@@ -2710,7 +2037,7 @@ if (!h) {
   const path = getLineage(id).reverse();
   document.getElementById("lineageModalBody").innerHTML = `
     <div class="lineage-chain">
-      ${path.map(pid => `<div class="lineage-item protected-name">${people[pid].name}</div>`).join("")}
+      ${path.map(pid => `<div class="lineage-item">${people[pid].name}</div>`).join("")}
     </div>
   `;
   document.getElementById("lineageModal").classList.add("active");
@@ -2720,10 +2047,8 @@ if (!h) {
       document.getElementById("lineageModal").classList.remove("active");
     }
     function handleClick(id) {
-  currentView = 'tree';
   currentPerson = id;
-  history.pushState({ personId: id }, '', '#' + id);
-  render(id);
+  showPersonPage(id);
 }
     function goRoot() {
       currentView = "tree";
@@ -2757,10 +2082,14 @@ if (!h) {
 
     function renderQuickBranches() {
       const box = document.getElementById("quickBranches");
-      if (!box) return;
       box.innerHTML = "";
-      box.style.display = "none";
-      return;
+
+      if (currentPerson === rootId) {
+        box.style.display = "none";
+        return;
+      }
+
+      box.style.display = "flex";
       const children = people[currentPerson]?.children || [];
       children.forEach(id => {
         const btn = document.createElement("button");
@@ -2796,7 +2125,7 @@ if (!h) {
       return `
         <div class="card ${isParent ? "" : "no-children"}" onclick="handleClick('${id}')">
           <div class="name-row">
-            <div class="name protected-name">${child.name}${appState.settings.showCounts ? ` (${directChildren})` : ""}</div>
+            <div class="name">${child.name}${appState.settings.showCounts ? ` (${directChildren})` : ""}</div>
             <div class="badges">
               <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${id}')">طلب إضافة</div>
               <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${id}')">نسب</div>
@@ -2812,7 +2141,6 @@ if (!h) {
                       </div>
           <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
             <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${id}')">هرم</div>
-            <div class="small-badge" onclick="event.stopPropagation(); copyDirectPersonLink('${id}','person')">رابط</div>
           </div>
           
         </div>
@@ -2831,12 +2159,27 @@ if (!h) {
       const content = document.getElementById("content");
       const children = people[id].children || [];
 
+      if (id === rootId) {
+        content.className = "cards";
+        content.innerHTML = `
+          <div class="card no-children" style="text-align:center;" onclick="showHierarchyPage('${rootId}')">
+            <div class="name-row" style="justify-content:center;">
+              <div class="name">${people[id].name}</div>
+            </div>
+            <div class="meta">
+              اضغط على الاسم لبدء الهرم التدريجي من الأبناء مباشرة.
+            </div>
+            <div class="tag">ابدأ عرض الهرم</div>
+          </div>
+        `;
+        return;
+      }
 
       if (!children.length) {
         content.innerHTML = `
           <div class="card no-children">
             <div class="name-row">
-              <div class="name protected-name">${people[id].name}</div>
+              <div class="name">${people[id].name}</div>
               <div class="badges">
                 <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${id}')">طلب إضافة</div>
                 <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${id}')">نسب</div>
@@ -2845,10 +2188,7 @@ if (!h) {
               </div>
             </div>
             <div class="meta">لا توجد أسماء أبناء مسجلة حاليًا لهذا الفرع.</div>
-            <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
-              <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${id}')">هرم</div>
-              <div class="small-badge" onclick="event.stopPropagation(); copyDirectPersonLink('${id}','person')">رابط</div>
-            </div>
+            <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;"><div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${id}')">هرم</div></div>
           </div>
         `;
         return;
@@ -2883,7 +2223,7 @@ if (!h) {
         ? results.map((r, idx) => `
           <div class="card ${hasChildren(r.id) ? "" : "no-children"}" onclick="${hasChildren(r.id) ? `handleClick('${r.id}')` : `showConfirmModal('${r.id}')`}">
             <div class="name-row">
-              <div class="name protected-name">${people[r.id].name}${idx === 0 ? ' <span style="font-size:12px;color:var(--gold);">• الأقرب</span>' : ''}</div>
+              <div class="name">${people[r.id].name}${idx === 0 ? ' <span style="font-size:12px;color:var(--gold);">• الأقرب</span>' : ''}</div>
               <div class="badges">
                 <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${r.id}')">طلب إضافة</div>
                 <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${r.id}')">نسب</div>
@@ -3048,7 +2388,6 @@ function buildSimpleLineageFromPerson(id) {
       hideAllPages();
       const page = document.getElementById("aboutPage");
       page.classList.remove("hidden");
-      recordSectionView("about");
       scrollToTopInstant();
       page.innerHTML = `
         <div class="about-wrap">
@@ -3185,7 +2524,6 @@ function buildSimpleLineageFromPerson(id) {
       hideAllPages();
       const page = document.getElementById("aboutPage");
       page.classList.remove("hidden");
-      recordSectionView("whoami");
       page.innerHTML = `
         <div class="about-wrap">
           <div class="about-box">
@@ -3217,7 +2555,7 @@ function buildSimpleLineageFromPerson(id) {
       }
       results.sort((a,b)=>b.score-a.score);
       out.innerHTML = results.length
-        ? results.slice(0, 20).map(r => `<button class="protected-name" onclick="showWhoAmIProfile(\'${r.id}\')">${people[r.id].name}</button>`).join("")
+        ? results.slice(0, 20).map(r => `<button onclick="showWhoAmIProfile('${r.id}')">${people[r.id].name}</button>`).join("")
         : `<div class="list-item">لا توجد نتائج مطابقة.</div>`;
     }
 
@@ -3227,25 +2565,19 @@ function buildSimpleLineageFromPerson(id) {
       hideAllPages();
       const page = document.getElementById("personPage");
       page.classList.remove("hidden");
-      recordSectionView("person");
 
       const person = people[id];
       const children = person.children || [];
 
       page.innerHTML = `
         <div class="person-page">
-          <div class="title protected-name">${person.name}</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:14px;">
-            <button class="btn-main" onclick="copyDirectPersonLink('${id}','person')">نسخ الرابط المباشر</button>
-            <button class="btn-soft" onclick="copyDirectPersonLink('${id}','tree')">رابط داخل الشجرة</button>
-            <button class="btn-soft" onclick="openLineageModal('${id}')">عرض النسب</button>
-          </div>
+          <div class="title">${person.name}</div>
           ${
             children.length
               ? `<div class="cards">${children.map(cid => renderCard(cid)).join("")}</div>`
               : `<div class="card no-children">
                   <div class="name-row">
-                    <div class="name protected-name">لا توجد أسماء أبناء مسجلة لهذا الشخص.</div>
+                    <div class="name">لا توجد أسماء أبناء مسجلة لهذا الشخص.</div>
                   </div>
                 </div>`
           }
@@ -3256,8 +2588,15 @@ function buildSimpleLineageFromPerson(id) {
     }
 
     function showHierarchyPage(startId = rootId, pushHash = true) {
-      openLineageModal(startId);
-      return;
+      currentView = "hierarchy";
+      hideAllPages();
+      const page = document.getElementById("hierarchyPage");
+      page.classList.remove("hidden");
+
+      hierarchyTrail = buildTrailForHierarchy(startId);
+      renderHierarchyPage();
+
+      if (pushHash) history.pushState({ hierarchy:startId }, "", "#hierarchy=" + startId);
     }
 
     function buildTrailForHierarchy(id) {
@@ -3277,12 +2616,11 @@ function buildSimpleLineageFromPerson(id) {
 
       let rows = `
         <div class="hierarchy-box">
-          <div class="title protected-name">عرض الهرم</div>
+          <div class="title">عرض الهرم</div>
           <div class="top-note">اضغط على الاسم لفتح صفحة الفرع، أو على زر هرم داخل البطاقة لفتح هرم هذا الشخص فقط.</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:14px;">
             <button class="btn-main" onclick="showHierarchyPage(rootId)">الرجوع لأصل الهرم</button>
             <button class="btn-soft" onclick="showTreePage(); render('${selected}')">فتح داخل الشجرة</button>
-            <button class="btn-soft" onclick="copyDirectPersonLink('${selected}','hierarchy')">رابط هذا الهرم</button>
             <button class="btn-soft" onclick="openLineageModal('${selected}')">عرض النسب الفردي</button>
           </div>
       `;
@@ -3291,7 +2629,7 @@ function buildSimpleLineageFromPerson(id) {
         <div class="hierarchy-row">
           <div class="hierarchy-row-title">الأصل</div>
           <div class="hierarchy-cards">
-            <div class="hier-card protected-name selected" onclick="showHierarchyPage('${rootId}')">${people[rootId].name}</div>
+            <div class="hier-card selected" onclick="showHierarchyPage('${rootId}')">${people[rootId].name}</div>
           </div>
         </div>
       `;
@@ -3351,88 +2689,21 @@ function buildSimpleLineageFromPerson(id) {
       document.getElementById("adminPasswordModal").classList.remove("active");
     }
 
-    function getAdminAccounts() {
-      return appState.adminAccounts || ADMIN_ACCOUNTS;
-    }
-
-    function findAdminAccountByPassword(password) {
-      const accounts = getAdminAccounts();
-      return Object.entries(accounts).find(([key, account]) => account.password === password) || null;
-    }
-
-    function canAccessAdminTab(tabName) {
-      return !!(currentAdminSession && currentAdminSession.tabs && currentAdminSession.tabs.includes(tabName));
-    }
-
-    function getAllowedAdminTabs() {
-      return currentAdminSession?.tabs || [];
-    }
-
-    function saveAdminSession() {
-      if (!currentAdminSession) {
-        localStorage.removeItem(ADMIN_SESSION_KEY);
-        return;
-      }
-      localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(currentAdminSession));
-    }
-
-    function restoreAdminSession() {
-      try {
-        const raw = localStorage.getItem(ADMIN_SESSION_KEY);
-        if (!raw) return;
-        const parsed = JSON.parse(raw);
-        if (!parsed || !parsed.key) return;
-        const account = getAdminAccounts()[parsed.key];
-        if (!account) return;
-        currentAdminSession = {
-          key: parsed.key,
-          label: account.label,
-          roleName: account.roleName,
-          tabs: Array.isArray(account.tabs) ? account.tabs.slice() : []
-        };
-      } catch (e) {
-        localStorage.removeItem(ADMIN_SESSION_KEY);
-      }
-    }
-
-    function logoutAdmin() {
-      currentAdminSession = null;
-      saveAdminSession();
-      updateCopyProtectionState();
-      closeAdminPassword();
-      goRoot();
-    }
-
     function enterAdmin() {
-      const pwd = document.getElementById("adminPasswordInput").value.trim();
-      const matched = findAdminAccountByPassword(pwd);
-      if (!matched) {
+      const pwd = document.getElementById("adminPasswordInput").value;
+      if (pwd !== appState.adminPassword) {
         alert("كلمة المرور غير صحيحة");
         return;
       }
-      const [key, account] = matched;
-      currentAdminSession = {
-        key,
-        label: account.label,
-        roleName: account.roleName,
-        tabs: Array.isArray(account.tabs) ? account.tabs.slice() : []
-      };
-      saveAdminSession();
-      updateCopyProtectionState();
       closeAdminPassword();
       showAdminPage();
     }
 
-    async function showAdminPage(requestedTab) {
-      if (!currentAdminSession) {
-        openAdminPassword();
-        return;
-      }
+    async function showAdminPage() {
       currentView = "admin";
       hideAllPages();
       const page = document.getElementById("adminPage");
       page.classList.remove("hidden");
-      recordSectionView("admin");
 
       const { data: requestsData } = await supabaseClient
         .from("requests")
@@ -3446,41 +2717,21 @@ function buildSimpleLineageFromPerson(id) {
 
       currentAdminRequests = requestsData || [];
 
-      const tabLabels = {
-        overview: "الرئيسية",
-        messages: "الرسائل",
-        requests: "طلبات الإضافة",
-        add: "إضافة وتعديل",
-        relation: "صلة القرابة",
-        duplicates: "الكشف والتضارب",
-        stats: "الإحصائيات",
-        archive: "الأرشيف",
-        trash: "سلة المحذوفات",
-        backup: "نسخة احتياطية",
-        settings: "الإعدادات"
-      };
-      const allowedTabs = getAllowedAdminTabs();
-      const tabsHtml = allowedTabs.map(tab => `<button onclick="switchAdminTab('${tab}')">${tabLabels[tab] || tab}</button>`).join("");
-      const activeTab = canAccessAdminTab(requestedTab) ? requestedTab : (allowedTabs[0] || "overview");
-
       page.innerHTML = `
         <div class="admin-page">
-          <div class="title protected-name">صفحة الإدارة</div>
-          <div class="subbox" style="margin-bottom:14px;">
-            <div class="meta">
-              مستوى الدخول الحالي: <strong>${currentAdminSession.roleName}</strong><br>
-              الحساب: <strong>${currentAdminSession.label}</strong><br>
-              الصلاحيات المتاحة: <strong>${allowedTabs.length}</strong> أقسام<br>
-              حالة الجلسة: <strong>تبقى مفعلة حتى الخروج اليدوي</strong>
-            </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
-              <button class="btn-danger" onclick="logoutAdmin()">خروج</button>
-            </div>
-          </div>
+          <div class="title">صفحة الإدارة</div>
 
           <div class="admin-tabs">
-      ${appState.adminRole === "master" ? `<button id="adminTabSettingsBtn" onclick="switchAdminTab('adminSettings')">صلاحيات الإدارة</button>` : ""}
-            ${tabsHtml}
+            <button onclick="switchAdminTab('overview')">الرئيسية</button>
+            <button onclick="switchAdminTab('messages')">الرسائل</button>
+            <button onclick="switchAdminTab('requests')">طلبات الإضافة</button>
+            <button onclick="switchAdminTab('add')">إضافة وتعديل</button>
+            <button onclick="switchAdminTab('relation')">صلة القرابة</button>
+            <button onclick="switchAdminTab('duplicates')">الكشف والتضارب</button>
+            <button onclick="switchAdminTab('stats')">الإحصائيات</button>
+            <button onclick="switchAdminTab('archive')">الأرشيف</button>
+            <button onclick="switchAdminTab('backup')">نسخة احتياطية</button>
+            <button onclick="switchAdminTab('settings')">الإعدادات</button>
           </div>
 
           <div id="adminSectionHolder">
@@ -3488,13 +2739,7 @@ function buildSimpleLineageFromPerson(id) {
           </div>
         </div>
       `;
-      switchAdminTab(activeTab);
-      setTimeout(() => {
-        updateSelectedRequestsCount();
-        applyAdminRequestFilters();
-        updateSelectedMessagesCount();
-        applyAdminMessageFilters();
-      }, 0);
+      switchAdminTab("overview");
     }
 
     function renderAdminSections(requestsData = [], messagesData = []) {
@@ -3504,72 +2749,22 @@ function buildSimpleLineageFromPerson(id) {
 
       return `
         <div class="admin-section" id="admin-overview">
-          <div class="subbox">
-            <h3>لوحة التحكم الرئيسية</h3>
-            <div class="top-note">واجهة مختصرة تجمع أهم المؤشرات والتنقلات السريعة في مكان واحد.</div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">
-              <div class="list-item"><strong>إجمالي الأفراد</strong><br><span style="font-size:24px;color:var(--main);font-weight:700;">${totalPeopleCount()}</span></div>
-              <div class="list-item"><strong>الطلبات</strong><br><span style="font-size:24px;color:var(--main);font-weight:700;">${requestsData.length}</span><br><span class="small">الجديدة: ${(requestsData || []).filter(r => !isRequestSeen(r.id)).length}</span></div>
-              <div class="list-item"><strong>الرسائل</strong><br><span style="font-size:24px;color:var(--main);font-weight:700;">${messagesData.length}</span><br><span class="small">الجديدة: ${(messagesData || []).filter(m => !isMessageSeen(m.id)).length}</span></div>
-              <div class="list-item"><strong>المحذوفات</strong><br><span style="font-size:24px;color:var(--main);font-weight:700;">${(appState.deletedItems || []).length}</span></div>
-              <div class="list-item"><strong>التراجعات المتاحة</strong><br><span style="font-size:24px;color:var(--main);font-weight:700;">${(appState.undoStack || []).length}</span></div>
-              <div class="list-item"><strong>السجل الدائم</strong><br><span style="font-size:24px;color:var(--main);font-weight:700;">${(appState.permanentManagementLog || []).length}</span></div>
-            </div>
-          </div>
-
-          <div class="admin-grid" style="margin-top:14px;">
+          <div class="admin-grid">
             <div class="subbox">
-              <h3>اختصارات الإدارة</h3>
-              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;">
-                <button class="btn-soft" onclick="switchAdminTab('requests')">طلبات الإضافة</button>
-                <button class="btn-soft" onclick="switchAdminTab('messages')">الرسائل</button>
-                <button class="btn-soft" onclick="switchAdminTab('add')">إضافة وتعديل</button>
-                <button class="btn-soft" onclick="switchAdminTab('trash')">سلة المحذوفات</button>
-                <button class="btn-soft" onclick="switchAdminTab('archive')">الأرشيف</button>
-                <button class="btn-soft" onclick="switchAdminTab('backup')">النسخ الاحتياطية</button>
+              <h3>ملخص سريع</h3>
+              <div class="meta">
+                إجمالي الأفراد: <strong>${totalPeopleCount()}</strong><br>
+                عدد الرسائل: <strong>${messagesData.length}</strong><br>
+                عدد الطلبات: <strong>${requestsData.length}</strong><br>
+                عدد السجلات في الأرشيف: <strong>${appState.changeLog.length}</strong>
               </div>
             </div>
             <div class="subbox">
-              <h3>أوامر سريعة</h3>
+              <h3>أدوات سريعة</h3>
               <div style="display:flex;gap:8px;flex-wrap:wrap;">
                 <button class="btn-main" onclick="exportBackup()">تصدير JSON</button>
-                <button class="btn-ok" onclick="undoLastAction()">التراجع عن آخر إجراء</button>
-                <button class="btn-soft" onclick="showAbout()">نبذة القبيلة</button>
-                <button class="btn-soft" onclick="goRoot()">فتح الشجرة</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="admin-grid" style="margin-top:14px;">
-            <div class="subbox">
-              <h3>آخر إجراء قابل للتراجع</h3>
-              <div class="meta">
-                ${
-                  (appState.undoStack || []).length
-                    ? `آخر إجراء: <strong>${escapeHtml(appState.undoStack[0].label || appState.undoStack[0].type || "")}</strong><br><span class="small">${escapeHtml(appState.undoStack[0].time || "")}</span>`
-                    : `لا يوجد إجراء محفوظ للتراجع حاليًا.`
-                }
-              </div>
-            </div>
-            <div class="subbox">
-              <h3>حالة الإدارة الآن</h3>
-              <div class="meta">
-                مستوى الحساب: <strong>${escapeHtml(currentAdminSession?.roleName || '')}</strong><br>
-                الطلبات الجديدة: <strong>${(requestsData || []).filter(r => !isRequestSeen(r.id)).length}</strong><br>
-                الرسائل الجديدة: <strong>${(messagesData || []).filter(m => !isMessageSeen(m.id)).length}</strong><br>
-                الفروع المقفلة: <strong>${Object.keys(appState.lockedBranches || {}).length}</strong><br>
-                النسخ الاحتياطية التلقائية: <strong>${(appState.autoBackups || []).length}</strong>
-              </div>
-            </div>
-          </div>
-
-          <div class="subbox" style="margin-top:14px;">
-            <h3>البحث الإداري الشامل</h3>
-            <div class="top-note">ابحث داخل الأسماء، الملاحظات، الرسائل، الطلبات، وسجل التعديلات من مكان واحد.</div>
-            <div class="note-form">
-              <input class="field" id="adminGlobalSearchInput" placeholder="اكتب اسمًا أو كلمة مفتاحية..." oninput="runAdminGlobalSearch()" />
-              <div id="adminGlobalSearchResult" class="list-box">
-                <div class="list-item">ابدأ بكتابة كلمة البحث لعرض النتائج.</div>
+                <button class="btn-soft" onclick="switchAdminTab('messages')">فتح الرسائل</button>
+                <button class="btn-soft" onclick="switchAdminTab('requests')">فتح الطلبات</button>
               </div>
             </div>
           </div>
@@ -3578,53 +2773,20 @@ function buildSimpleLineageFromPerson(id) {
         <div class="admin-section" id="admin-messages">
           <div class="subbox">
             <h3>💬 الرسائل والملاحظات</h3>
-            <div class="top-note">يمكنك الآن تمييز الرسائل الجديدة، فلترتها، والبحث فيها، ثم تعليمها كمقروءة أو حذفها.</div>
-            <div class="admin-grid" style="grid-template-columns:1fr 1fr;margin-bottom:12px;">
-              <div class="note-form">
-                <input class="field" id="messageFilterInput" placeholder="ابحث داخل الرسائل..." oninput="applyAdminMessageFilters()" />
-              </div>
-              <div class="note-form">
-                <select class="field" id="messageFilterState" onchange="applyAdminMessageFilters()">
-                  <option value="all">كل الرسائل</option>
-                  <option value="new">الرسائل الجديدة فقط</option>
-                  <option value="seen">الرسائل المقروءة فقط</option>
-                </select>
-              </div>
-            </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
-              <button class="btn-soft" onclick="toggleAllMessageSelections(true)">تحديد الكل</button>
-              <button class="btn-soft" onclick="toggleAllMessageSelections(false)">إلغاء التحديد</button>
-              <button class="btn-soft" onclick="markSelectedMessagesSeen()">تعليم المحدد كمقروء</button>
-              <button class="btn-soft" onclick="markAllMessagesSeen()">تعليم الكل كمقروء</button>
-              <button class="btn-danger" onclick="deleteSelectedMessages()">حذف المحدد</button>
-            </div>
-            <div class="small" id="selectedMessagesCount" style="margin-bottom:6px;">المحدد حاليًا: 0</div>
-            <div class="small" id="messagesFilterSummary" style="margin-bottom:10px;">المعروض: 0 من 0 — الجديدة ضمن المعروض: 0</div>
             <div class="list-box">
               ${
                 messagesData.length
-                  ? messagesData.map((m)=>{
-                      const isNew = !isMessageSeen(m.id);
-                      const messageText = [m.msg_type || '', m.sender_name || '', m.body || ''].join(' ');
-                      return `
-                    <div class="list-item message-item" data-message-id="${m.id}" data-message-isnew="${isNew ? '1' : '0'}" data-message-text="${escapeHtml(messageText)}" style="${isNew ? 'border-right:4px solid var(--gold);background:#fffaf2;' : ''}">
-                      <div style="display:flex;gap:10px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;">
-                        <label style="display:flex;gap:8px;align-items:center;cursor:pointer;">
-                          <input type="checkbox" class="message-select" value="${m.id}" onchange="updateSelectedMessagesCount()" />
-                          <span class="small">تحديد</span>
-                        </label>
-                        ${isNew ? '<span class="status-badge">رسالة جديدة</span>' : '<span class="small">مقروءة</span>'}
-                      </div>
-                      <strong>${escapeHtml(m.msg_type || '')}</strong> — ${escapeHtml(m.sender_name || 'بدون اسم')}<br>
+                  ? messagesData.map((m)=>`
+                    <div class="list-item">
+                      <strong>${m.msg_type || ""}</strong> — ${m.sender_name || "بدون اسم"}<br>
                       <span class="small">${m.created_at ? new Date(m.created_at).toLocaleString("ar") : ""}</span>
-                      <div style="margin-top:8px;line-height:1.9;">${escapeHtml(m.body || "")}</div>
+                      <div style="margin-top:8px;line-height:1.9;">${m.body || ""}</div>
                       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
-                        <button class="btn-soft" onclick="copyText(${JSON.stringify('')}.replace('', ${JSON.stringify('')}))">نسخ</button>
-                        <button class="btn-soft" onclick="markSingleMessageSeen(${m.id})">تعليم كمقروء</button>
+                        <button class="btn-soft" onclick="copyText(${JSON.stringify(m.body || "")})">نسخ</button>
                         <button class="btn-danger" onclick="deleteSupabaseMessage(${m.id})">حذف</button>
                       </div>
                     </div>
-                  `}).join("")
+                  `).join("")
                   : `<div class="list-item">لا توجد رسائل بعد.</div>`
               }
             </div>
@@ -3634,59 +2796,23 @@ function buildSimpleLineageFromPerson(id) {
         <div class="admin-section" id="admin-requests">
           <div class="subbox">
             <h3>طلبات الإضافة</h3>
-            <div class="top-note">يمكنك الآن تمييز الطلبات الجديدة، فلترتها، ثم اعتمادها أو حذفها دفعة واحدة.</div>
-            <div class="admin-grid" style="grid-template-columns:1fr 1fr;margin-bottom:12px;">
-              <div class="note-form">
-                <input class="field" id="requestFilterInput" placeholder="ابحث داخل الطلبات..." oninput="applyAdminRequestFilters()" />
-              </div>
-              <div class="note-form">
-                <select class="field" id="requestFilterState" onchange="applyAdminRequestFilters()">
-                  <option value="all">كل الطلبات</option>
-                  <option value="new">الطلبات الجديدة فقط</option>
-                  <option value="seen">الطلبات المقروءة فقط</option>
-                </select>
-              </div>
-            </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
-              <button class="btn-soft" onclick="toggleAllRequestSelections(true)">تحديد الكل</button>
-              <button class="btn-soft" onclick="toggleAllRequestSelections(false)">إلغاء التحديد</button>
-              <button class="btn-soft" onclick="markSelectedRequestsSeen()">تعليم المحدد كمقروء</button>
-              <button class="btn-soft" onclick="markAllRequestsSeen()">تعليم الكل كمقروء</button>
-              <button class="btn-ok" onclick="approveSelectedRequests()">اعتماد المحدد</button>
-              <button class="btn-danger" onclick="deleteSelectedRequests()">حذف المحدد</button>
-            </div>
-            <div class="small" id="selectedRequestsCount" style="margin-bottom:6px;">المحدد حاليًا: 0</div>
-            <div class="small" id="requestsFilterSummary" style="margin-bottom:10px;">المعروض: 0 من 0 — الجديدة ضمن المعروض: 0</div>
             <div class="list-box">
               ${
                 requestsData.length
-                  ? requestsData.map((r)=>{
-                      const isNew = !isRequestSeen(r.id);
-                      const requestText = [people[r.parent_id]?.name || r.parent_id || '', r.sender_name || '', r.child_name || '', r.children_text || '', r.details || ''].join(' ');
-                      return `
-                    <div class="list-item request-item" data-request-id="${r.id}" data-request-isnew="${isNew ? '1' : '0'}" data-request-text="${escapeHtml(requestText)}" style="${isNew ? 'border-right:4px solid var(--gold);background:#fffaf2;' : ''}">
-                      <div style="display:flex;gap:10px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;">
-                        <label style="display:flex;gap:8px;align-items:center;cursor:pointer;">
-                          <input type="checkbox" class="request-select" value="${r.id}" onchange="updateSelectedRequestsCount()">
-                          <span class="small">تحديد</span>
-                        </label>
-                        <div style="flex:1;min-width:220px;">
-                          <strong>إضافة</strong> — ${escapeHtml((people[r.parent_id] ? people[r.parent_id].name : r.parent_id) || "غير معروف")}
-                          ${isNew ? '<span class="small-badge" style="margin-inline-start:6px;background:#f7ecd7;color:#8d6f36;border-color:#eadab7;">طلب جديد</span>' : ''}<br>
-                          <span class="small">${r.created_at ? new Date(r.created_at).toLocaleString("ar") : ""}</span><br>
-                          ${r.sender_name ? `<span class="small">المرسل: ${escapeHtml(r.sender_name)}</span><br>` : ""}
-                          ${r.child_name ? `<span class="small">الاسم المطلوب إضافته: ${escapeHtml(r.child_name)}</span><br>` : ""}
-                          ${r.children_text ? `<span class="small">الأبناء المقترحون: ${escapeHtml(r.children_text)}</span><br>` : ""}
-                          ${r.details ? `<div style="margin-top:8px;line-height:1.9;white-space:pre-line;">${escapeHtml(r.details)}</div>` : ""}
-                        </div>
-                      </div>
+                  ? requestsData.map((r)=>`
+                    <div class="list-item">
+                      <strong>إضافة</strong> — ${(people[r.parent_id] ? people[r.parent_id].name : r.parent_id) || "غير معروف"}<br>
+                      <span class="small">${r.created_at ? new Date(r.created_at).toLocaleString("ar") : ""}</span><br>
+                      ${r.sender_name ? `<span class="small">المرسل: ${r.sender_name}</span><br>` : ""}
+                      ${r.child_name ? `<span class="small">الاسم المطلوب إضافته: ${r.child_name}</span><br>` : ""}
+                      ${r.children_text ? `<span class="small">الأبناء المقترحون: ${r.children_text}</span><br>` : ""}
+                      ${r.details ? `<div style="margin-top:8px;line-height:1.9;white-space:pre-line;">${r.details}</div>` : ""}
                       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
-                        <button class="btn-soft" onclick="markRequestIdsSeen([${r.id}]); showAdminPage(); switchAdminTab('requests'); setTimeout(applyAdminRequestFilters,0);">تعليم كمقروء</button>
                         <button class="btn-ok" onclick="markSupabaseRequestDone(${r.id})">اعتماد</button>
                         <button class="btn-danger" onclick="deleteSupabaseRequest(${r.id})">حذف</button>
                       </div>
                     </div>
-                  `}).join("")
+                  `).join("")
                   : `<div class="list-item">لا توجد طلبات.</div>`
               }
             </div>
@@ -3703,24 +2829,9 @@ function buildSimpleLineageFromPerson(id) {
                 </select>
                 <input class="field" id="adminNewName" placeholder="الاسم الجديد" />
                 <input class="field" id="adminNewNote" placeholder="ملاحظة (اختياري)" />
-                <button class="btn-soft" onclick="previewAdminAddPerson()">معاينة قبل الإضافة</button>
-                <button class="btn-main" onclick="confirmPendingAdminAction()">تنفيذ الإضافة المؤكدة</button>
-                <div id="adminAddPreviewBox" class="top-note"></div>
+                <button class="btn-main" onclick="adminAddPerson()">إضافة</button>
               </div>
             </div>
-<div class="subbox" style="margin-top:14px;">
-  <h3>إدخال ذكي للأبناء وأبناء الأبناء</h3>
-  <div class="top-note">اكتب الأسماء سطرًا سطرًا. استخدم الشرطة <strong>-</strong> أو المسافات لتحديد المستوى. مثال:<br>أحمد<br>- عبدالله<br>- محمد<br>-- سعيد<br>- علي</div>
-  <div class="note-form">
-    <select class="field" id="adminSmartParentSelect">
-      ${Object.keys(people).map(id => `<option value="${id}">${people[id].name}</option>`).join("")}
-    </select>
-    <textarea class="textarea" id="adminSmartFamilyInput" placeholder="أحمد&#10;- عبدالله&#10;- محمد&#10;-- سعيد&#10;- علي"></textarea>
-    <button class="btn-soft" onclick="previewAdminSmartFamilyAdd()">معاينة الإدخال الذكي</button>
-    <button class="btn-main" onclick="confirmPendingAdminAction()">تنفيذ الإدخال الذكي المؤكد</button>
-    <div id="adminSmartAddPreviewBox" class="top-note"></div>
-  </div>
-</div>
 <div class="subbox" style="margin-top:14px;">
   <h3>تعديل اسم موجود</h3>
   <div class="note-form">
@@ -3728,23 +2839,7 @@ function buildSimpleLineageFromPerson(id) {
       ${Object.keys(people).map(id => `<option value="${id}">${people[id].name}</option>`).join("")}
     </select>
     <input class="field" id="adminEditPersonName" placeholder="الاسم الجديد" />
-    <button class="btn-soft" onclick="previewAdminRenamePerson()">معاينة قبل التعديل</button>
-    <button class="btn-main" onclick="confirmPendingAdminAction()">تنفيذ التعديل المؤكد</button>
-    <div id="adminRenamePreviewBox" class="top-note"></div>
-  </div>
-</div>
-<div class="subbox" style="margin-top:14px;">
-  <h3>نقل اسم من أب إلى أب آخر</h3>
-  <div class="note-form">
-    <select class="field" id="adminMovePersonSelect">
-      ${Object.keys(people).map(id => `<option value="${id}">${people[id].name}</option>`).join("")}
-    </select>
-    <select class="field" id="adminMoveTargetParentSelect">
-      ${Object.keys(people).map(id => `<option value="${id}">${people[id].name}</option>`).join("")}
-    </select>
-    <button class="btn-soft" onclick="previewAdminMovePerson()">معاينة قبل النقل</button>
-    <button class="btn-main" onclick="confirmPendingAdminAction()">تنفيذ النقل المؤكد</button>
-    <div id="adminMovePreviewBox" class="top-note"></div>
+    <button class="btn-main" onclick="adminRenamePerson()">حفظ التعديل</button>
   </div>
 </div>
 <div class="subbox" style="margin-top:14px;">
@@ -3760,18 +2855,6 @@ function buildSimpleLineageFromPerson(id) {
     <button class="btn-danger" onclick="adminDeletePerson()">حذف الاسم</button>
   </div>
 </div>
-<div class="subbox" style="margin-top:14px;">
-  <h3>حذف عدة أسماء دفعة واحدة</h3>
-  <div class="top-note">اختر أكثر من اسم باستخدام الضغط المطول أو Ctrl / Cmd. إذا اخترت أبًا وابنه معًا، فسيُحذف الأب فقط ويُستبعد الابن تلقائيًا من القائمة.</div>
-  <div class="note-form">
-    <select class="field" id="adminBulkDeleteSelect" multiple size="10">
-      ${Object.keys(people).map(id => `<option value="${id}">${people[id].name}</option>`).join("")}
-    </select>
-    <button class="btn-soft" onclick="previewBulkDeletePeople()">معاينة قبل الحذف الجماعي</button>
-    <button class="btn-danger" onclick="confirmPendingAdminAction()">تنفيذ الحذف الجماعي المؤكد</button>
-    <div id="adminBulkDeletePreviewBox" class="top-note"></div>
-  </div>
-</div>
             <div class="subbox">
               <h3>وسم/حالة الفرع</h3>
               <div class="note-form">
@@ -3781,9 +2864,7 @@ function buildSimpleLineageFromPerson(id) {
                 <select class="field" id="statusValueSelect">
                   ${statusOptions.map(v => `<option value="${v}">${v || "بدون حالة"}</option>`).join("")}
                 </select>
-                <button class="btn-soft" onclick="previewAdminSetStatus()">معاينة قبل حفظ الحالة</button>
-                <button class="btn-main" onclick="confirmPendingAdminAction()">تنفيذ الحالة المؤكدة</button>
-                <div id="adminStatusPreviewBox" class="top-note"></div>
+                <button class="btn-main" onclick="adminSetStatus()">حفظ الحالة</button>
               </div>
             </div>
           </div>
@@ -3820,7 +2901,6 @@ function buildSimpleLineageFromPerson(id) {
           <div class="admin-grid">
             <div class="subbox">
               <h3>كشف الأسماء المتكررة</h3>
-              <div class="top-note">يمكنك هنا مراجعة التكرارات، ثم دمج الاسم المكرر داخل الاسم الصحيح مع نقل الأبناء والملاحظة قبل حذف الاسم المكرر.</div>
               <div class="list-box">
                 ${
                   duplicateList.length
@@ -3831,19 +2911,6 @@ function buildSimpleLineageFromPerson(id) {
                     `).join("")
                     : `<div class="list-item">لا توجد تكرارات.</div>`
                 }
-              </div>
-              <div class="note-form" style="margin-top:14px;">
-                <select class="field" id="adminMergeSourceSelect">
-                  <option value="">اختر الاسم المكرر المراد دمجه</option>
-                  ${duplicateList.length ? duplicateList.map(item => `<option value="${item.id}">${escapeHtml(item.name)} — تكرار: ${item.count}</option>`).join("") : ""}
-                </select>
-                <select class="field" id="adminMergeTargetSelect">
-                  <option value="">اختر الاسم الذي سيبقى بعد الدمج</option>
-                  ${duplicateList.length ? duplicateList.map(item => `<option value="${item.id}">${escapeHtml(item.name)} — تكرار: ${item.count}</option>`).join("") : ""}
-                </select>
-                <button class="btn-soft" onclick="previewAdminMergeDuplicates()">معاينة قبل الدمج</button>
-                <button class="btn-main" onclick="confirmPendingAdminAction()">تنفيذ الدمج المؤكد</button>
-                <div id="adminMergePreviewBox" class="top-note"></div>
               </div>
             </div>
 
@@ -3873,29 +2940,6 @@ function buildSimpleLineageFromPerson(id) {
               </div>
             </div>
             <div class="subbox">
-              <h3>إحصائيات الزيارات</h3>
-              ${appState.adminRole === "master" ? `
-                <div class="meta">
-                  إجمالي فتحات الصفحة: <strong>${appState.visitStats?.totalOpens || 0}</strong><br>
-                  عدد الأيام المسجلة: <strong>${Object.keys(appState.visitStats?.daily || {}).length}</strong><br>
-                  آخر فتح: <strong>${appState.visitStats?.lastOpenAt || "-"}</strong>
-                </div>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;">
-                  <button class="btn-danger" onclick="resetVisitStats()">تصفير إحصائيات الزيارات</button>
-                </div>
-                <div class="list-box">
-                  <div class="list-item">الرئيسية: ${appState.visitStats?.sectionViews?.main || 0}</div>
-                  <div class="list-item">نبذة القبيلة: ${appState.visitStats?.sectionViews?.about || 0}</div>
-                  <div class="list-item">صفحات الأشخاص: ${appState.visitStats?.sectionViews?.person || 0}</div>
-                  <div class="list-item">من أكون؟: ${appState.visitStats?.sectionViews?.whoami || 0}</div>
-                  <div class="list-item">الإدارة: ${appState.visitStats?.sectionViews?.admin || 0}</div>
-                  <div class="list-item">العرض الهرمي: ${appState.visitStats?.sectionViews?.hierarchy || 0}</div>
-                </div>
-              ` : `<div class="meta">هذا السجل ظاهر للماستر أدمن فقط.</div>`}
-            </div>
-          </div>
-          <div class="admin-grid" style="margin-top:14px;">
-            <div class="subbox">
               <h3>عدد أفراد كل جيل</h3>
               <div class="list-box">
                 ${
@@ -3905,32 +2949,16 @@ function buildSimpleLineageFromPerson(id) {
                 }
               </div>
             </div>
-            <div class="subbox">
-              <h3>زيارات الأيام الأخيرة</h3>
-              ${appState.adminRole === "master" ? `
-                <div class="list-box">
-                  ${
-                    Object.entries(appState.visitStats?.daily || {}).sort((a,b)=> b[0].localeCompare(a[0])).slice(0,14).map(([day,count]) => `
-                      <div class="list-item">${day}: ${count}</div>
-                    `).join("") || `<div class="list-item">لا توجد بيانات بعد.</div>`
-                  }
-                </div>
-              ` : `<div class="meta">تفاصيل سجل الزيارات محصورة على الماستر أدمن فقط.</div>`}
-            </div>
           </div>
         </div>
 
         <div class="admin-section" id="admin-archive">
           <div class="subbox">
-            <h3>سجل الإدارة الدائم</h3>
-            <div class="top-note">هذا السجل دائم ولا يتم مسحه تلقائيًا عند كثرة التعديلات. الأرشيف السريع ما يزال يحتفظ بآخر 100 سجل للعرض المختصر، أما هنا فتظهر جميع العمليات المحفوظة.</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
-              <button class="btn-main" onclick="exportPermanentManagementLog()">تصدير سجل الإدارة</button>
-            </div>
+            <h3>أرشيف التعديلات</h3>
             <div class="list-box">
               ${
-                (appState.permanentManagementLog || []).length
-                  ? appState.permanentManagementLog.map(item => `
+                appState.changeLog.length
+                  ? appState.changeLog.map(item => `
                     <div class="list-item">
                       ${item.text}<br>
                       <span class="small">${item.time}</span>
@@ -3942,32 +2970,6 @@ function buildSimpleLineageFromPerson(id) {
           </div>
         </div>
 
-        <div class="admin-section" id="admin-trash">
-          <div class="subbox">
-            <h3>سلة المحذوفات</h3>
-            <div class="top-note">أي اسم يتم حذفه ينتقل هنا أولًا، ويمكن استرجاعه لاحقًا من نفس الأب. الحذف النهائي من هذه السلة فقط.</div>
-            <div class="list-box">
-              ${
-                (appState.deletedItems || []).length
-                  ? appState.deletedItems.map((item, index) => `
-                    <div class="list-item">
-                      <strong>${escapeHtml(item.name || "بدون اسم")}</strong><br>
-                      <span class="small">الأب السابق: ${escapeHtml((people[item.parentId]?.name) || item.parentName || "غير معروف")}</span><br>
-                      <span class="small">وقت الحذف: ${escapeHtml(item.deletedAt || "")}</span>
-                      ${item.note ? `<div style="margin-top:8px;line-height:1.9;">ملاحظة: ${escapeHtml(item.note)}</div>` : ""}
-                      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
-                        <button class="btn-ok" onclick="restoreDeletedPerson(${index})">استرجاع</button>
-                        <button class="btn-danger" onclick="purgeDeletedPerson(${index})">حذف نهائي</button>
-                      </div>
-                    </div>
-                  `).join("")
-                  : `<div class="list-item">سلة المحذوفات فارغة.</div>`
-              }
-            </div>
-          </div>
-        </div>
-
-
         <div class="admin-section" id="admin-backup">
           <div class="admin-grid">
             <div class="subbox">
@@ -3977,32 +2979,11 @@ function buildSimpleLineageFromPerson(id) {
                 <button class="btn-soft" onclick="exportAllNamesPDF()">PDF جميع الأسماء</button>
                 <button class="btn-soft" onclick="exportLatestUpdatePDF()">PDF آخر تحديث</button>
               </div>
-              <div class="top-note" style="margin-top:10px;">يتم الآن إنشاء نسخة احتياطية تلقائية عند كل تعديل إداري مهم، مع الاحتفاظ بآخر 20 نسخة.</div>
             </div>
             <div class="subbox">
               <h3>استيراد حالة محلية</h3>
               <textarea class="textarea" id="backupImport" placeholder="الصق JSON هنا..."></textarea>
               <button class="btn-main" onclick="importBackup()">استيراد</button>
-            </div>
-          </div>
-          <div class="subbox" style="margin-top:14px;">
-            <h3>النسخ الاحتياطية التلقائية</h3>
-            <div class="top-note">هذه النسخ تحفظ تلقائيًا عند التعديلات المهمة، ويمكن استرجاع أي نسخة أو حذفها يدويًا.</div>
-            <div class="list-box">
-              ${
-                (appState.autoBackups || []).length
-                  ? appState.autoBackups.map((item, index) => `
-                    <div class="list-item">
-                      <strong>${escapeHtml(item.reason || "تحديث")}</strong><br>
-                      <span class="small">${escapeHtml(item.time || "")}</span>
-                      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
-                        <button class="btn-ok" onclick="restoreAutoBackup(${index})">استرجاع هذه النسخة</button>
-                        <button class="btn-danger" onclick="deleteAutoBackup(${index})">حذف النسخة</button>
-                      </div>
-                    </div>
-                  `).join("")
-                  : `<div class="list-item">لا توجد نسخ احتياطية تلقائية بعد.</div>`
-              }
             </div>
           </div>
         </div>
@@ -4020,12 +3001,10 @@ function buildSimpleLineageFromPerson(id) {
             </div>
 
             <div class="subbox">
-              <h3>مستويات الإدارة</h3>
-              <div class="meta">
-                Master Key: صلاحية كاملة لجميع الأقسام.<br>
-                Manager: إدارة موسعة بدون إعدادات الحسابات.<br>
-                Editor: تعديل ومراجعة البيانات فقط.<br>
-                Reviewer: مراجعة الرسائل والطلبات وبعض الإحصائيات العامة فقط.
+              <h3>كلمة المرور</h3>
+              <div class="note-form">
+                <input class="field" type="password" id="newAdminPassword" placeholder="كلمة المرور الجديدة" />
+                <button class="btn-main" onclick="changeAdminPassword()">تغيير كلمة المرور</button>
               </div>
             </div>
           </div>
@@ -4037,320 +3016,6 @@ function buildSimpleLineageFromPerson(id) {
       document.querySelectorAll(".admin-section").forEach(s => s.classList.remove("active"));
       const el = document.getElementById("admin-" + name);
       if (el) el.classList.add("active");
-      if (name === 'requests') {
-        setTimeout(() => {
-          updateSelectedRequestsCount();
-          applyAdminRequestFilters();
-        }, 0);
-      }
-    }
-
-    function escapeHtml(value) {
-      return String(value || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-    }
-
-    function runAdminGlobalSearch() {
-      const input = document.getElementById("adminGlobalSearchInput");
-      const box = document.getElementById("adminGlobalSearchResult");
-      if (!input || !box) return;
-
-      const q = (input.value || "").trim().toLowerCase();
-      if (!q) {
-        box.innerHTML = `<div class="list-item">ابدأ بكتابة كلمة البحث لعرض النتائج.</div>`;
-        return;
-      }
-
-      const personResults = Object.keys(people)
-        .map(id => ({ id, person: people[id] }))
-        .filter(({ person }) =>
-          (person.name || "").toLowerCase().includes(q) ||
-          (person.note || "").toLowerCase().includes(q) ||
-          ((person.status || "") + "").toLowerCase().includes(q)
-        )
-        .slice(0, 15);
-
-      const messageResults = (appState.messages || [])
-        .filter(m =>
-          (m.sender_name || "").toLowerCase().includes(q) ||
-          (m.msg_type || "").toLowerCase().includes(q) ||
-          (m.body || "").toLowerCase().includes(q)
-        )
-        .slice(0, 10);
-
-      const requestResults = (appState.requests || [])
-        .filter(r =>
-          ((people[r.parent_id]?.name) || r.parent_id || "").toLowerCase().includes(q) ||
-          (r.sender_name || "").toLowerCase().includes(q) ||
-          (r.child_name || "").toLowerCase().includes(q) ||
-          (r.children_text || "").toLowerCase().includes(q) ||
-          (r.details || "").toLowerCase().includes(q)
-        )
-        .slice(0, 10);
-
-      const logResults = (appState.changeLog || [])
-        .filter(item => (item.text || "").toLowerCase().includes(q))
-        .slice(0, 10);
-
-      const chunks = [];
-
-      if (personResults.length) {
-        chunks.push(`
-          <div class="list-item">
-            <strong>الأسماء والبيانات</strong>
-            <div class="list-box" style="margin-top:10px;">
-              ${personResults.map(({ id, person }) => `
-                <div class="list-item">
-                  <strong>${escapeHtml(person.name)}</strong><br>
-                  <span class="small">المعرف: ${escapeHtml(id)}${person.status ? ` — الحالة: ${escapeHtml(person.status)}` : ""}</span>
-                  ${person.note ? `<div style="margin-top:6px;line-height:1.8;">${escapeHtml(person.note)}</div>` : ""}
-                </div>
-              `).join("")}
-            </div>
-          </div>
-        `);
-      }
-
-      if (messageResults.length) {
-        chunks.push(`
-          <div class="list-item">
-            <strong>الرسائل</strong>
-            <div class="list-box" style="margin-top:10px;">
-              ${messageResults.map(m => `
-                <div class="list-item">
-                  <strong>${escapeHtml(m.msg_type || "رسالة")}</strong> — ${escapeHtml(m.sender_name || "بدون اسم")}<br>
-                  <div style="margin-top:6px;line-height:1.8;">${escapeHtml(m.body || "")}</div>
-                </div>
-              `).join("")}
-            </div>
-          </div>
-        `);
-      }
-
-      if (requestResults.length) {
-        chunks.push(`
-          <div class="list-item">
-            <strong>الطلبات</strong>
-            <div class="list-box" style="margin-top:10px;">
-              ${requestResults.map(r => `
-                <div class="list-item">
-                  <strong>${escapeHtml(((people[r.parent_id]?.name) || r.parent_id || "غير معروف"))}</strong><br>
-                  ${r.child_name ? `<span class="small">الاسم المطلوب: ${escapeHtml(r.child_name)}</span><br>` : ""}
-                  ${r.details ? `<div style="margin-top:6px;line-height:1.8;white-space:pre-line;">${escapeHtml(r.details)}</div>` : ""}
-                </div>
-              `).join("")}
-            </div>
-          </div>
-        `);
-      }
-
-      if (logResults.length) {
-        chunks.push(`
-          <div class="list-item">
-            <strong>سجل التعديلات</strong>
-            <div class="list-box" style="margin-top:10px;">
-              ${logResults.map(item => `
-                <div class="list-item">
-                  ${escapeHtml(item.text || "")}<br>
-                  <span class="small">${escapeHtml(item.time || "")}</span>
-                </div>
-              `).join("")}
-            </div>
-          </div>
-        `);
-      }
-
-      if (!chunks.length) {
-        box.innerHTML = `<div class="list-item">لا توجد نتائج مطابقة لعبارة البحث.</div>`;
-        return;
-      }
-
-      box.innerHTML = chunks.join("");
-    }
-
-
-    function isMessageSeen(messageId) {
-      appState.seenMessageIds = Array.isArray(appState.seenMessageIds) ? appState.seenMessageIds.map(v => Number(v)).filter(Number.isFinite) : [];
-      return appState.seenMessageIds.includes(Number(messageId));
-    }
-
-    function markMessageIdsSeen(ids = []) {
-      appState.seenMessageIds = Array.isArray(appState.seenMessageIds) ? appState.seenMessageIds.map(v => Number(v)).filter(Number.isFinite) : [];
-      let changed = 0;
-      ids.map(v => Number(v)).filter(Number.isFinite).forEach(id => {
-        if (!appState.seenMessageIds.includes(id)) {
-          appState.seenMessageIds.push(id);
-          changed++;
-        }
-      });
-      if (changed) saveState();
-      return changed;
-    }
-
-    function getSelectedMessageIds() {
-      return Array.from(document.querySelectorAll('.message-select:checked')).map(el => Number(el.value)).filter(Number.isFinite);
-    }
-
-    function updateSelectedMessagesCount() {
-      const box = document.getElementById('selectedMessagesCount');
-      if (box) box.textContent = `المحدد حاليًا: ${getSelectedMessageIds().length}`;
-    }
-
-    function updateMessagesFilterSummary() {
-      const items = Array.from(document.querySelectorAll('.message-item'));
-      const visible = items.filter(el => el.style.display !== 'none').length;
-      const newVisible = items.filter(el => el.style.display !== 'none' && el.dataset.messageIsnew === '1').length;
-      const total = items.length;
-      const box = document.getElementById('messagesFilterSummary');
-      if (box) box.textContent = `المعروض: ${visible} من ${total} — الجديدة ضمن المعروض: ${newVisible}`;
-    }
-
-    function applyAdminMessageFilters() {
-      const q = (document.getElementById('messageFilterInput')?.value || '').trim().toLowerCase();
-      const mode = document.getElementById('messageFilterState')?.value || 'all';
-      document.querySelectorAll('.message-item').forEach(item => {
-        const text = (item.dataset.messageText || '').toLowerCase();
-        const isNew = item.dataset.messageIsnew === '1';
-        const matchText = !q || text.includes(q);
-        const matchState = mode === 'all' || (mode === 'new' && isNew) || (mode === 'seen' && !isNew);
-        item.style.display = (matchText && matchState) ? '' : 'none';
-      });
-      updateMessagesFilterSummary();
-      updateSelectedMessagesCount();
-    }
-
-    function toggleAllMessageSelections(checked) {
-      document.querySelectorAll('.message-item').forEach(item => {
-        if (item.style.display === 'none') return;
-        const cb = item.querySelector('.message-select');
-        if (cb) cb.checked = !!checked;
-      });
-      updateSelectedMessagesCount();
-    }
-
-    function markSelectedMessagesSeen() {
-      const ids = getSelectedMessageIds();
-      if (!ids.length) {
-        alert('لم يتم تحديد أي رسالة.');
-        return;
-      }
-      const changed = markMessageIdsSeen(ids);
-      if (changed) logChange(`تعليم ${changed} رسالة/رسائل كمقروءة`);
-      showAdminPage();
-      switchAdminTab('messages');
-      setTimeout(applyAdminMessageFilters, 0);
-    }
-
-    function markAllMessagesSeen() {
-      const ids = Array.from(document.querySelectorAll('.message-item')).map(el => Number(el.dataset.messageId)).filter(Number.isFinite);
-      if (!ids.length) {
-        alert('لا توجد رسائل.');
-        return;
-      }
-      const changed = markMessageIdsSeen(ids);
-      if (changed) logChange(`تعليم جميع الرسائل المقروءة: ${changed}`);
-      showAdminPage();
-      switchAdminTab('messages');
-      setTimeout(applyAdminMessageFilters, 0);
-    }
-
-    function markSingleMessageSeen(id) {
-      const changed = markMessageIdsSeen([id]);
-      if (changed) logChange(`تعليم رسالة كمقروءة #${id}`);
-      showAdminPage();
-      switchAdminTab('messages');
-      setTimeout(applyAdminMessageFilters, 0);
-    }
-
-    async function deleteSelectedMessages() {
-      const ids = getSelectedMessageIds();
-      if (!ids.length) {
-        alert('لم يتم تحديد أي رسالة.');
-        return;
-      }
-      if (!confirm(`سيتم حذف ${ids.length} رسالة. هل أنت متأكد؟`)) return;
-      let deleted = 0;
-      for (const id of ids) {
-        try {
-          const { error } = await supabaseClient.from("messages").delete().eq("id", id);
-          if (!error) deleted++;
-        } catch (e) {}
-      }
-      if (deleted) logChange(`حذف ${deleted} رسالة/رسائل دفعة واحدة`);
-      showAdminPage();
-      switchAdminTab('messages');
-      setTimeout(applyAdminMessageFilters, 0);
-    }
-
-    function isRequestSeen(requestId) {
-      appState.seenRequestIds = Array.isArray(appState.seenRequestIds) ? appState.seenRequestIds.map(v => Number(v)).filter(Number.isFinite) : [];
-      return appState.seenRequestIds.includes(Number(requestId));
-    }
-
-    function markRequestIdsSeen(ids = []) {
-      appState.seenRequestIds = Array.isArray(appState.seenRequestIds) ? appState.seenRequestIds.map(v => Number(v)).filter(Number.isFinite) : [];
-      let changed = 0;
-      ids.map(v => Number(v)).filter(Number.isFinite).forEach(id => {
-        if (!appState.seenRequestIds.includes(id)) {
-          appState.seenRequestIds.push(id);
-          changed++;
-        }
-      });
-      if (changed) saveState();
-      return changed;
-    }
-
-    function updateRequestsFilterSummary() {
-      const items = Array.from(document.querySelectorAll('.request-item'));
-      const visible = items.filter(el => el.style.display !== 'none').length;
-      const newVisible = items.filter(el => el.style.display !== 'none' && el.dataset.requestIsnew === '1').length;
-      const total = items.length;
-      const box = document.getElementById('requestsFilterSummary');
-      if (box) box.textContent = `المعروض: ${visible} من ${total} — الجديدة ضمن المعروض: ${newVisible}`;
-    }
-
-    function applyAdminRequestFilters() {
-      const q = (document.getElementById('requestFilterInput')?.value || '').trim().toLowerCase();
-      const mode = document.getElementById('requestFilterState')?.value || 'all';
-      document.querySelectorAll('.request-item').forEach(item => {
-        const text = (item.dataset.requestText || '').toLowerCase();
-        const isNew = item.dataset.requestIsnew === '1';
-        const matchText = !q || text.includes(q);
-        const matchState = mode === 'all' || (mode === 'new' && isNew) || (mode === 'seen' && !isNew);
-        item.style.display = (matchText && matchState) ? '' : 'none';
-      });
-      updateRequestsFilterSummary();
-      updateSelectedRequestsCount();
-    }
-
-    function markSelectedRequestsSeen() {
-      const ids = getSelectedRequestIds();
-      if (!ids.length) {
-        alert('لم يتم تحديد أي طلب.');
-        return;
-      }
-      const changed = markRequestIdsSeen(ids);
-      if (changed) logChange(`تعليم ${changed} طلب/طلبات كمقروءة`);
-      showAdminPage();
-      switchAdminTab('requests');
-      setTimeout(applyAdminRequestFilters, 0);
-    }
-
-    function markAllRequestsSeen() {
-      const ids = Array.from(document.querySelectorAll('.request-item')).map(el => Number(el.dataset.requestId)).filter(Number.isFinite);
-      if (!ids.length) {
-        alert('لا توجد طلبات.');
-        return;
-      }
-      const changed = markRequestIdsSeen(ids);
-      if (changed) logChange(`تعليم جميع الطلبات كمقروءة: ${changed}`);
-      showAdminPage();
-      switchAdminTab('requests');
-      setTimeout(applyAdminRequestFilters, 0);
     }
 
     function deleteMessage(idx) {
@@ -4359,7 +3024,6 @@ function buildSimpleLineageFromPerson(id) {
       logChange("حذف رسالة من الإدارة");
       showAdminPage();
       switchAdminTab("messages");
-      setTimeout(applyAdminMessageFilters, 0);
     }
 
     async function deleteSupabaseMessage(id) {
@@ -4372,73 +3036,15 @@ function buildSimpleLineageFromPerson(id) {
       alert("تم حذف الرسالة");
       showAdminPage();
       switchAdminTab("messages");
-      setTimeout(applyAdminMessageFilters, 0);
-    }
-
-    function getSelectedRequestIds() {
-      return Array.from(document.querySelectorAll('.request-select:checked')).map(el => Number(el.value)).filter(Boolean);
-    }
-
-    function updateSelectedRequestsCount() {
-      const box = document.getElementById("selectedRequestsCount");
-      if (!box) return;
-      box.textContent = `المحدد حاليًا: ${getSelectedRequestIds().length}`;
-    }
-
-    function toggleAllRequestSelections(checked) {
-      document.querySelectorAll('.request-select').forEach(el => { el.checked = checked; });
-      updateSelectedRequestsCount();
-    }
-
-    async function deleteSupabaseRequestById(id, silent = false) {
-      const { error } = await supabaseClient.from("requests").delete().eq("id", id);
-      if (error) {
-        console.error(error);
-        if (!silent) alert("تعذر حذف الطلب");
-        return false;
-      }
-      return true;
-    }
-
-    async function deleteSelectedRequests() {
-      const ids = getSelectedRequestIds();
-      if (!ids.length) {
-        alert("لم يتم تحديد أي طلب.");
-        return;
-      }
-      if (!confirm(`سيتم حذف ${ids.length} طلب/طلبات دفعة واحدة، هل أنت متأكد؟`)) return;
-      let done = 0;
-      for (const id of ids) {
-        const ok = await deleteSupabaseRequestById(id, true);
-        if (ok) done++;
-      }
-      logChange(`حذف جماعي للطلبات: ${done}`);
-      alert(`تم حذف ${done} طلب/طلبات.`);
-      showAdminPage();
-      switchAdminTab("requests");
-    }
-
-    async function approveSelectedRequests() {
-      const ids = getSelectedRequestIds();
-      if (!ids.length) {
-        alert("لم يتم تحديد أي طلب.");
-        return;
-      }
-      if (!confirm(`سيتم اعتماد ${ids.length} طلب/طلبات دفعة واحدة، هل أنت متأكد؟`)) return;
-      let done = 0;
-      for (const id of ids) {
-        const ok = await markSupabaseRequestDone(id, true);
-        if (ok) done++;
-      }
-      logChange(`اعتماد جماعي للطلبات: ${done}`);
-      alert(`تم اعتماد ${done} طلب/طلبات.`);
-      showAdminPage();
-      switchAdminTab("requests");
     }
 
     async function deleteSupabaseRequest(id) {
-      const ok = await deleteSupabaseRequestById(id);
-      if (!ok) return;
+      const { error } = await supabaseClient.from("requests").delete().eq("id", id);
+      if (error) {
+        console.error(error);
+        alert("تعذر حذف الطلب");
+        return;
+      }
       alert("تم حذف الطلب");
       showAdminPage();
       switchAdminTab("requests");
@@ -4454,245 +3060,13 @@ function buildSimpleLineageFromPerson(id) {
       return newId;
     }
 
-    let pendingAdminAction = null;
-
-    function clearPendingAdminActionPreview() {
-      ["adminAddPreviewBox","adminSmartAddPreviewBox","adminRenamePreviewBox","adminMovePreviewBox","adminMergePreviewBox","adminStatusPreviewBox","adminBulkDeletePreviewBox"].forEach(id=>{
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = "";
-      });
-    }
-
-    function setPendingAdminAction(action, previewBoxId, html) {
-      pendingAdminAction = action;
-      clearPendingAdminActionPreview();
-      const box = document.getElementById(previewBoxId);
-      if (box) box.innerHTML = html;
-    }
-
-    function countSmartFamilyNodes(nodes = []) {
-      let total = 0;
-      (nodes || []).forEach(node => {
-        total += 1 + countSmartFamilyNodes(node.children || []);
-      });
-      return total;
-    }
-
-    function renderSmartFamilyTreePreview(nodes = [], depth = 0) {
-      return (nodes || []).map(node => {
-        const indent = '&nbsp;'.repeat(depth * 4);
-        return `${indent}• ${escapeHtml(node.name || '')}<br>${renderSmartFamilyTreePreview(node.children || [], depth + 1)}`;
-      }).join('');
-    }
-
-    function parseSmartFamilyInput(rawText) {
-      const lines = String(rawText || '').split(/\r?\n/).map(line => line.replace(/\t/g, '  ')).filter(line => line.trim());
-      if (!lines.length) return [];
-      const roots = [];
-      const stack = [];
-      lines.forEach(raw => {
-        const match = raw.match(/^(\s*)([-–—•]*)\s*(.+)$/);
-        if (!match) return;
-        const spaces = match[1] || '';
-        const dashes = match[2] || '';
-        const name = (match[3] || '').trim();
-        if (!name) return;
-        const levelFromDashes = dashes ? dashes.length : 0;
-        const levelFromSpaces = Math.floor(spaces.length / 2);
-        const level = Math.max(levelFromDashes, levelFromSpaces, 0);
-        const node = { name, children: [] };
-        while (stack.length > level) stack.pop();
-        if (!stack.length) {
-          roots.push(node);
-        } else {
-          stack[stack.length - 1].children.push(node);
-        }
-        stack.push(node);
-      });
-      return roots;
-    }
-
-    function previewAdminSmartFamilyAdd() {
-      const parentId = document.getElementById("adminSmartParentSelect").value;
-      const rawText = document.getElementById("adminSmartFamilyInput").value.trim();
-      if (!rawText) return alert("اكتب الأسماء أولًا");
-      if (!people[parentId]) return alert("تعذر العثور على الأب المحدد");
-      const nodes = parseSmartFamilyInput(rawText);
-      const totalNodes = countSmartFamilyNodes(nodes);
-      if (!totalNodes) return alert("لم يتم التعرف على أي أسماء صالحة");
-      setPendingAdminAction({ type:'smartAdd', parentId, nodes, totalNodes }, 'adminSmartAddPreviewBox', `
-        <strong>معاينة الإدخال الذكي:</strong><br>
-        الأب الأساسي: ${escapeHtml(people[parentId].name || '')}<br>
-        عدد الأسماء التي ستُضاف: ${totalNodes}<br><br>
-        <div style="background:#fff;padding:10px;border:1px solid var(--line);border-radius:12px;line-height:2;max-height:260px;overflow:auto;">${renderSmartFamilyTreePreview(nodes)}</div><br>
-        <span style="color:var(--gold);font-weight:700;">راجِع الهيكل ثم اضغط: تنفيذ الإدخال الذكي المؤكد</span>
-      `);
-    }
-
-    function previewAdminAddPerson() {
+    async function adminAddPerson() {
       const parentId = document.getElementById("adminParentSelect").value;
       const newName = document.getElementById("adminNewName").value.trim();
       const newNote = document.getElementById("adminNewNote").value.trim();
       if (!newName) return alert("اكتب الاسم الجديد");
-      if (!people[parentId]) return alert("تعذر العثور على الأب المحدد");
-      setPendingAdminAction({ type:'add', parentId, newName, newNote }, 'adminAddPreviewBox', `
-        <strong>معاينة الإضافة:</strong><br>
-        الأب: ${escapeHtml(people[parentId].name || '')}<br>
-        الاسم الجديد: ${escapeHtml(newName)}<br>
-        الملاحظة: ${escapeHtml(newNote || 'لا توجد')}<br><br>
-        <span style="color:var(--gold);font-weight:700;">راجِع البيانات ثم اضغط: تنفيذ الإضافة المؤكدة</span>
-      `);
-    }
-
-    function previewAdminRenamePerson() {
-      const personId = document.getElementById("adminEditPersonSelect").value;
-      const newName = document.getElementById("adminEditPersonName").value.trim();
-      if (!personId || !newName) return alert("اختر الاسم واكتب الاسم الجديد");
-      if (!people[personId]) return alert("الاسم غير موجود");
-      setPendingAdminAction({ type:'rename', personId, newName }, 'adminRenamePreviewBox', `
-        <strong>معاينة التعديل:</strong><br>
-        الاسم الحالي: ${escapeHtml(people[personId].name || '')}<br>
-        الاسم الجديد: ${escapeHtml(newName)}<br><br>
-        <span style="color:var(--gold);font-weight:700;">راجِع البيانات ثم اضغط: تنفيذ التعديل المؤكد</span>
-      `);
-    }
-
-    function isDescendantOf(targetId, ancestorId) {
-      if (!ancestorId || !people[ancestorId] || !Array.isArray(people[ancestorId].children)) return false;
-      for (const childId of people[ancestorId].children) {
-        if (childId === targetId) return true;
-        if (isDescendantOf(targetId, childId)) return true;
-      }
-      return false;
-    }
-
-    function previewAdminMovePerson() {
-      const personId = document.getElementById("adminMovePersonSelect").value;
-      const targetParentId = document.getElementById("adminMoveTargetParentSelect").value;
-      if (!personId || !targetParentId) return alert("اختر الاسم والأب الجديد");
-      if (personId === rootId) return alert("لا يمكن نقل الجذر");
-      if (!people[personId] || !people[targetParentId]) return alert("تعذر العثور على البيانات المحددة");
-      const currentParentId = getParentId(personId);
-      if (!currentParentId || !people[currentParentId]) return alert("تعذر العثور على الأب الحالي");
-      if (currentParentId === targetParentId) return alert("الاسم موجود أصلًا تحت هذا الأب");
-      if (personId === targetParentId) return alert("لا يمكن نقل الاسم تحت نفسه");
-      if (isDescendantOf(targetParentId, personId)) return alert("لا يمكن نقل الاسم تحت أحد أبنائه أو أحفاده");
-      setPendingAdminAction({ type:'move', personId, oldParentId: currentParentId, newParentId: targetParentId }, 'adminMovePreviewBox', `
-        <strong>معاينة النقل:</strong><br>
-        الاسم: ${escapeHtml(people[personId].name || '')}<br>
-        الأب الحالي: ${escapeHtml(people[currentParentId].name || '')}<br>
-        الأب الجديد: ${escapeHtml(people[targetParentId].name || '')}<br>
-        عدد أبناء الاسم الحالي: ${escapeHtml(String((people[personId].children || []).length))}<br><br>
-        <span style="color:var(--gold);font-weight:700;">راجِع البيانات ثم اضغط: تنفيذ النقل المؤكد</span>
-      `);
-    }
-
-    function previewAdminMergeDuplicates() {
-      const sourceId = document.getElementById("adminMergeSourceSelect")?.value;
-      const targetId = document.getElementById("adminMergeTargetSelect")?.value;
-      if (!sourceId || !targetId) return alert("اختر الاسم المكرر المراد دمجه والاسم الذي سيبقى");
-      if (sourceId === targetId) return alert("اختر اسمين مختلفين");
-      if (!people[sourceId] || !people[targetId]) return alert("تعذر العثور على الأسماء المحددة");
-      if (sourceId === rootId || targetId === rootId) return alert("لا يمكن دمج الجذر");
-      const sourceParentId = getParentId(sourceId);
-      const targetParentId = getParentId(targetId);
-      if (!sourceParentId || !targetParentId) return alert("تعذر العثور على الأب لأحد الاسمين");
-      const movedChildren = (people[sourceId].children || []).map(id => people[id]?.name || id);
-      const sourceNote = people[sourceId].note || "لا توجد";
-      const targetNote = people[targetId].note || "لا توجد";
-      setPendingAdminAction({ type:'merge', sourceId, targetId, sourceParentId, targetParentId }, 'adminMergePreviewBox', `
-        <strong>معاينة دمج اسمين:</strong><br>
-        الاسم الذي سيُدمج ويحذف لاحقًا: ${escapeHtml(people[sourceId].name || '')}<br>
-        الأب الحالي له: ${escapeHtml(people[sourceParentId].name || '')}<br>
-        الاسم الذي سيبقى: ${escapeHtml(people[targetId].name || '')}<br>
-        الأب الحالي له: ${escapeHtml(people[targetParentId].name || '')}<br>
-        عدد أبناء الاسم المكرر: ${escapeHtml(String((people[sourceId].children || []).length))}<br>
-        أبناء سينتقلون إلى الاسم الباقي: ${escapeHtml(movedChildren.length ? movedChildren.join('، ') : 'لا يوجد')}<br>
-        ملاحظة الاسم المكرر: ${escapeHtml(sourceNote)}<br>
-        ملاحظة الاسم الباقي: ${escapeHtml(targetNote)}<br><br>
-        <span style="color:var(--gold);font-weight:700;">راجِع الدمج ثم اضغط: تنفيذ الدمج المؤكد</span>
-      `);
-    }
-
-    function previewAdminSetStatus() {
-      const id = document.getElementById("statusPersonSelect").value;
-      const value = document.getElementById("statusValueSelect").value;
-      if (!id || !people[id]) return alert("تعذر العثور على الاسم");
-      const oldValue = (appState.statuses || {})[id] || 'بدون حالة';
-      setPendingAdminAction({ type:'status', personId:id, value }, 'adminStatusPreviewBox', `
-        <strong>معاينة حالة الفرع:</strong><br>
-        الاسم: ${escapeHtml(people[id].name || '')}<br>
-        الحالة الحالية: ${escapeHtml(oldValue || 'بدون حالة')}<br>
-        الحالة الجديدة: ${escapeHtml(value || 'بدون حالة')}<br><br>
-        <span style="color:var(--gold);font-weight:700;">راجِع البيانات ثم اضغط: تنفيذ الحالة المؤكدة</span>
-      `);
-    }
-
-    async function confirmPendingAdminAction() {
-      if (!pendingAdminAction) return alert("لا توجد عملية معاينة جاهزة للتنفيذ");
-      const action = { ...pendingAdminAction };
-      pendingAdminAction = null;
-      clearPendingAdminActionPreview();
-      if (action.type === 'add') return adminAddPerson(action);
-      if (action.type === 'smartAdd') return adminSmartAddFamily(action);
-      if (action.type === 'rename') return adminRenamePerson(action);
-      if (action.type === 'move') return adminMovePerson(action);
-      if (action.type === 'merge') return adminMergeDuplicates(action);
-      if (action.type === 'bulkDelete') return adminBulkDeletePeople(action);
-      if (action.type === 'status') return adminSetStatus(action);
-    }
-
-    async function adminSmartAddFamily(previewData) {
-      const parentId = previewData?.parentId || document.getElementById("adminSmartParentSelect").value;
-      const nodes = Array.isArray(previewData?.nodes) ? previewData.nodes : parseSmartFamilyInput(document.getElementById("adminSmartFamilyInput")?.value || "");
-      if (!people[parentId]) return alert("تعذر العثور على الأب المحدد");
-      if (!nodes.length) return alert("لا توجد أسماء صالحة للإضافة");
-      if (requireMasterForLockedParent(parentId, 'الإضافة الذكية تحته')) return;
-
-      const addedEntries = [];
-      async function addNodes(targetParentId, branchNodes) {
-        for (const node of (branchNodes || [])) {
-          const newId = await addPersonPersist(targetParentId, node.name || '', '');
-          addedEntries.push({ id: newId, parentId: targetParentId, name: node.name || '' });
-          if (node.children && node.children.length) {
-            await addNodes(newId, node.children);
-          }
-        }
-      }
-
-      await addNodes(parentId, nodes);
-      pushUndoEntry({
-        type: "smartAdd",
-        label: "إدخال ذكي للأبناء والفروع",
-        parentId,
-        addedEntries: cloneDeep(addedEntries)
-      });
-      logChange(`إدخال ذكي تحت ${people[parentId]?.name || ''} بعدد ${addedEntries.length} اسم`);
-      document.getElementById("adminSmartFamilyInput").value = "";
-      showAdminPage('add');
-      switchAdminTab('add');
-      alert(`تمت إضافة ${addedEntries.length} اسم بنجاح.`);
-    }
-
-    async function adminAddPerson(previewData) {
-      const parentId = previewData?.parentId || document.getElementById("adminParentSelect").value;
-      const newName = (previewData?.newName || document.getElementById("adminNewName").value || "").trim();
-      const newNote = (previewData?.newNote || document.getElementById("adminNewNote").value || "").trim();
-      if (!newName) return alert("اكتب الاسم الجديد");
-      if (requireMasterForLockedParent(parentId, 'الإضافة تحته')) return;
 
       await addPersonPersist(parentId, newName, newNote);
-      const addedId = (people[parentId].children || []).slice(-1)[0];
-      pushUndoEntry({
-        type: "add",
-        label: "إضافة اسم جديد",
-        parentId,
-        person: {
-          id: addedId,
-          name: newName,
-          note: newNote
-        }
-      });
 
       logChange("إضافة اسم جديد: " + newName + " تحت " + people[parentId].name);
       alert(peopleTableAvailable ? "تمت الإضافة عالميًا" : "تمت الإضافة محليًا داخل هذه النسخة");
@@ -4700,9 +3074,9 @@ function buildSimpleLineageFromPerson(id) {
       switchAdminTab("add");
       render(currentPerson);
     }
-    async function adminRenamePerson(previewData) {
-  const personId = previewData?.personId || document.getElementById("adminEditPersonSelect").value;
-  const newName = (previewData?.newName || document.getElementById("adminEditPersonName").value || "").trim();
+    async function adminRenamePerson() {
+  const personId = document.getElementById("adminEditPersonSelect").value;
+  const newName = document.getElementById("adminEditPersonName").value.trim();
 
   if (!personId || !newName) {
     alert("اختر الاسم واكتب الاسم الجديد");
@@ -4713,9 +3087,7 @@ function buildSimpleLineageFromPerson(id) {
     alert("الاسم غير موجود");
     return;
   }
-  if (requireMasterForLocked(personId, 'تعديل هذا الاسم')) return;
 
-  const oldName = people[personId].name;
   people[personId].name = newName;
 
   if (peopleTableAvailable) {
@@ -4731,163 +3103,12 @@ function buildSimpleLineageFromPerson(id) {
     }
   }
 
-  pushUndoEntry({
-    type: "rename",
-    label: "تعديل اسم",
-    personId,
-    oldName,
-    newName
-  });
-
   logChange("تعديل اسم: " + personId + " إلى " + newName);
   alert("تم تعديل الاسم");
   showAdminPage();
   switchAdminTab("add");
   render(currentPerson);
     }
-
-    async function adminMovePerson(previewData) {
-  const personId = previewData?.personId || document.getElementById("adminMovePersonSelect").value;
-  const newParentId = previewData?.newParentId || document.getElementById("adminMoveTargetParentSelect").value;
-
-  if (!personId || !newParentId) return alert("اختر الاسم والأب الجديد");
-  if (personId === rootId) return alert("لا يمكن نقل الجذر");
-  if (!people[personId] || !people[newParentId]) return alert("تعذر العثور على البيانات المحددة");
-
-  const oldParentId = previewData?.oldParentId || getParentId(personId);
-  if (!oldParentId || !people[oldParentId]) return alert("تعذر العثور على الأب الحالي");
-  if (oldParentId === newParentId) return alert("الاسم موجود أصلًا تحت هذا الأب");
-  if (personId === newParentId) return alert("لا يمكن نقل الاسم تحت نفسه");
-  if (isDescendantOf(newParentId, personId)) return alert("لا يمكن نقل الاسم تحت أحد أبنائه أو أحفاده");
-  if (requireMasterForLocked(personId, 'نقل هذا الاسم')) return;
-  if (requireMasterForLockedParent(oldParentId, 'إخراج الاسم من هذا الأب')) return;
-  if (requireMasterForLockedParent(newParentId, 'نقل الاسم تحت هذا الأب')) return;
-
-  people[oldParentId].children = (people[oldParentId].children || []).filter(id => id !== personId);
-  if (!Array.isArray(people[newParentId].children)) people[newParentId].children = [];
-  if (!people[newParentId].children.includes(personId)) people[newParentId].children.push(personId);
-  saveState();
-
-  if (peopleTableAvailable) {
-    const newSortOrder = Math.max((people[newParentId].children || []).length - 1, 0);
-    const { error } = await supabaseClient
-      .from("people")
-      .update({ parent_id: newParentId, sort_order: newSortOrder })
-      .eq("id", personId);
-
-    if (error) {
-      console.error(error);
-      people[newParentId].children = (people[newParentId].children || []).filter(id => id !== personId);
-      if (!people[oldParentId].children.includes(personId)) people[oldParentId].children.push(personId);
-      saveState();
-      return alert("تعذر نقل الاسم في Supabase وتم التراجع عن العملية محليًا");
-    }
-  }
-
-  pushUndoEntry({
-    type: "move",
-    label: "نقل اسم إلى أب آخر",
-    personId,
-    oldParentId,
-    newParentId
-  });
-
-  logChange("نقل اسم: " + (people[personId]?.name || personId) + " من " + (people[oldParentId]?.name || oldParentId) + " إلى " + (people[newParentId]?.name || newParentId));
-  alert("تم نقل الاسم بنجاح");
-  showAdminPage();
-  switchAdminTab("add");
-  render(currentPerson);
-    }
-
-    async function adminMergeDuplicates(previewData) {
-  const sourceId = previewData?.sourceId || document.getElementById("adminMergeSourceSelect")?.value;
-  const targetId = previewData?.targetId || document.getElementById("adminMergeTargetSelect")?.value;
-
-  if (!sourceId || !targetId) return alert("اختر الاسمين أولًا");
-  if (sourceId === targetId) return alert("اختر اسمين مختلفين");
-  if (!people[sourceId] || !people[targetId]) return alert("تعذر العثور على الأسماء المحددة");
-  if (sourceId === rootId || targetId === rootId) return alert("لا يمكن دمج الجذر");
-
-  const sourceParentId = previewData?.sourceParentId || getParentId(sourceId);
-  const targetParentId = previewData?.targetParentId || getParentId(targetId);
-  if (!sourceParentId || !targetParentId || !people[sourceParentId] || !people[targetParentId]) {
-    return alert("تعذر العثور على الآباء الحاليين");
-  }
-  if (requireMasterForLocked(sourceId, 'دمج هذا الاسم')) return;
-  if (requireMasterForLocked(targetId, 'الدمج في هذا الاسم')) return;
-  if (requireMasterForLockedParent(sourceParentId, 'سحب الاسم من هذا الفرع')) return;
-  if (requireMasterForLockedParent(targetParentId, 'الدمج داخل هذا الفرع')) return;
-
-  const sourceSnapshot = cloneDeep(people[sourceId]);
-  const targetOldNote = people[targetId].note || "";
-  const movedChildIds = [...(people[sourceId].children || [])];
-
-  if (!Array.isArray(people[targetId].children)) people[targetId].children = [];
-  movedChildIds.forEach(childId => {
-    if (!people[targetId].children.includes(childId)) people[targetId].children.push(childId);
-  });
-
-  const sourceNote = (people[sourceId].note || "").trim();
-  const targetNote = (people[targetId].note || "").trim();
-  if (sourceNote) {
-    people[targetId].note = targetNote
-      ? `${targetNote}
-دمج من ${people[sourceId].name}: ${sourceNote}`
-      : `دمج من ${people[sourceId].name}: ${sourceNote}`;
-  }
-
-  people[sourceParentId].children = (people[sourceParentId].children || []).filter(id => id !== sourceId);
-  delete people[sourceId];
-  saveState();
-
-  if (peopleTableAvailable) {
-    try {
-      for (let i = 0; i < movedChildIds.length; i++) {
-        const childId = movedChildIds[i];
-        const { error: childErr } = await supabaseClient
-          .from("people")
-          .update({ parent_id: targetId, sort_order: Math.max((people[targetId].children || []).indexOf(childId), 0) })
-          .eq("id", childId);
-        if (childErr) throw childErr;
-      }
-      const { error: targetErr } = await supabaseClient
-        .from("people")
-        .update({ note: people[targetId].note || "" })
-        .eq("id", targetId);
-      if (targetErr) throw targetErr;
-      const { error: delErr } = await supabaseClient.from("people").delete().eq("id", sourceId);
-      if (delErr) throw delErr;
-    } catch (error) {
-      console.error(error);
-      people[sourceId] = sourceSnapshot;
-      people[sourceParentId].children = people[sourceParentId].children || [];
-      if (!people[sourceParentId].children.includes(sourceId)) people[sourceParentId].children.push(sourceId);
-      people[targetId].children = (people[targetId].children || []).filter(id => !movedChildIds.includes(id));
-      people[targetId].note = targetOldNote;
-      saveState();
-      return alert("تعذر تنفيذ الدمج في Supabase وتم التراجع محليًا");
-    }
-  }
-
-  pushUndoEntry({
-    type: "merge",
-    label: "دمج اسمين مكررين",
-    sourceId,
-    sourceParentId,
-    targetId,
-    targetParentId,
-    sourceSnapshot,
-    movedChildIds,
-    targetOldNote
-  });
-
-  logChange("دمج اسم مكرر: " + (sourceSnapshot.name || sourceId) + " داخل " + (people[targetId]?.name || targetId));
-  alert("تم دمج الاسم المكرر بنجاح");
-  showAdminPage();
-  switchAdminTab("admin-duplicates");
-  render(currentPerson);
-    }
-
     function previewDeletePerson() {
   const personId = document.getElementById("adminDeletePersonSelect").value;
   const box = document.getElementById("deletePreviewBox");
@@ -4910,58 +3131,6 @@ function buildSimpleLineageFromPerson(id) {
     ${lineage}
   `;
     }
-    function getDepthOfPerson(id) {
-      return Math.max(0, getLineage(id).length - 1);
-    }
-
-    function normalizeBulkDeleteSelection(selectedIds) {
-      const uniqueIds = Array.from(new Set((selectedIds || []).filter(id => id && people[id])));
-      const removedDescendants = [];
-      const topLevelIds = uniqueIds.filter(id => {
-        const hasSelectedAncestor = uniqueIds.some(otherId => otherId !== id && isDescendantOf(id, otherId));
-        if (hasSelectedAncestor) removedDescendants.push(id);
-        return !hasSelectedAncestor;
-      });
-      topLevelIds.sort((a,b) => getDepthOfPerson(b) - getDepthOfPerson(a));
-      return { topLevelIds, removedDescendants };
-    }
-
-    function previewBulkDeletePeople() {
-      const select = document.getElementById("adminBulkDeleteSelect");
-      const box = document.getElementById("adminBulkDeletePreviewBox");
-      const selectedIds = Array.from(select?.selectedOptions || []).map(option => option.value);
-      if (!selectedIds.length) {
-        box.innerHTML = "اختر اسمًا واحدًا على الأقل للحذف الجماعي.";
-        return;
-      }
-
-      const invalid = [];
-      selectedIds.forEach(id => {
-        if (id === rootId) invalid.push("لا يمكن حذف الجذر");
-        else if (!people[id]) invalid.push(`الاسم غير موجود: ${escapeHtml(id)}`);
-        else if ((people[id].children || []).length > 0) invalid.push(`لا يمكن حذف ${escapeHtml(people[id].name)} لأنه يملك أبناء`);
-      });
-      if (invalid.length) {
-        box.innerHTML = `<span style="color:var(--danger);font-weight:700;">تعذر تجهيز الحذف الجماعي:</span><br>${invalid.join('<br>')}`;
-        return;
-      }
-
-      const { topLevelIds, removedDescendants } = normalizeBulkDeleteSelection(selectedIds);
-      const rows = topLevelIds.map(id => {
-        const parentId = getParentId(id);
-        const parentName = parentId && people[parentId] ? people[parentId].name : "غير معروف";
-        const lineage = getLineage(id).slice(0, -1).reverse().map(x => people[x]?.name || x).join(" ← ");
-        return `• ${escapeHtml(people[id].name)} — الأب: ${escapeHtml(parentName)}<br><span class="small">${escapeHtml(lineage || 'بدون تسلسل إضافي')}</span>`;
-      });
-      setPendingAdminAction({ type:'bulkDelete', personIds: topLevelIds }, 'adminBulkDeletePreviewBox', `
-        <strong>معاينة الحذف الجماعي:</strong><br>
-        عدد الأسماء النهائية للحذف: ${escapeHtml(String(topLevelIds.length))}<br>
-        ${removedDescendants.length ? `تم استبعاد أسماء لأن آباءها ضمن التحديد: ${escapeHtml(removedDescendants.map(id => people[id]?.name || id).join('، '))}<br><br>` : '<br>'}
-        ${rows.join('<br><br>')}<br><br>
-        <span style="color:var(--gold);font-weight:700;">راجِع القائمة ثم اضغط: تنفيذ الحذف الجماعي المؤكد</span>
-      `);
-    }
-
     async function adminDeletePerson() {
   const personId = document.getElementById("adminDeletePersonSelect").value;
 
@@ -4979,7 +3148,6 @@ function buildSimpleLineageFromPerson(id) {
     alert("الاسم غير موجود");
     return;
   }
-  if (requireMasterForLocked(personId, 'حذف هذا الاسم')) return;
 
   if ((people[personId].children || []).length > 0) {
     alert("لا يمكن حذف اسم لديه أبناء حاليًا");
@@ -4992,28 +3160,10 @@ function buildSimpleLineageFromPerson(id) {
     return;
   }
 
-  const deletedSnapshot = {
-    id: personId,
-    parentId,
-    parentName: people[parentId]?.name || "",
-    name: people[personId].name,
-    note: people[personId].note || "",
-    children: [...(people[personId].children || [])],
-    deletedAt: new Date().toLocaleString("ar")
-  };
+  const deletedName = people[personId].name;
 
   people[parentId].children = people[parentId].children.filter(id => id !== personId);
   delete people[personId];
-
-  appState.deletedItems = appState.deletedItems || [];
-  appState.deletedItems.unshift(deletedSnapshot);
-  if (appState.deletedItems.length > 200) appState.deletedItems.pop();
-  pushUndoEntry({
-    type: "delete",
-    label: "حذف اسم إلى سلة المحذوفات",
-    snapshot: cloneDeep(deletedSnapshot)
-  });
-  saveState();
 
   if (peopleTableAvailable) {
     const { error } = await supabaseClient
@@ -5028,91 +3178,17 @@ function buildSimpleLineageFromPerson(id) {
     }
   }
 
-  logChange("نقل إلى سلة المحذوفات: " + deletedSnapshot.name);
-  alert("تم نقل الاسم إلى سلة المحذوفات");
+  logChange("حذف اسم: " + deletedName);
+  alert("تم حذف الاسم");
   showAdminPage();
   switchAdminTab("add");
   render(currentPerson);
     }
 
-
-    async function restoreDeletedPerson(index) {
-      const list = appState.deletedItems || [];
-      const item = list[index];
-      if (!item) return alert("العنصر غير موجود");
-      if (requireMasterForLockedParent(item.parentId, 'استرجاع الاسم تحت هذا الأب')) return;
-
-      if (people[item.id]) return alert("هذا المعرف موجود بالفعل ولا يمكن استرجاعه الآن");
-      if (!people[item.parentId]) return alert("لا يمكن الاسترجاع لأن الأب الأصلي غير موجود حاليًا");
-
-      people[item.id] = {
-        name: item.name || "",
-        note: item.note || "",
-        children: Array.isArray(item.children) ? item.children : []
-      };
-
-      if (!Array.isArray(people[item.parentId].children)) people[item.parentId].children = [];
-      if (!people[item.parentId].children.includes(item.id)) people[item.parentId].children.push(item.id);
-
-      if (peopleTableAvailable) {
-        const sortOrder = Math.max((people[item.parentId].children || []).length - 1, 0);
-        const { error } = await supabaseClient
-          .from("people")
-          .insert([{
-            id: item.id,
-            name: item.name || "",
-            note: item.note || "",
-            parent_id: item.parentId,
-            sort_order: sortOrder
-          }]);
-
-        if (error) {
-          console.error(error);
-          alert("تم الاسترجاع محليًا لكن تعذر تحديث Supabase");
-          return;
-        }
-      }
-
-      appState.deletedItems.splice(index, 1);
-      pushUndoEntry({
-        type: "restore",
-        label: "استرجاع اسم من سلة المحذوفات",
-        snapshot: cloneDeep(item)
-      });
-      saveState();
-      logChange("استرجاع من سلة المحذوفات: " + (item.name || ""));
-      alert("تم استرجاع الاسم");
-      showAdminPage();
-      switchAdminTab("trash");
-      render(currentPerson);
-    }
-
-    function purgeDeletedPerson(index) {
-      const list = appState.deletedItems || [];
-      const item = list[index];
-      if (!item) return alert("العنصر غير موجود");
-      if (!confirm("سيتم حذف هذا العنصر نهائيًا من سلة المحذوفات، هل أنت متأكد؟")) return;
-
-      appState.deletedItems.splice(index, 1);
-      saveState();
-      logChange("حذف نهائي من سلة المحذوفات: " + (item.name || ""));
-      alert("تم الحذف النهائي");
-      showAdminPage();
-      switchAdminTab("trash");
-    }
-
-    function adminSetStatus(previewData) {
-      const id = previewData?.personId || document.getElementById("statusPersonSelect").value;
-      const value = typeof previewData?.value !== 'undefined' ? previewData.value : document.getElementById("statusValueSelect").value;
-      const oldValue = (appState.statuses || {})[id] || "";
+    function adminSetStatus() {
+      const id = document.getElementById("statusPersonSelect").value;
+      const value = document.getElementById("statusValueSelect").value;
       setStatus(id, value);
-      pushUndoEntry({
-        type: "status",
-        label: "تغيير حالة الفرع",
-        personId: id,
-        oldValue,
-        newValue: value
-      });
       alert("تم حفظ الحالة");
       showAdminPage();
       switchAdminTab("add");
@@ -5137,7 +3213,7 @@ function buildSimpleLineageFromPerson(id) {
       switchAdminTab("requests");
     }
 
-async function markSupabaseRequestDone(id, silent = false) {
+async function markSupabaseRequestDone(id) {
   const { data, error } = await supabaseClient
     .from("requests")
     .select("*")
@@ -5146,8 +3222,8 @@ async function markSupabaseRequestDone(id, silent = false) {
 
   if (error || !data) {
     console.error(error);
-    if (!silent) alert("تعذر قراءة الطلب");
-    return false;
+    alert("تعذر قراءة الطلب");
+    return;
   }
 
   const parentId = data.parent_id;
@@ -5224,8 +3300,8 @@ async function markSupabaseRequestDone(id, silent = false) {
   }
 
   if (!people[parentId]) {
-    if (!silent) alert("بيانات الطلب ناقصة");
-    return false;
+    alert("بيانات الطلب ناقصة");
+    return;
   }
 
   let addedNames = [];
@@ -5369,12 +3445,11 @@ function renderCard(id) {
   return `
     <div class="card ${isParent ? "" : "no-children"}" onclick="handleClick('${id}')">
       <div class="name-row">
-        <div class="name protected-name">${child.name}${appState.settings.showCounts ? ` (${directChildren})` : ""}</div>
+        <div class="name">${child.name}${appState.settings.showCounts ? ` (${directChildren})` : ""}</div>
         <div class="badges">
           <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${id}')">طلب إضافة</div>
           <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${id}')">نسب</div>
           <div class="small-badge who-badge" onclick="event.stopPropagation(); openWhoAmIForPerson('${id}')">من؟</div>
-          ${isPersonLocked(id) ? `<div class="status-badge">🔒 فرع مقفل</div>` : ""}
           ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(id))}</div>` : ""}
         </div>
       </div>
@@ -5408,7 +3483,7 @@ function render(id) {
     content.innerHTML = `
       <div class="card no-children" style="text-align:center;" onclick="showHierarchyPage('${rootId}')">
         <div class="name-row" style="justify-content:center;">
-          <div class="name protected-name">${people[id].name}</div>
+          <div class="name">${people[id].name}</div>
         </div>
         <div class="meta">
           اضغط على الاسم لبدء الهرم التدريجي من الأبناء مباشرة.
@@ -5423,12 +3498,11 @@ function render(id) {
     content.innerHTML = `
       <div class="card no-children">
         <div class="name-row">
-          <div class="name protected-name">${people[id].name}</div>
+          <div class="name">${people[id].name}</div>
           <div class="badges">
             <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${id}')">طلب إضافة</div>
             <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${id}')">نسب</div>
             <div class="small-badge who-badge" onclick="event.stopPropagation(); openWhoAmIForPerson('${id}')">من؟</div>
-            ${isPersonLocked(id) ? `<div class="status-badge">🔒 فرع مقفل</div>` : ""}
             ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(id))}</div>` : ""}
           </div>
         </div>
@@ -5470,7 +3544,7 @@ function renderSearchResults(keyword) {
     ? results.map((r, idx) => `
       <div class="card ${hasChildren(r.id) ? "" : "no-children"}" onclick="${hasChildren(r.id) ? `handleClick('${r.id}')` : `showConfirmModal('${r.id}')`}">
         <div class="name-row">
-          <div class="name protected-name">${people[r.id].name}${idx === 0 ? ' <span style="font-size:12px;color:var(--gold);">• الأقرب</span>' : ''}</div>
+          <div class="name">${people[r.id].name}${idx === 0 ? ' <span style="font-size:12px;color:var(--gold);">• الأقرب</span>' : ''}</div>
           <div class="badges">
             <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${r.id}')">طلب إضافة</div>
             <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${r.id}')">نسب</div>
@@ -5561,24 +3635,13 @@ function markRequestDone(idx) {
     }
 
     function changeAdminPassword() {
-      alert("تم إيقاف تغيير كلمة المرور الفردية بعد اعتماد نظام الصلاحيات المتعددة.");
-    }
-
-    function exportPermanentManagementLog() {
-      const rows = (appState.permanentManagementLog || []).map((item, index) => {
-        return `${index + 1}. ${item.text}\n   الوقت: ${item.time}`;
-      });
-      const content = [
-        "سجل الإدارة الدائم - شجرة عائلة محمد بن حميد المجيني",
-        "",
-        ...rows
-      ].join("\n");
-      const blob = new Blob([content], {type:"text/plain;charset=utf-8"});
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "mujaini-permanent-management-log.txt";
-      a.click();
-      URL.revokeObjectURL(a.href);
+      const p = document.getElementById("newAdminPassword").value.trim();
+      if (!p) return alert("اكتب كلمة المرور الجديدة");
+      appState.adminPassword = p;
+      saveState();
+      logChange("تغيير كلمة مرور الإدارة");
+      alert("تم تغيير كلمة المرور");
+      document.getElementById("newAdminPassword").value = "";
     }
 
     function exportBackup() {
@@ -5607,11 +3670,11 @@ function markRequestDone(idx) {
             body{font-family:Tahoma,Arial,sans-serif;padding:30px;line-height:2;color:#222}
             h1{color:#8f6b4c}
           </style>
-        </head>
+        <style id="oai-user-fixes-style">#breadcrumb,#quickBranches{display:none !important}.action-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:10px}.action-btn{border:1px solid var(--line);background:#f6efe5;color:var(--text);border-radius:999px;padding:8px 6px;font-size:12px;text-align:center;cursor:pointer;user-select:none}.action-btn:hover{background:#eadfce}.action-btn.gen{background:#f4efdf;color:#846830;border-color:#eadab7}.action-btn.rel{background:#efe4d5;color:var(--main)}.picker-header{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap}.picker-list{display:grid;gap:8px;max-height:45vh;overflow:auto}.picker-item{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;background:#faf5ef;border:1px solid var(--line);border-radius:12px;padding:10px}.picker-item-name{font-weight:700}.picker-btn{border:none;border-radius:10px;padding:8px 10px;cursor:pointer;font-family:inherit}.picker-open{background:#efe4d5;color:var(--text)}.picker-select{background:var(--main);color:#fff}.relation-card{position:relative;overflow:hidden;border-radius:22px;background:rgba(255,255,255,.92);border:1px solid var(--line);box-shadow:var(--shadow);padding:22px 18px;line-height:2.1}.relation-card h2{margin:0 0 8px;color:var(--main)}.relation-card .rel-big{font-size:28px;font-weight:700;color:var(--gold);text-align:center;margin:12px 0}.title-clickable{cursor:pointer}</style>
+</head>
         <body>
           <h1>جميع الأسماء في الشجرة</h1>
           <div>${names}</div>
-        
         </body>
         </html>
       `);
@@ -5633,12 +3696,12 @@ function markRequestDone(idx) {
             body{font-family:Tahoma,Arial,sans-serif;padding:30px;line-height:2;color:#222}
             h1{color:#8f6b4c}
           </style>
-        </head>
+        <style id="oai-user-fixes-style">#breadcrumb,#quickBranches{display:none !important}.action-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:10px}.action-btn{border:1px solid var(--line);background:#f6efe5;color:var(--text);border-radius:999px;padding:8px 6px;font-size:12px;text-align:center;cursor:pointer;user-select:none}.action-btn:hover{background:#eadfce}.action-btn.gen{background:#f4efdf;color:#846830;border-color:#eadab7}.action-btn.rel{background:#efe4d5;color:var(--main)}.picker-header{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap}.picker-list{display:grid;gap:8px;max-height:45vh;overflow:auto}.picker-item{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;background:#faf5ef;border:1px solid var(--line);border-radius:12px;padding:10px}.picker-item-name{font-weight:700}.picker-btn{border:none;border-radius:10px;padding:8px 10px;cursor:pointer;font-family:inherit}.picker-open{background:#efe4d5;color:var(--text)}.picker-select{background:var(--main);color:#fff}.relation-card{position:relative;overflow:hidden;border-radius:22px;background:rgba(255,255,255,.92);border:1px solid var(--line);box-shadow:var(--shadow);padding:22px 18px;line-height:2.1}.relation-card h2{margin:0 0 8px;color:var(--main)}.relation-card .rel-big{font-size:28px;font-weight:700;color:var(--gold);text-align:center;margin:12px 0}.title-clickable{cursor:pointer}</style>
+</head>
         <body>
           <h1>آخر تحديث</h1>
           <div><strong>${latest}</strong></div>
           <div style="margin-top:10px;">${time}</div>
-        
         </body>
         </html>
       `);
@@ -5700,660 +3763,29 @@ function markRequestDone(idx) {
       lastScrollY = currentY;
     }, { passive: true });
 
-
-    document.addEventListener("copy", function(event) {
-      if (canCopyFromTarget(event.target)) return;
-      event.preventDefault();
-      alert("نسخ الأسماء متاح فقط للماستر أدمن");
-    });
-
-    document.addEventListener("cut", function(event) {
-      if (canCopyFromTarget(event.target)) return;
-      event.preventDefault();
-      alert("نسخ الأسماء متاح فقط للماستر أدمن");
-    });
-
-    document.addEventListener("contextmenu", function(event) {
-      if (canCopyFromTarget(event.target)) return;
-      event.preventDefault();
-    });
-
     initApp();
-  
-
-function deepClone(obj){
-  return JSON.parse(JSON.stringify(obj));
-}
-
-function loadAdminAccounts(){
-  try{
-    const saved = JSON.parse(localStorage.getItem(ADMIN_ACCOUNTS_KEY) || 'null');
-    if(!saved || typeof saved !== 'object') return deepClone(DEFAULT_ADMIN_ACCOUNTS);
-    const merged = deepClone(DEFAULT_ADMIN_ACCOUNTS);
-    Object.keys(merged).forEach(role=>{
-      if(saved[role]){
-        merged[role].password = saved[role].password || merged[role].password;
-        merged[role].label = saved[role].label || merged[role].label;
-        merged[role].permissions = Object.assign({}, merged[role].permissions, saved[role].permissions || {});
-      }
-    });
-    return merged;
-  }catch(e){
-    return deepClone(DEFAULT_ADMIN_ACCOUNTS);
-  }
-}
-
-function saveAdminAccounts(){
-  localStorage.setItem(ADMIN_ACCOUNTS_KEY, JSON.stringify(adminAccounts));
-}
-
-function getCurrentAdminAccount(){
-  return currentAdminRole ? adminAccounts[currentAdminRole] : null;
-}
-
-function hasPermission(permissionKey){
-  const account = getCurrentAdminAccount();
-  return !!(account && account.permissions && account.permissions[permissionKey]);
-}
-
-function persistAdminSession(){
-  if(!currentAdminRole) return;
-  localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify({ role: currentAdminRole }));
-}
-
-function restoreAdminSession(){
-  try{
-    const session = JSON.parse(localStorage.getItem(ADMIN_SESSION_KEY) || 'null');
-    if(session && session.role && adminAccounts[session.role]){
-      currentAdminRole = session.role;
-    }
-  }catch(e){}
-}
-
-function logoutAdmin(){
-  currentAdminRole = null;
-  localStorage.removeItem(ADMIN_SESSION_KEY);
-  applyCopyProtection();
-  closeAdminPage();
-}
-
-function getRoleByPassword(password){
-  return Object.keys(adminAccounts).find(role => adminAccounts[role].password === password) || null;
-}
-
-function enterAdmin(){
-  const input = document.getElementById('adminPasswordInput');
-  const password = (input?.value || '').trim();
-  const role = getRoleByPassword(password);
-  if(!role){ alert('كلمة المرور غير صحيحة'); return; }
-  currentAdminRole = role;
-  persistAdminSession();
-  if(input) input.value = '';
-  closeAdminPassword();
-  applyCopyProtection();
-  showAdminPage();
-}
-
-function closeAdminPage(){
-  document.getElementById('adminPage')?.classList.add('hidden');
-  document.getElementById('mainPage')?.classList.remove('hidden');
-}
-
-function showAdminPage(){
-  document.getElementById('mainPage')?.classList.add('hidden');
-  document.getElementById('aboutPage')?.classList.add('hidden');
-  document.getElementById('personPage')?.classList.add('hidden');
-  document.getElementById('hierarchyPage')?.classList.add('hidden');
-  document.getElementById('whoAmIProfilePage')?.classList.add('hidden');
-  document.getElementById('adminPage')?.classList.remove('hidden');
-  renderAdminSettings();
-  switchAdminTab(hasPermission('canManageAdmins') ? 'adminSettings' : 'adminPeople');
-}
-
-function switchAdminTab(tabId){
-  document.querySelectorAll('#adminPage .admin-section').forEach(sec=>sec.classList.remove('active'));
-  const target = document.getElementById(tabId);
-  if(target) target.classList.add('active');
-}
-
-function renderAdminSettings(){
-  const box = document.getElementById('adminSettings');
-  const btn = document.getElementById('adminTabSettingsBtn');
-  if(!box) return;
-  if(!hasPermission('canManageAdmins')){
-    box.innerHTML = '<div class="subbox"><h3>صلاحيات الإدارة</h3><div class="top-note">هذه الصفحة متاحة للماستر أدمن فقط.</div></div>';
-    if(btn) btn.style.display='none';
-    return;
-  }
-  if(btn) btn.style.display='inline-block';
-  const permissionLabels = {
-    canOpenAdmin:'فتح الإدارة',
-    canManagePeople:'إدارة الأسماء',
-    canManageRequests:'إدارة الطلبات',
-    canManageMessages:'إدارة الرسائل',
-    canViewAuditLog:'عرض السجل',
-    canSearchAdmin:'البحث الإداري',
-    canCopyNames:'نسخ الأسماء',
-    canManageAdmins:'إدارة كلمات المرور والصلاحيات'
-  };
-  let html = '<div class="subbox"><h3>إدارة كلمات المرور والصلاحيات</h3><div class="top-note">من هنا يقدر الماستر أدمن يغير باسورد أي مستوى، ويزيد أو يقلل صلاحياته مستقبلًا. صلاحية إدارة المشرفين تبقى للماستر فقط.</div><div class="admin-settings-grid">';
-  Object.keys(adminAccounts).forEach(role=>{
-    const account = adminAccounts[role];
-    html += `<div class="subbox"><h4>${account.label}</h4><div class="small">الدور: ${role}</div><div style="margin-top:10px;"><input class="field" id="pwd_${role}" placeholder="كلمة المرور الجديدة" value="${escapeHtml(account.password)}"></div><div class="perm-list">`;
-    Object.keys(permissionLabels).forEach(key=>{
-      const disabled = role === 'master' || key === 'canManageAdmins';
-      const checked = !!account.permissions[key] ? 'checked' : '';
-      html += `<div class="perm-item"><label for="perm_${role}_${key}">${permissionLabels[key]}</label><input type="checkbox" id="perm_${role}_${key}" ${checked} ${disabled ? 'disabled' : ''}></div>`;
-    });
-    html += `<button class="btn-main" style="margin-top:12px;width:100%;" onclick="saveAdminRoleSettings('${role}')">حفظ إعدادات ${account.label}</button></div>`;
-  });
-  html += '</div></div>';
-  box.innerHTML = html;
-}
-
-function saveAdminRoleSettings(role){
-  if(!hasPermission('canManageAdmins')){ alert('هذه الصلاحية للماستر فقط'); return; }
-  const account = adminAccounts[role];
-  if(!account) return;
-  const newPwd = (document.getElementById(`pwd_${role}`)?.value || '').trim();
-  if(!newPwd){ alert('لا يمكن ترك كلمة المرور فارغة'); return; }
-  account.password = newPwd;
-  if(role !== 'master'){
-    Object.keys(account.permissions).forEach(key=>{
-      const el = document.getElementById(`perm_${role}_${key}`);
-      if(el) account.permissions[key] = !!el.checked;
-    });
-    account.permissions.canManageAdmins = false;
-  } else {
-    Object.assign(account.permissions, DEFAULT_ADMIN_ACCOUNTS.master.permissions);
-  }
-  saveAdminAccounts();
-  renderAdminSettings();
-  applyCopyProtection();
-  alert('تم حفظ الصلاحيات والباسورد');
-}
-
-function escapeHtml(value){
-  return String(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
-
-function isMasterAdmin(){
-  return currentAdminRole === 'master';
-}
-
-function isPersonLocked(personId){
-  return !!(appState && appState.lockedPeople && appState.lockedPeople[personId]);
-}
-
-function getLockedPeopleList(){
-  return Object.keys(appState.lockedPeople || {}).filter(id => people[id]);
-}
-
-function requireMasterForLocked(personId, actionLabel){
-  if (!isPersonLocked(personId)) return false;
-  if (isMasterAdmin()) return false;
-  alert("هذا الاسم أو الفرع مقفل، و" + actionLabel + " متاح للماستر أدمن فقط.");
-  return true;
-}
-
-function requireMasterForLockedParent(parentId, actionLabel){
-  if (!isPersonLocked(parentId)) return false;
-  if (isMasterAdmin()) return false;
-  alert("الأب المحدد مقفل، و" + actionLabel + " متاح للماستر أدمن فقط.");
-  return true;
-}
-
-function saveLockedPeopleState(){
-  appState.lockedPeople = appState.lockedPeople || {};
-  saveState();
-  render(currentPerson);
-  if (!document.getElementById('adminPage')?.classList.contains('hidden')) {
-    showAdminPage();
-    switchAdminTab('adminSettings');
-  }
-}
-
-function lockPersonByAdmin(){
-  if(!hasPermission('canManageAdmins')){ alert('هذه الصلاحية للماستر فقط'); return; }
-  const personId = document.getElementById('lockPersonSelect')?.value;
-  if(!personId || !people[personId]){ alert('اختر الاسم أولًا'); return; }
-  appState.lockedPeople = appState.lockedPeople || {};
-  appState.lockedPeople[personId] = {
-    name: people[personId].name || '',
-    time: new Date().toLocaleString('ar')
-  };
-  logChange('قفل اسم/فرع: ' + (people[personId].name || ''));
-  saveLockedPeopleState();
-  alert('تم قفل الاسم/الفرع');
-}
-
-function unlockPersonByAdmin(personId){
-  if(!hasPermission('canManageAdmins')){ alert('هذه الصلاحية للماستر فقط'); return; }
-  if(!personId || !appState.lockedPeople || !appState.lockedPeople[personId]){ alert('العنصر غير موجود'); return; }
-  const lockedName = people[personId]?.name || appState.lockedPeople[personId]?.name || '';
-  delete appState.lockedPeople[personId];
-  logChange('فك قفل اسم/فرع: ' + lockedName);
-  saveLockedPeopleState();
-  alert('تم فك القفل');
-}
-
-function applyCopyProtection(){
-  const allowCopy = hasPermission('canCopyNames');
-  document.querySelectorAll('.name, .children-item, .hier-card, .lineage-item, #whoAmIProfileCard').forEach(el=>{
-    if(allowCopy){
-      el.classList.remove('protected-name');
-      el.removeAttribute('data-copy-protected');
-    }else{
-      el.classList.add('protected-name');
-      el.setAttribute('data-copy-protected','1');
-    }
-  });
-}
-
-document.addEventListener('copy', function(e){
-  if(hasPermission('canCopyNames')) return;
-  const sel = window.getSelection();
-  const anchor = sel && sel.anchorNode ? sel.anchorNode.parentElement : null;
-  if(anchor && anchor.closest && anchor.closest('[data-copy-protected="1"], .protected-name')){
-    e.preventDefault();
-    alert('نسخ الأسماء متاح فقط للماستر أدمن');
-  }
-});
-
-document.addEventListener('contextmenu', function(e){
-  if(hasPermission('canCopyNames')) return;
-  const target = e.target && e.target.closest ? e.target.closest('.name, .children-item, .hier-card, .lineage-item, #whoAmIProfileCard') : null;
-  if(target){
-    e.preventDefault();
-  }
-}, true);
-
-document.addEventListener('selectstart', function(e){
-  if(hasPermission('canCopyNames')) return;
-  const target = e.target && e.target.closest ? e.target.closest('.name, .children-item, .hier-card, .lineage-item, #whoAmIProfileCard') : null;
-  if(target){
-    e.preventDefault();
-  }
-}, true);
-
-restoreAdminSession();
-setTimeout(applyCopyProtection, 300);
-
-</script>
-
-<style>
-.branch-main-soft{border-top-color:#b89b5e !important; box-shadow:0 8px 24px rgba(184,155,94,.18)!important;}
-.branch-main-soft .name{color:#6f7b5c;}
-.nav-map-box,.gen-summary-box,.feature-box,.relation-visual-box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;box-shadow:var(--shadow);margin-top:10px;}
-.nav-map-box .path-row,.nav-map-box .jump-row,.nav-map-box .main-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px;}
-.nav-map-chip{background:#efe4d5;border:1px solid var(--line);border-radius:999px;padding:7px 10px;cursor:pointer;font-size:13px;}
-.main-branch-badge{background:#eef2e9;color:#58634a;border-color:#cfd7c6;}
-.tag-badge{background:#f8f2e6;color:#8d6f36;border:1px solid #eadab7;}
-.admin-mini-trigger{font-size:12px;min-width:30px;text-align:center;}
-.quick-admin-modal .modal-box{max-width:560px;}
-.timeline-strip{display:grid;gap:8px;}
-.timeline-row{display:grid;grid-template-columns:110px 1fr;gap:10px;align-items:start;}
-.timeline-label{background:#f4efdf;color:#846830;border:1px solid #eadab7;border-radius:999px;padding:6px 10px;text-align:center;font-size:12px;}
-.timeline-members{display:flex;gap:6px;flex-wrap:wrap;}
-.timeline-member{background:#faf5ef;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px;cursor:pointer;}
-.hide-meta .meta{display:none!important;}
-.hide-notes .note-line{display:none!important;}
-.hide-tags .tag-badge,.hide-tags .status-badge{display:none!important;}
-.hide-nav #smartNavMap{display:none!important;}
-.three-mode-wrap{margin-top:12px;}
-.mode-toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:12px;}
-.mode-toolbar button.active{background:var(--gold);color:#fff;}
-.relative-path{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;line-height:2;}
-.relative-node{background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 10px;}
-.relative-arrow{color:var(--gold);font-weight:700;}
-.generation-block{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:10px;}
-.alert-chip{background:#fff6ee;border:1px solid #efd2b5;color:#8a5c2d;border-radius:999px;padding:5px 9px;font-size:12px;display:inline-block;margin:4px 4px 0 0;}
-</style>
-<script>
+  </script>
+<script id="oai-user-fixes-script">
 (function(){
-  function ensureExtraState(){
-    appState.settings = appState.settings || {};
-    const defaults = {
-      showCounts:true, showGeneration:true, showStatuses:true,
-      showNotes:true, showMeta:true, showNavMap:true, showTags:true,
-      showQuickAdmin:true, showMainBranchBadge:true
-    };
-    Object.keys(defaults).forEach(k=>{ if(typeof appState.settings[k] === 'undefined') appState.settings[k] = defaults[k]; });
-    appState.branchTags = appState.branchTags || {};
-    appState.hierarchyMode = appState.hierarchyMode || 'standard';
-    saveState();
-  }
-  ensureExtraState();
-
-  function getSubtreeIds(startId){
-    const out=[];
-    (function walk(id){ if(!people[id]) return; out.push(id); (people[id].children||[]).forEach(walk); })(startId);
-    return out;
-  }
-  function getMainBranchRoot(id){
-    const lineage = getLineage(id);
-    return lineage[1] || id;
-  }
-  function isMainBranchRoot(id){ return getParentId(id) === rootId; }
-  function getBranchTag(id){ return (appState.branchTags||{})[id] || getStatus(id) || ''; }
-  function setBranchTag(id, value){ appState.branchTags = appState.branchTags || {}; if(value) appState.branchTags[id]=value; else delete appState.branchTags[id]; saveState(); }
-  function getGenerationStatsForSubtree(startId){
-    const stats={}; getSubtreeIds(startId).forEach(id=>{ const g = getGeneration(id); stats[g]=(stats[g]||0)+1; }); return stats;
-  }
-  function getDescByGen(startId){
-    const ids = getSubtreeIds(startId); const map={}; ids.forEach(id=>{ const g=getGeneration(id); (map[g]=map[g]||[]).push(id); }); return map;
-  }
-  function computeFamilyStats(){
-    const total = totalPeopleCount();
-    const leaves = Object.keys(people).filter(id => !hasChildren(id)).length;
-    const withChildren = total - leaves;
-    const maxDesc = Object.keys(people).map(id=>({id,count:getDescendantsCount(id)})).sort((a,b)=>b.count-a.count)[0] || {id:null,count:0};
-    const gens = getGenerationStats();
-    const avgChildren = (Object.keys(people).reduce((s,id)=>s+getChildrenCount(id),0) / Math.max(total,1)).toFixed(2);
-    return { total, leaves, withChildren, maxDesc, gens, avgChildren };
-  }
-  function detectAnomalies(){
-    const issues=[];
-    const dup = detectDuplicateNames();
-    if(dup.length) issues.push({type:'تكرار أسماء', text:'يوجد '+dup.length+' عنصرًا ضمن الأسماء المتكررة.'});
-    const noNoteLarge = Object.keys(people).filter(id => getDescendantsCount(id)>=8 && !(people[id].note||'').trim());
-    if(noNoteLarge.length) issues.push({type:'فروع كبيرة بلا ملاحظة', text:'عدد '+noNoteLarge.length+' فرعًا كبيرًا بدون ملاحظة تعريفية.'});
-    const statuslessMain = branchRoots().filter(id => !getBranchTag(id));
-    if(statuslessMain.length) issues.push({type:'فروع رئيسية بدون وسم', text:'عدد '+statuslessMain.length+' من الفروع الرئيسية بلا وسم أو حالة.'});
-    const normalizedGroups = {};
-    Object.keys(people).forEach(id=>{ const n=normalizeArabic(people[id].name); (normalizedGroups[n]=normalizedGroups[n]||[]).push(id); });
-    const possibleMerge = Object.values(normalizedGroups).filter(arr=>arr.length>1).length;
-    if(possibleMerge) issues.push({type:'مرشحات دمج', text:'تم رصد '+possibleMerge+' مجموعة مرشحة للمراجعة/الدمج.'});
-    const emptyRoots = branchRoots().filter(id => !hasChildren(id));
-    if(emptyRoots.length) issues.push({type:'فروع رئيسية ناقصة', text:'عدد '+emptyRoots.length+' من الفروع الرئيسية بدون أبناء مسجلين.'});
-    return issues;
-  }
-  function classifyRequestSmart(r){
-    const txt = [r.child_name||'', r.children_text||'', r.details||''].join(' ');
-    if(/تصحيح|تعديل/.test(txt)) return 'تصحيح';
-    if(/دمج/.test(txt)) return 'دمج';
-    if(/نقل/.test(txt)) return 'نقل';
-    if(/زوج|زوجه/.test(txt)) return 'ربط زوجي';
-    return 'إضافة';
-  }
-  function enhanceTreeUI(){
-    ensureExtraState();
-    const page = document.getElementById('mainPage');
-    if(!page || page.classList.contains('hidden')) return;
-    if(appState.settings.showMeta) page.classList.remove('hide-meta'); else page.classList.add('hide-meta');
-    if(appState.settings.showNotes) page.classList.remove('hide-notes'); else page.classList.add('hide-notes');
-    if(appState.settings.showTags) page.classList.remove('hide-tags'); else page.classList.add('hide-tags');
-    if(appState.settings.showNavMap) page.classList.remove('hide-nav'); else page.classList.add('hide-nav');
-
-    let nav = document.getElementById('smartNavMap');
-    if(!nav){ nav = document.createElement('div'); nav.id='smartNavMap'; nav.className='nav-map-box'; const infoBar=document.getElementById('infoBar'); infoBar.parentNode.insertBefore(nav, infoBar.nextSibling); }
-    const lineage = getLineage(currentPerson||rootId);
-    const mainBranches = branchRoots();
-    nav.innerHTML = `
-      <div><strong>خريطة التنقل</strong></div>
-      <div class="small">الموقع الحالي داخل الشجرة، مع انتقال سريع للأصل والفروع الرئيسية.</div>
-      <div class="path-row">${lineage.map(id=>`<button class="nav-map-chip" onclick="render('${id}')">${people[id].name}</button>`).join('')}</div>
-      <div class="main-row">${mainBranches.map(id=>`<button class="nav-map-chip ${getMainBranchRoot(currentPerson||rootId)===id?'main-branch-badge':''}" onclick="render('${id}')">${people[id].name}</button>`).join('')}</div>
-    `;
-    const cards = document.querySelectorAll('#content .card');
-    cards.forEach(card=>{
-      const onclick = card.getAttribute('onclick')||'';
-      const m = onclick.match(/'([^']+)'/);
-      const id = m && m[1]; if(!id || !people[id]) return;
-      if(isMainBranchRoot(id) || getDescendantsCount(id) >= 10){ if(appState.settings.showMainBranchBadge) card.classList.add('branch-main-soft'); }
-      const badges = card.querySelector('.badges');
-      if(badges){
-        if(appState.settings.showMainBranchBadge && (isMainBranchRoot(id) || getDescendantsCount(id) >= 10) && !badges.querySelector('.js-main-branch')){
-          const el=document.createElement('div'); el.className='small-badge main-branch-badge js-main-branch'; el.textContent='فرع رئيسي'; badges.appendChild(el);
-        }
-        const tag = getBranchTag(id);
-        if(appState.settings.showTags && tag && !badges.querySelector('.js-tag-badge')){
-          const el=document.createElement('div'); el.className='small-badge tag-badge js-tag-badge'; el.textContent=tag; badges.appendChild(el);
-        }
-        if(appState.settings.showQuickAdmin && !badges.querySelector('.js-quick-admin')){
-          const el=document.createElement('div'); el.className='small-badge admin-mini-trigger js-quick-admin'; el.textContent='⚙️'; el.onclick=function(e){e.stopPropagation(); openMiniAdminFor(id);} ; badges.appendChild(el);
-        }
-      }
-      const meta = card.querySelector('.meta');
-      if(meta){
-        meta.innerHTML = meta.innerHTML.replace(/ملاحظة:/g, '<span class="note-line">ملاحظة:</span>');
-      }
-    });
-  }
-
-  function enhancePersonPageUI(){
-    const page = document.getElementById('personPage');
-    if(!page || page.classList.contains('hidden')) return;
-    const selected = (location.search.match(/person=([^&]+)/)||[])[1];
-    let id = selected && people[selected] ? selected : null;
-    if(!id){
-      const btn = page.querySelector('button[onclick*="showHierarchyPage("]');
-      const m = btn && btn.getAttribute('onclick').match(/'([^']+)'/); id = m && m[1];
-    }
-    if(!id || !people[id]) return;
-    let holder = document.getElementById('personExtraMeta');
-    if(!holder){ holder = document.createElement('div'); holder.id='personExtraMeta'; holder.className='nav-map-box'; page.querySelector('.person-page')?.prepend(holder); }
-    const mainRoot = getMainBranchRoot(id);
-    const genMap = getGenerationStatsForSubtree(id);
-    holder.innerHTML = `
-      <div><strong>ملخص الفرع</strong></div>
-      <div class="small">الفرع الرئيسي: ${people[mainRoot]?.name || '-'}${getBranchTag(id)?' — الوسم: '+getBranchTag(id):''}</div>
-      <div class="path-row">
-        <button class="nav-map-chip" onclick="render('${id}');showTreePage()">فتح داخل الشجرة</button>
-        <button class="nav-map-chip" onclick="showHierarchyPage('${id}')">عرض هرمي</button>
-        <button class="nav-map-chip" onclick="copyDirectPersonLink('${id}','person')">نسخ رابط الصفحة</button>
-        <button class="nav-map-chip" onclick="openMiniAdminFor('${id}')">إدارة سريعة</button>
-      </div>
-      <div class="small" style="margin-top:8px;">أفراد هذا الفرع: ${getDescendantsCount(id)+1} — الأجيال داخله: ${Object.keys(genMap).length}</div>
-    `;
-  }
-
-  function renderHierarchyModePanel(){
-    const page = document.getElementById('hierarchyPage');
-    if(!page || page.classList.contains('hidden')) return;
-    const selected = (hierarchyTrail && hierarchyTrail[hierarchyTrail.length-1]) || rootId;
-    let wrap = document.getElementById('hierarchyModesWrap');
-    if(!wrap){ wrap = document.createElement('div'); wrap.id='hierarchyModesWrap'; wrap.className='three-mode-wrap'; page.querySelector('.hierarchy-box')?.appendChild(wrap); }
-    const modes = [
-      {key:'standard', label:'المتدرج'},
-      {key:'lineage', label:'تسلسل النسل'},
-      {key:'generations', label:'حسب الأجيال'}
-    ];
-    const mode = appState.hierarchyMode || 'standard';
-    let body = '';
-    if(mode === 'lineage'){
-      const ids = getSubtreeIds(selected).slice(0,120);
-      body = `<div class="list-box">${ids.map(id=>`<div class="list-item">${people[id].name} <span class="small">— الجيل ${getGeneration(id)}</span></div>`).join('')}</div>`;
-    }else if(mode === 'generations'){
-      const byGen = getDescByGen(selected);
-      body = Object.keys(byGen).sort((a,b)=>a-b).map(g=>`<div class="generation-block"><strong>الجيل ${g}</strong><div class="timeline-members">${byGen[g].slice(0,40).map(id=>`<button class="timeline-member" onclick="showPersonPage('${id}')">${people[id].name}</button>`).join('')}</div></div>`).join('');
-    }else{
-      body = `<div class="small" style="text-align:center;">هذا هو العرض الهرمي المتدرج الحالي.</div>`;
-    }
-    wrap.innerHTML = `<div class="mode-toolbar">${modes.map(m=>`<button class="btn-soft ${mode===m.key?'active':''}" onclick="setHierarchyMode('${m.key}')">${m.label}</button>`).join('')}</div><div class="feature-box">${body}</div>`;
-  }
-  window.setHierarchyMode = function(mode){ appState.hierarchyMode = mode; saveState(); renderHierarchyModePanel(); };
-
-  function verifyAdminPasswordRaw(password){
-    const accounts = typeof getAdminAccounts === 'function' ? getAdminAccounts() : (appState.adminAccounts||{});
-    for(const key in accounts){ const acc = accounts[key]||{}; if(acc.enabled !== false && acc.password === password) return {key, acc}; }
-    return null;
-  }
-  function ensureMiniAdminModal(){
-    if(document.getElementById('quickAdminModal')) return;
-    const div = document.createElement('div');
-    div.id = 'quickAdminModal'; div.className='modal quick-admin-modal';
-    div.innerHTML = `
-      <div class="modal-box">
-        <div class="modal-title">إدارة خفيفة للفرع</div>
-        <div class="modal-text" id="quickAdminIntro">أدخل كلمة المرور ثم نفذ التعديل السريع لهذا الفرع.</div>
-        <div class="note-form">
-          <input class="field" id="quickAdminPassword" type="password" placeholder="كلمة المرور" />
-          <div id="quickAdminAfterAuth" class="hidden">
-            <div class="small" id="quickAdminTargetName" style="margin-bottom:8px;"></div>
-            <input class="field" id="quickAdminRename" placeholder="تعديل الاسم" />
-            <input class="field" id="quickAdminAddChild" placeholder="إضافة ابن/ابنة جديدة" />
-            <select class="field" id="quickAdminTag"><option value="">بدون وسم</option><option>مكتمل</option><option>يحتاج مراجعة</option><option>مؤكد</option><option>شفهي</option></select>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
-              <button class="btn-main" onclick="quickAdminSave()">حفظ سريع</button>
-              <button class="btn-soft" onclick="quickAdminToggleLock()">قفل/فك قفل</button>
-              <button class="btn-danger" onclick="quickAdminDeleteLeaf()">حذف إذا بلا أبناء</button>
-            </div>
-          </div>
-        </div>
-        <div class="modal-actions" style="margin-top:12px;">
-          <button class="btn-soft" onclick="closeQuickAdminModal()">إغلاق</button>
-          <button class="btn-main" id="quickAdminAuthBtn" onclick="quickAdminAuth()">تحقق</button>
-        </div>
-      </div>`;
-    document.body.appendChild(div);
-  }
-  let quickAdminTargetId = null; let quickAdminRole = null;
-  window.openMiniAdminFor = function(id){ ensureMiniAdminModal(); quickAdminTargetId = id; quickAdminRole = null; document.getElementById('quickAdminPassword').value=''; document.getElementById('quickAdminAfterAuth').classList.add('hidden'); document.getElementById('quickAdminTargetName').textContent='الفرع: '+(people[id]?.name||''); document.getElementById('quickAdminRename').value=people[id]?.name||''; document.getElementById('quickAdminAddChild').value=''; document.getElementById('quickAdminTag').value=getBranchTag(id)||''; document.getElementById('quickAdminModal').classList.add('active'); };
-  window.closeQuickAdminModal = function(){ document.getElementById('quickAdminModal')?.classList.remove('active'); };
-  window.quickAdminAuth = function(){ const pass = document.getElementById('quickAdminPassword').value; const res = verifyAdminPasswordRaw(pass); if(!res){ alert('كلمة المرور غير صحيحة'); return; } quickAdminRole = res.key; document.getElementById('quickAdminAfterAuth').classList.remove('hidden'); };
-  function canQuickModify(){ return !!quickAdminRole; }
-  window.quickAdminSave = function(){ if(!canQuickModify() || !quickAdminTargetId || !people[quickAdminTargetId]) return; const newName = document.getElementById('quickAdminRename').value.trim(); const childName = document.getElementById('quickAdminAddChild').value.trim(); const tag = document.getElementById('quickAdminTag').value.trim(); const oldName = people[quickAdminTargetId].name; if(newName && newName !== oldName){ people[quickAdminTargetId].name = newName; addArchive('تعديل سريع للاسم: '+oldName+' ← '+newName); }
-    if(childName){ const id = createPersonNode(childName); people[quickAdminTargetId].children.push(id); addArchive('إضافة سريعة تحت '+people[quickAdminTargetId].name+' : '+childName); }
-    setBranchTag(quickAdminTargetId, tag); saveState(); render(currentPerson); if(currentView==='admin') showAdminPage('add'); closeQuickAdminModal(); };
-  window.quickAdminToggleLock = function(){ if(!canQuickModify() || !quickAdminTargetId) return; appState.lockedPeople = appState.lockedPeople || {}; if(appState.lockedPeople[quickAdminTargetId]) delete appState.lockedPeople[quickAdminTargetId]; else appState.lockedPeople[quickAdminTargetId] = {name: people[quickAdminTargetId].name, time:new Date().toLocaleString('ar')}; saveState(); render(currentPerson); closeQuickAdminModal(); };
-  window.quickAdminDeleteLeaf = function(){ if(!canQuickModify() || !quickAdminTargetId) return; if(hasChildren(quickAdminTargetId)){ alert('لا يمكن الحذف السريع إلا إذا كان الاسم بلا أبناء'); return; } const p = getParentId(quickAdminTargetId); if(!p) return alert('لا يمكن حذف الجذر'); people[p].children = (people[p].children||[]).filter(x=>x!==quickAdminTargetId); delete people[quickAdminTargetId]; addArchive('حذف سريع لاسم بلا أبناء'); saveState(); render(currentPerson); closeQuickAdminModal(); };
-
-  function buildRelationVisual(idA,idB){
-    const r = relationBetween(idA,idB);
-    const chainA = r.pathA || []; const chainB = r.pathB || [];
-    const full = [...chainA.slice().reverse(), ...chainB.slice(1)];
-    return `<div class="relative-path">${full.map((id,idx)=>`<span class="relative-node" onclick="showPersonPage('${id}')">${people[id].name}</span>${idx<full.length-1?'<span class="relative-arrow">←</span>':''}`).join('')}</div>`;
-  }
-
-  function injectAdminEnhancements(){
-    const admin = document.getElementById('adminPage'); if(!admin || admin.classList.contains('hidden')) return; ensureExtraState();
-
-    // settings extended
-    const settingsBox = admin.querySelector('#admin-settings .subbox .note-form');
-    if(settingsBox && !document.getElementById('setShowNotes')){
-      settingsBox.insertAdjacentHTML('beforeend', `
-        <label><input type="checkbox" id="setShowNotes" ${appState.settings.showNotes?'checked':''}> إظهار الملاحظات</label>
-        <label><input type="checkbox" id="setShowMeta" ${appState.settings.showMeta?'checked':''}> إظهار تفاصيل البطاقات</label>
-        <label><input type="checkbox" id="setShowNavMap" ${appState.settings.showNavMap?'checked':''}> إظهار خريطة التنقل</label>
-        <label><input type="checkbox" id="setShowTags" ${appState.settings.showTags?'checked':''}> إظهار الأوسمة</label>
-        <label><input type="checkbox" id="setShowQuickAdmin" ${appState.settings.showQuickAdmin?'checked':''}> إظهار أيقونة الإدارة الخفيفة</label>
-        <label><input type="checkbox" id="setShowMainBranchBadge" ${appState.settings.showMainBranchBadge?'checked':''}> تمييز الفروع الرئيسية</label>
-      `);
-    }
-
-    // family stats / timeline
-    const statsSection = admin.querySelector('#admin-stats');
-    if(statsSection && !document.getElementById('familyStatsExtraBox')){
-      const stats = computeFamilyStats();
-      const issues = detectAnomalies();
-      const box = document.createElement('div'); box.id='familyStatsExtraBox'; box.className='admin-grid'; box.style.marginTop='14px';
-      box.innerHTML = `
-        <div class="subbox">
-          <h3>محرك الإحصائيات العائلية</h3>
-          <div class="meta">
-            إجمالي الأفراد: <strong>${stats.total}</strong><br>
-            من لديهم أبناء: <strong>${stats.withChildren}</strong><br>
-            الأوراق النهائية: <strong>${stats.leaves}</strong><br>
-            متوسط عدد الأبناء المباشرين: <strong>${stats.avgChildren}</strong><br>
-            أكبر فرع: <strong>${stats.maxDesc.id ? people[stats.maxDesc.id].name : '-'}</strong> — ${stats.maxDesc.count} ذرية
-          </div>
-        </div>
-        <div class="subbox">
-          <h3>شجرة زمنية حسب الأجيال</h3>
-          <div class="timeline-strip">${Object.keys(stats.gens).sort((a,b)=>a-b).map(g=>`<div class="timeline-row"><div class="timeline-label">الجيل ${g}</div><div class="timeline-members">${Object.keys(people).filter(id=>getGeneration(id)==g).slice(0,20).map(id=>`<button class="timeline-member" onclick="showPersonPage('${id}')">${people[id].name}</button>`).join('')}</div></div>`).join('')}</div>
-        </div>`;
-      statsSection.appendChild(box);
-
-      const anomalies = document.createElement('div'); anomalies.id='anomalyExtraBox'; anomalies.className='subbox'; anomalies.style.marginTop='14px';
-      anomalies.innerHTML = `<h3>محرك كشف التكرار والتضارب والفروع الناقصة</h3><div>${issues.length ? issues.map(x=>`<span class="alert-chip">${x.type}: ${x.text}</span>`).join('') : '<div class="meta">لا توجد ملاحظات بارزة حاليًا.</div>'}</div>`;
-      admin.querySelector('#admin-duplicates')?.appendChild(anomalies);
-    }
-
-    // relation visual and comparative selectors
-    const rel = admin.querySelector('#relationResult');
-    if(rel && !document.getElementById('relationVisualHint')){
-      const hint = document.createElement('div'); hint.id='relationVisualHint'; hint.className='top-note'; hint.textContent='سيظهر هنا أيضًا مسار بصري مباشر بين الاسمين بعد الضغط على إظهار الصلة.'; rel.parentNode.insertBefore(hint, rel);
-    }
-
-    // smart request labels
-    admin.querySelectorAll('.request-item').forEach(item=>{
-      if(item.querySelector('.js-smart-type')) return;
-      const id = Number(item.getAttribute('data-request-id')); const req = (currentAdminRequests||[]).find(r=>Number(r.id)===id); if(!req) return;
-      const type = classifyRequestSmart(req);
-      const top = item.querySelector('strong');
-      if(top){ const span = document.createElement('span'); span.className='small-badge tag-badge js-smart-type'; span.style.marginInlineStart='6px'; span.textContent=type; top.after(span); }
-    });
-
-    // smart linking live helpers
-    const addInput = document.getElementById('adminNewName');
-    if(addInput && !document.getElementById('adminNewNameHints')){
-      const box = document.createElement('div'); box.id='adminNewNameHints'; box.className='top-note'; addInput.insertAdjacentElement('afterend', box);
-      addInput.addEventListener('input', ()=>{
-        const q = addInput.value.trim(); if(!q){ box.innerHTML=''; return; }
-        const exact = detectDuplicateNames().filter(x=>normalizeArabic(x.name)===normalizeArabic(q)).slice(0,5);
-        const sug = suggestParentForName(q);
-        box.innerHTML = `اقتراحات الربط: ${sug.map(s=>`<span class="alert-chip">${s.name}</span>`).join('') || 'لا يوجد'} ${exact.length?'<br>تنبيه تكرار: '+exact.map(x=>`<span class="alert-chip">${x.name}</span>`).join(''):''}`;
-      });
-    }
-
-    // branch tags manager under add/settings
-    const addSection = admin.querySelector('#admin-add');
-    if(addSection && !document.getElementById('branchTagsManagerBox')){
-      const box = document.createElement('div'); box.id='branchTagsManagerBox'; box.className='subbox'; box.style.marginTop='14px';
-      box.innerHTML = `
-        <h3>نظام وسوم الفروع</h3>
-        <div class="note-form">
-          <select class="field" id="branchTagPersonSelect">${Object.keys(people).map(id=>`<option value="${id}">${people[id].name}</option>`).join('')}</select>
-          <select class="field" id="branchTagValueSelect"><option value="">بدون وسم</option><option>مكتمل</option><option>يحتاج مراجعة</option><option>مؤكد</option><option>شفهي</option></select>
-          <button class="btn-main" onclick="saveBranchTagFromPanel()">حفظ الوسم</button>
-          <div id="branchTagList" class="list-box"></div>
-        </div>`;
-      addSection.appendChild(box);
-      window.saveBranchTagFromPanel = function(){ const id=document.getElementById('branchTagPersonSelect').value; const v=document.getElementById('branchTagValueSelect').value; setBranchTag(id,v); addArchive('تحديث وسم الفرع: '+people[id].name+' → '+(v||'بدون وسم')); injectAdminEnhancements(); render(currentPerson); };
-    }
-    const tagList = document.getElementById('branchTagList');
-    if(tagList){ tagList.innerHTML = Object.keys(appState.branchTags||{}).length ? Object.keys(appState.branchTags).map(id=>`<div class="list-item">${people[id]?.name || id} — ${appState.branchTags[id]}</div>`).join('') : '<div class="list-item">لا توجد وسوم محفوظة بعد.</div>'; }
-  }
-
-  const _saveDisplaySettings = window.saveDisplaySettings;
-  window.saveDisplaySettings = function(){
-    appState.settings.showCounts = document.getElementById('setShowCounts')?.checked ?? true;
-    appState.settings.showGeneration = document.getElementById('setShowGeneration')?.checked ?? true;
-    appState.settings.showStatuses = document.getElementById('setShowStatuses')?.checked ?? true;
-    appState.settings.showNotes = document.getElementById('setShowNotes')?.checked ?? true;
-    appState.settings.showMeta = document.getElementById('setShowMeta')?.checked ?? true;
-    appState.settings.showNavMap = document.getElementById('setShowNavMap')?.checked ?? true;
-    appState.settings.showTags = document.getElementById('setShowTags')?.checked ?? true;
-    appState.settings.showQuickAdmin = document.getElementById('setShowQuickAdmin')?.checked ?? true;
-    appState.settings.showMainBranchBadge = document.getElementById('setShowMainBranchBadge')?.checked ?? true;
-    saveState(); addArchive('تعديل إعدادات العرض المتقدمة'); render(currentPerson); showAdminPage('settings');
-  };
-
-  const _showAdminPage = window.showAdminPage;
-  window.showAdminPage = async function(requestedTab){ await _showAdminPage(requestedTab); setTimeout(injectAdminEnhancements,0); };
-  const _render = window.render;
-  window.render = function(id){ _render(id); setTimeout(enhanceTreeUI,0); };
-  const _renderSearchResults = window.renderSearchResults;
-  window.renderSearchResults = function(keyword){ _renderSearchResults(keyword); setTimeout(enhanceTreeUI,0); };
-  const _showPersonPage = window.showPersonPage;
-  window.showPersonPage = function(id,pushHash){ _showPersonPage(id,pushHash); setTimeout(enhancePersonPageUI,0); };
-  const _showHierarchyPage = window.showHierarchyPage;
-  window.showHierarchyPage = function(startId,pushHash){ _showHierarchyPage(startId,pushHash); setTimeout(renderHierarchyModePanel,0); };
-  const _runSuggestParent = window.runSuggestParent;
-  window.runSuggestParent = function(){
-    const q = document.getElementById('suggestNameInput').value.trim();
-    const box = document.getElementById('suggestParentResult'); if(!q){ box.innerHTML=''; return; }
-    const sug = suggestParentForName(q);
-    const dup = Object.values(people).filter(p=>normalizeArabic(p.name)===normalizeArabic(q)).slice(0,10);
-    box.innerHTML = `<div class="list-box" style="margin-top:10px;">${sug.map(r=>`<div class="list-item">اقتراح ربط: ${r.name}</div>`).join('') || '<div class="list-item">لا توجد اقتراحات ربط.</div>'}${dup.length?dup.map(p=>`<div class="list-item">تنبيه: الاسم موجود سابقًا — ${p.name}</div>`).join(''):''}</div>`;
-  };
-  const _runRelation = window.runRelation;
-  window.runRelation = function(){
-    const a = document.getElementById('relationA').value; const b = document.getElementById('relationB').value; if(!a||!b) return; const r = relationBetween(a,b); const box = document.getElementById('relationResult'); box.innerHTML = `<div class="relation-visual-box"><div class="small">الأصل المشترك الأقرب: <strong>${r.common ? people[r.common].name : 'غير معروف'}</strong></div>${buildRelationVisual(a,b)}</div>`; };
-
-  document.addEventListener('DOMContentLoaded', function(){ ensureMiniAdminModal(); setTimeout(()=>{ try{ enhanceTreeUI(); }catch(e){} }, 200); });
+const ADMIN_ACCOUNTS={master:{password:"Mmujaini34",label:"Master Key",roleName:"المالك الرئيسي"},manager:{password:"Mujaini121",label:"Manager",roleName:"مدير"},editor:{password:"Mujaini323",label:"Editor",roleName:"محرر"},reviewer:{password:"Mujaini434",label:"Reviewer",roleName:"مراجع"}};
+let currentAdminSession=null, relationSourceId=null, relationSelectedId=null, relationPickerNode=null;
+function ensureExtraUI(){if(!document.getElementById('relationPickerModal')){const div=document.createElement('div');div.className='modal';div.id='relationPickerModal';div.innerHTML=`<div class="modal-box" style="max-width:560px;"><div class="modal-title">اختيار الشخص الثاني</div><div class="modal-text" id="relationPickerIntro"></div><div class="picker-header"><button class="btn-soft" type="button" onclick="relationPickerGoRoot()">الجذر</button><div id="relationPickerPath" class="small"></div></div><div id="relationPickerList" class="picker-list"></div><div class="modal-actions" style="margin-top:12px;grid-template-columns:1fr 1fr;"><button class="btn-soft" type="button" onclick="closeRelationPicker()">إلغاء</button><button class="btn-main" type="button" onclick="confirmRelationPick()">تأكيد</button></div></div>`;document.body.appendChild(div)}if(!document.getElementById('relationPage')){const page=document.createElement('div');page.className='page hidden';page.id='relationPage';document.body.appendChild(page)}}
+function compactLineageText(id){const path=getLineage(id).slice().reverse();const names=path.map(pid=>(people[pid]?.name||'').trim().split(/\s+/)[0]).filter(Boolean);const cleaned=[];names.forEach(n=>{if(cleaned[cleaned.length-1]!==n) cleaned.push(n)});if(!cleaned.length) return '';let result=cleaned[0];if(cleaned.length>=2) result+=(inferGender(id)==='f'?' بنت ':' بن ')+cleaned[1];for(let i=2;i<cleaned.length;i++) result+=' بن '+cleaned[i];return result}
+function relationLabel(fromId,toId){if(fromId===toId) return 'أنت هو';const fromLine=getLineage(fromId).slice().reverse(), toLine=getLineage(toId).slice().reverse();const fromMap=new Map(fromLine.map((x,i)=>[x,i])), toMap=new Map(toLine.map((x,i)=>[x,i]));if(fromMap.has(toId)){const d=fromMap.get(toId);if(d===1) return inferGender(toId)==='f'?'أمك':'أبوك';if(d===2) return inferGender(toId)==='f'?'جدتك':'جدك';return inferGender(toId)==='f'?'من جداتك':'من أجدادك'}if(toMap.has(fromId)){const d=toMap.get(fromId);if(d===1) return inferGender(toId)==='f'?'بنتك':'ابنك';if(d===2) return inferGender(toId)==='f'?'حفيدتك':'حفيدك';return inferGender(toId)==='f'?'من حفيداتك':'من أحفادك'}const p1=getParentId(fromId),p2=getParentId(toId);if(p1&&p1===p2) return inferGender(toId)==='f'?'أختك':'أخوك';if(p1){const gp1=getParentId(p1);if(gp1&&getParentId(toId)===gp1){if(inferGender(p1)==='f') return inferGender(toId)==='f'?'خالتك':'خالك';return inferGender(toId)==='f'?'عمتك':'عمك'}}if(p1&&p2&&getParentId(p1)&&getParentId(p1)===getParentId(p2)) return 'قريبك';let common=null;for(const id of fromLine){if(toMap.has(id)){common=id;break}}if(common) return 'تلتقون عند '+people[common].name;return 'قريبك'}
+function renderActionGrid(id){return `<div class="action-grid"><div class="action-btn gen" onclick="event.stopPropagation();">${generationLabelShort(getGeneration(id))}</div><div class="action-btn" onclick="event.stopPropagation(); openWhoAmIForPerson('${id}')">من؟</div><div class="action-btn" onclick="event.stopPropagation(); openLineageModal('${id}')">هرم</div><div class="action-btn rel" onclick="event.stopPropagation(); openRelationPicker('${id}')">صلة</div><div class="action-btn" onclick="event.stopPropagation(); openAddRequestModal('${id}')">＋</div><div class="action-btn" onclick="event.stopPropagation(); openInlineAdmin('${id}')">⚙</div></div>`}
+window.openInlineAdmin=function(id){if(!currentAdminSession){openAdminPassword();return}showAdminPage()};
+window.renderCard=function(id){const child=people[id],directChildren=getChildrenCount(id);return `<div class="card ${((child.children||[]).length?'':'no-children')}" onclick="handleClick('${id}')"><div class="name-row"><div class="name">${child.name}${appState.settings.showCounts?` (${directChildren})`:''}</div></div>${child.note?`<div class="meta">ملاحظة: ${child.note}</div>`:''}${renderActionGrid(id)}</div>`};
+window.render=function(id){showTreePage();currentPerson=id;document.getElementById('title').textContent=people[id].name;document.getElementById('title').classList.add('title-clickable');document.getElementById('title').onclick=function(){if(id!==rootId) handleClick(rootId)};renderInfoBar(id);const bc=document.getElementById('breadcrumb');if(bc){bc.innerHTML='';bc.style.display='none'}const qb=document.getElementById('quickBranches');if(qb){qb.innerHTML='';qb.style.display='none'}const content=document.getElementById('content');const children=people[id].children||[];if(!children.length){content.className='cards';content.innerHTML=`<div class="card no-children"><div class="name-row"><div class="name">${people[id].name}</div></div><div class="meta">لا توجد أسماء أبناء مسجلة حاليًا لهذا الفرع.</div>${renderActionGrid(id)}</div>`;return}content.className='cards';content.innerHTML=children.map(childId=>renderCard(childId)).join('')};
+window.handleClick=function(id){currentView='tree';currentPerson=id;historyStack.push(id);history.pushState({personId:id},'', '#'+id);render(id)};
+window.renderQuickBranches=function(){const box=document.getElementById('quickBranches');if(box){box.innerHTML='';box.style.display='none'}};window.renderBreadcrumb=function(){const b=document.getElementById('breadcrumb');if(b){b.innerHTML='';b.style.display='none'}};
+window.renderSearchResults=function(keyword){const results=[];for(const key in people){const person=people[key];const score=scoreNameOnlySearch(keyword,person.name);if(score>=60) results.push({id:key,score})}results.sort((a,b)=>b.score-a.score);showTreePage();document.getElementById('title').textContent='نتائج البحث';renderBreadcrumb();renderQuickBranches();document.getElementById('infoBar').innerHTML='عدد النتائج: <strong>'+results.length+'</strong>';document.getElementById('content').innerHTML=results.length?results.map(r=>renderCard(r.id)).join(''):'<div class="card"><div class="meta">لا توجد نتائج مطابقة.</div></div>'};
+window.openLineageModal=function(id){document.getElementById('lineageModalBody').innerHTML=`<div class="lineage-chain"><div class="lineage-item">${compactLineageText(id)}</div></div>`;document.getElementById('lineageModal').classList.add('active')};
+window.openRelationPicker=function(id){ensureExtraUI();relationSourceId=id;relationSelectedId=null;relationPickerNode=rootId;renderRelationPicker();document.getElementById('relationPickerModal').classList.add('active')};window.closeRelationPicker=function(){document.getElementById('relationPickerModal').classList.remove('active')};window.relationPickerGoRoot=function(){relationPickerNode=rootId;renderRelationPicker()};window.relationPickerOpenNode=function(id){relationPickerNode=id;renderRelationPicker()};window.relationPickerSelect=function(id){relationSelectedId=id;renderRelationPicker()};
+function renderRelationPicker(){document.getElementById('relationPickerIntro').textContent='الاسم الأول: '+people[relationSourceId].name;document.getElementById('relationPickerPath').textContent='المستوى الحالي: '+people[relationPickerNode].name;const ids=[relationPickerNode].concat(people[relationPickerNode].children||[]);document.getElementById('relationPickerList').innerHTML=ids.map(id=>{const disabled=id===relationSourceId?'disabled':'';const txt=relationSelectedId===id?'✓ مختار':'اختيار';return `<div class="picker-item"><div class="picker-item-name">${people[id].name}</div><button class="picker-btn picker-open" onclick="relationPickerOpenNode('${id}')">فتح</button><button class="picker-btn picker-select" ${disabled} onclick="relationPickerSelect('${id}')">${txt}</button></div>`}).join('')}
+window.confirmRelationPick=function(){if(!relationSelectedId){alert('اختر الاسم الثاني أولاً');return}closeRelationPicker();showRelationPage(relationSourceId,relationSelectedId)};
+function showRelationPage(id1,id2){hideAllPages();ensureExtraUI();const page=document.getElementById('relationPage'),rel=relationLabel(id1,id2);page.classList.remove('hidden');page.innerHTML=`<div class="whoami-bg panel" style="padding:14px;"><div class="relation-card"><h2>صلة القرابة</h2><div><strong>أنت:</strong> ${compactLineageText(id1)}</div><div><strong>الشخص الثاني:</strong> ${compactLineageText(id2)}</div><div class="rel-big">${rel}</div><div>${people[id1].name} تقرب إلى ${people[id2].name} بأنه/بأنها: <strong>${rel}</strong></div><div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;"><button class="btn-main" onclick="showTreePage(); render('${id1}')">الرجوع للشجرة</button><button class="btn-soft" onclick="openRelationPicker('${id1}')">اختيار اسم آخر</button></div></div></div>`}
+window.openAdminPassword=function(){document.getElementById('adminPasswordInput').value='';document.getElementById('adminPasswordModal').classList.add('active')};window.closeAdminPassword=function(){document.getElementById('adminPasswordModal').classList.remove('active')};window.enterAdmin=function(){const pwd=document.getElementById('adminPasswordInput').value.trim();const found=Object.entries(ADMIN_ACCOUNTS).find(entry=>entry[1].password===pwd);if(!found){alert('كلمة المرور غير صحيحة');return}currentAdminSession={key:found[0],label:found[1].label,roleName:found[1].roleName};closeAdminPassword();showAdminPage()};
+document.addEventListener('DOMContentLoaded',function(){ensureExtraUI();const qb=document.getElementById('quickBranches');if(qb) qb.remove();const bc=document.getElementById('breadcrumb');if(bc) bc.style.display='none'})
 })();
 </script>
 </body>
-</html>
