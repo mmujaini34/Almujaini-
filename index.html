@@ -1,214 +1,8 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-
-function deepClone(obj){
-  return JSON.parse(JSON.stringify(obj));
-}
-
-function loadAdminAccounts(){
-  try{
-    const saved = JSON.parse(localStorage.getItem(ADMIN_ACCOUNTS_KEY) || 'null');
-    if(!saved || typeof saved !== 'object') return deepClone(DEFAULT_ADMIN_ACCOUNTS);
-    const merged = deepClone(DEFAULT_ADMIN_ACCOUNTS);
-    Object.keys(merged).forEach(role=>{
-      if(saved[role]){
-        merged[role].password = saved[role].password || merged[role].password;
-        merged[role].label = saved[role].label || merged[role].label;
-        merged[role].permissions = Object.assign({}, merged[role].permissions, saved[role].permissions || {});
-      }
-    });
-    return merged;
-  }catch(e){
-    return deepClone(DEFAULT_ADMIN_ACCOUNTS);
-  }
-}
-
-function saveAdminAccounts(){
-  localStorage.setItem(ADMIN_ACCOUNTS_KEY, JSON.stringify(adminAccounts));
-}
-
-function getCurrentAdminAccount(){
-  return currentAdminRole ? adminAccounts[currentAdminRole] : null;
-}
-
-function hasPermission(permissionKey){
-  const account = getCurrentAdminAccount();
-  return !!(account && account.permissions && account.permissions[permissionKey]);
-}
-
-function persistAdminSession(){
-  if(!currentAdminRole) return;
-  localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify({ role: currentAdminRole }));
-}
-
-function restoreAdminSession(){
-  try{
-    const session = JSON.parse(localStorage.getItem(ADMIN_SESSION_KEY) || 'null');
-    if(session && session.role && adminAccounts[session.role]){
-      currentAdminRole = session.role;
-    }
-  }catch(e){}
-}
-
-function logoutAdmin(){
-  currentAdminRole = null;
-  localStorage.removeItem(ADMIN_SESSION_KEY);
-  applyCopyProtection();
-  closeAdminPage();
-}
-
-function getRoleByPassword(password){
-  return Object.keys(adminAccounts).find(role => adminAccounts[role].password === password) || null;
-}
-
-function enterAdmin(){
-  const input = document.getElementById('adminPasswordInput');
-  const password = (input?.value || '').trim();
-  const role = getRoleByPassword(password);
-  if(!role){ alert('كلمة المرور غير صحيحة'); return; }
-  currentAdminRole = role;
-  persistAdminSession();
-  if(input) input.value = '';
-  closeAdminPassword();
-  applyCopyProtection();
-  showAdminPage();
-}
-
-function closeAdminPage(){
-  document.getElementById('adminPage')?.classList.add('hidden');
-  document.getElementById('mainPage')?.classList.remove('hidden');
-}
-
-function showAdminPage(){
-  document.getElementById('mainPage')?.classList.add('hidden');
-  document.getElementById('aboutPage')?.classList.add('hidden');
-  document.getElementById('personPage')?.classList.add('hidden');
-  document.getElementById('hierarchyPage')?.classList.add('hidden');
-  document.getElementById('whoAmIProfilePage')?.classList.add('hidden');
-  document.getElementById('adminPage')?.classList.remove('hidden');
-  renderAdminSettings();
-  switchAdminTab(hasPermission('canManageAdmins') ? 'adminSettings' : 'adminPeople');
-}
-
-function switchAdminTab(tabId){
-  document.querySelectorAll('#adminPage .admin-section').forEach(sec=>sec.classList.remove('active'));
-  const target = document.getElementById(tabId);
-  if(target) target.classList.add('active');
-}
-
-function renderAdminSettings(){
-  const box = document.getElementById('adminSettings');
-  const btn = document.getElementById('adminTabSettingsBtn');
-  if(!box) return;
-  if(!hasPermission('canManageAdmins')){
-    box.innerHTML = '<div class="subbox"><h3>صلاحيات الإدارة</h3><div class="top-note">هذه الصفحة متاحة للماستر أدمن فقط.</div></div>';
-    if(btn) btn.style.display='none';
-    return;
-  }
-  if(btn) btn.style.display='inline-block';
-  const permissionLabels = {
-    canOpenAdmin:'فتح الإدارة',
-    canManagePeople:'إدارة الأسماء',
-    canManageRequests:'إدارة الطلبات',
-    canManageMessages:'إدارة الرسائل',
-    canViewAuditLog:'عرض السجل',
-    canSearchAdmin:'البحث الإداري',
-    canCopyNames:'نسخ الأسماء',
-    canManageAdmins:'إدارة كلمات المرور والصلاحيات'
-  };
-  let html = '<div class="subbox"><h3>إدارة كلمات المرور والصلاحيات</h3><div class="top-note">من هنا يقدر الماستر أدمن يغير باسورد أي مستوى، ويزيد أو يقلل صلاحياته مستقبلًا. صلاحية إدارة المشرفين تبقى للماستر فقط.</div><div class="admin-settings-grid">';
-  const lockedPeopleRows = getLockedPeopleList().map(id=>{
-    const item = appState.lockedPeople[id] || {};
-    return `<div class="list-item"><strong>${escapeHtml(people[id]?.name || item.name || id)}</strong><br><span class="small">وقت القفل: ${escapeHtml(item.time || '')}</span><div style="margin-top:8px;"><button class="btn-soft" onclick="unlockPersonByAdmin('${id}')">فك القفل</button></div></div>`;
-  }).join('') || '<div class="list-item">لا توجد أسماء أو فروع مقفلة حاليًا.</div>';
-
-  Object.keys(adminAccounts).forEach(role=>{
-    const account = adminAccounts[role];
-    html += `<div class="subbox"><h4>${account.label}</h4><div class="small">الدور: ${role}</div><div style="margin-top:10px;"><input class="field" id="pwd_${role}" placeholder="كلمة المرور الجديدة" value="${escapeHtml(account.password)}"></div><div class="perm-list">`;
-    Object.keys(permissionLabels).forEach(key=>{
-      const disabled = role === 'master' || key === 'canManageAdmins';
-      const checked = !!account.permissions[key] ? 'checked' : '';
-      html += `<div class="perm-item"><label for="perm_${role}_${key}">${permissionLabels[key]}</label><input type="checkbox" id="perm_${role}_${key}" ${checked} ${disabled ? 'disabled' : ''}></div>`;
-    });
-    html += `<button class="btn-main" style="margin-top:12px;width:100%;" onclick="saveAdminRoleSettings('${role}')">حفظ إعدادات ${account.label}</button></div>`;
-  });
-  html += '</div></div>';
-  html += `<div class="subbox" style="margin-top:14px;"><h3>قفل الأسماء والفروع الحساسة</h3><div class="top-note">عند قفل اسم أو فرع، يمنع التعديل أو الحذف أو الإضافة تحته لغير الماستر أدمن. هذا مناسب للأسماء الأساسية أو الفروع التي تريد حمايتها من التغيير بالخطأ.</div><div class="note-form"><select class="field" id="lockPersonSelect"><option value="">اختر اسمًا أو فرعًا للقفل</option>${Object.keys(people).map(id=>`<option value="${id}">${escapeHtml(people[id].name)}</option>`).join('')}</select><button class="btn-main" onclick="lockPersonByAdmin()">قفل الاسم/الفرع</button></div><div class="list-box" style="margin-top:12px;">${lockedPeopleRows}</div></div>`;
-  box.innerHTML = html;
-}
-
-function saveAdminRoleSettings(role){
-  if(!hasPermission('canManageAdmins')){ alert('هذه الصلاحية للماستر فقط'); return; }
-  const account = adminAccounts[role];
-  if(!account) return;
-  const newPwd = (document.getElementById(`pwd_${role}`)?.value || '').trim();
-  if(!newPwd){ alert('لا يمكن ترك كلمة المرور فارغة'); return; }
-  account.password = newPwd;
-  if(role !== 'master'){
-    Object.keys(account.permissions).forEach(key=>{
-      const el = document.getElementById(`perm_${role}_${key}`);
-      if(el) account.permissions[key] = !!el.checked;
-    });
-    account.permissions.canManageAdmins = false;
-  } else {
-    Object.assign(account.permissions, DEFAULT_ADMIN_ACCOUNTS.master.permissions);
-  }
-  saveAdminAccounts();
-  renderAdminSettings();
-  applyCopyProtection();
-  alert('تم حفظ الصلاحيات والباسورد');
-}
-
-function escapeHtml(value){
-  return String(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
-
-function applyCopyProtection(){
-  const allowCopy = hasPermission('canCopyNames');
-  document.querySelectorAll('.name, .children-item, .hier-card, .lineage-item, #whoAmIProfileCard').forEach(el=>{
-    if(allowCopy){
-      el.classList.remove('protected-name');
-      el.removeAttribute('data-copy-protected');
-    }else{
-      el.classList.add('protected-name');
-      el.setAttribute('data-copy-protected','1');
-    }
-  });
-}
-
-document.addEventListener('copy', function(e){
-  if(hasPermission('canCopyNames')) return;
-  const sel = window.getSelection();
-  const anchor = sel && sel.anchorNode ? sel.anchorNode.parentElement : null;
-  if(anchor && anchor.closest && anchor.closest('[data-copy-protected="1"], .protected-name')){
-    e.preventDefault();
-    alert('نسخ الأسماء متاح فقط للماستر أدمن');
-  }
-});
-
-document.addEventListener('contextmenu', function(e){
-  if(hasPermission('canCopyNames')) return;
-  const target = e.target && e.target.closest ? e.target.closest('.name, .children-item, .hier-card, .lineage-item, #whoAmIProfileCard') : null;
-  if(target){
-    e.preventDefault();
-  }
-}, true);
-
-document.addEventListener('selectstart', function(e){
-  if(hasPermission('canCopyNames')) return;
-  const target = e.target && e.target.closest ? e.target.closest('.name, .children-item, .hier-card, .lineage-item, #whoAmIProfileCard') : null;
-  if(target){
-    e.preventDefault();
-  }
-}, true);
-
-restoreAdminSession();
-setTimeout(applyCopyProtection, 300);
-
-
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
 (function(){
   const ALL_ADMIN_TABS = {
     overview:'الرئيسية',
@@ -5842,7 +5636,579 @@ function markRequestDone(idx) {
         <body>
           <h1>جميع الأسماء في الشجرة</h1>
           <div>${names}</div>
-        </body>
+        
+<style>
+  #hierarchyPage, #hierarchyModesWrap, .three-mode-wrap { display:none !important; }
+</style>
+<script>
+(function(){
+  function firstToken(name){
+    name = (name || '').trim().replace(/\s+/g,' ');
+    if(!name) return '';
+    return name.split(' ')[0] || name;
+  }
+
+  window.buildSimpleLineageFromPerson = function(id){
+    const path = (typeof getLineage === 'function' ? getLineage(id) : []).slice().reverse();
+    if(!path.length) return '';
+    const raw = path.map(pid => firstToken((people[pid]||{}).name || ''));
+    const dedup = [];
+    for(const n of raw){
+      if(!n) continue;
+      if(!dedup.length || dedup[dedup.length-1] !== n) dedup.push(n);
+    }
+    if(!dedup.length) return '';
+    const gender = typeof inferGender === 'function' ? inferGender(id) : 'm';
+    let out = dedup[0];
+    if(dedup[1]) out += (gender === 'f' ? ' بنت ' : ' بن ') + dedup[1];
+    for(let i=2;i<dedup.length;i++) out += ' بن ' + dedup[i];
+    return out;
+  };
+
+  window.showSimpleLineageModal = function(id){
+    const txt = window.buildSimpleLineageFromPerson(id);
+    const body = document.getElementById('lineageModalBody');
+    if(body){
+      body.innerHTML = `
+        <div style="text-align:center;line-height:2.2;">
+          <div style="font-weight:700;color:var(--main);margin-bottom:10px;">التسلسل المختصر</div>
+          <div class="whoami-card" style="padding:16px;font-size:18px;">${txt || ''}</div>
+        </div>`;
+    }
+    document.getElementById('lineageModal')?.classList.add('active');
+  };
+
+  window.showHierarchyPage = function(startId, pushHash){
+    window.showSimpleLineageModal(startId || rootId);
+  };
+
+  function simpleBadge(id){
+    return `<div class="small-badge" onclick="event.stopPropagation(); showSimpleLineageModal('${id}')">هرم</div>`;
+  }
+
+  window.renderCard = function(id){
+    const person = people[id];
+    const childCount = (person.children || []).length;
+    const note = person.note ? `<div class="meta">${escapeHtml(person.note)}</div>` : '';
+    const status = (typeof getStatus === 'function' ? getStatus(id) : '') ? `<div class="status-badge">${escapeHtml(getStatus(id))}</div>` : '';
+    const countBadge = `<div class="small-badge" title="عدد الأبناء">${childCount}</div>`;
+    const locked = appState && appState.lockedBranches && appState.lockedBranches[id] ? `<div class="small-badge">🔒</div>` : '';
+    const main = typeof isMainBranchRoot === 'function' && isMainBranchRoot(id) ? `<div class="small-badge">فرع رئيسي</div>` : '';
+    return `
+      <div class="card ${childCount ? '' : 'no-children'}" onclick="render('${id}')">
+        <div class="name-row">
+          <div class="name protected-name">${escapeHtml(person.name)}</div>
+          <div class="badges">
+            ${countBadge}
+            ${main}
+            ${locked}
+            ${simpleBadge(id)}
+          </div>
+        </div>
+        <div class="meta">${childCount ? ('عدد الأبناء: ' + childCount) : 'لا يوجد أبناء مسجلون'}</div>
+        ${note}
+        ${status}
+      </div>`;
+  };
+
+  window.renderSearchResults = function(keyword){
+    const q = normalizeArabic(keyword || '');
+    const results = Object.keys(people).filter(id => normalizeArabic((people[id]||{}).name || '').includes(q));
+    const html = results.length ? results.map(id => `
+      <div class="card" onclick="render('${id}')">
+        <div class="name-row">
+          <div class="name protected-name">${escapeHtml(people[id].name)}</div>
+          <div class="badges">${simpleBadge(id)}</div>
+        </div>
+        <div class="meta">${escapeHtml(window.buildSimpleLineageFromPerson(id))}</div>
+      </div>`).join('') : `<div class="card no-children" style="text-align:center;">لا توجد نتائج مطابقة</div>`;
+    document.getElementById('title').textContent = 'نتائج البحث';
+    document.getElementById('breadcrumb').innerHTML = '';
+    document.getElementById('quickBranches').innerHTML = '';
+    document.getElementById('infoBar').innerHTML = `عدد النتائج: ${results.length}`;
+    const content = document.getElementById('content');
+    content.className = 'cards';
+    content.innerHTML = html;
+    currentView = 'main';
+  };
+
+  const originalRender = window.render;
+  window.render = function(id, pushHash = true){
+    if(!people[id]) id = rootId;
+    currentPerson = id;
+    if (pushHash) history.pushState({person:id}, '', '#' + id);
+    hideAllPages();
+    document.getElementById('mainPage').classList.remove('hidden');
+    currentView = 'main';
+    if(typeof recordSectionView === 'function') recordSectionView('main');
+    const person = people[id];
+    document.getElementById('title').textContent = person.name;
+    const lineage = (typeof getLineage === 'function' ? getLineage(id) : [id]);
+    document.getElementById('breadcrumb').innerHTML = lineage.map(pid => `<button onclick="render('${pid}')">${escapeHtml(people[pid].name)}</button>`).join('');
+    const mainChildren = (person.children || []);
+    document.getElementById('quickBranches').innerHTML = '';
+    document.getElementById('infoBar').innerHTML = `عدد الأبناء المباشرين: ${mainChildren.length}`;
+    const content = document.getElementById('content');
+    content.className = 'cards';
+    content.innerHTML = mainChildren.length ? mainChildren.map(cid => window.renderCard(cid)).join('') : `<div class="card no-children" style="text-align:center;">لا يوجد أبناء لهذا الاسم</div>`;
+    try{ if(typeof saveState==='function') saveState(); }catch(e){}
+  };
+
+  window.showPersonPage = function(id, pushHash = true){
+    render(id, pushHash);
+  };
+
+  function simplifyUI(){
+    document.querySelectorAll('button[onclick*="showHierarchyPage"], .nav-map-chip[onclick*="showHierarchyPage"]').forEach(btn=>{
+      btn.textContent = 'هرم';
+      btn.setAttribute('onclick', btn.getAttribute('onclick').replace(/showHierarchyPage/g,'showSimpleLineageModal'));
+    });
+    const hp = document.getElementById('hierarchyPage');
+    if(hp) hp.remove();
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    simplifyUI();
+    setTimeout(simplifyUI, 300);
+    const search = document.getElementById('searchInput');
+    if(search){
+      search.placeholder = 'ابحث عن اسم...';
+      search.oninput = function(){
+        const keyword = this.value.trim();
+        if(keyword) renderSearchResults(keyword); else render(currentPerson || rootId, false);
+      };
+    }
+    render(rootId, false);
+  });
+})();
+</script>
+
+
+<script>
+(function(){
+  const STYLE_ID = 'oai-relation-circle-style';
+  const MODAL_ID = 'relationPickerModal';
+
+  function injectStyles(){
+    if(document.getElementById(STYLE_ID)) return;
+    const style = document.createElement('style');
+    style.id = STYLE_ID;
+    style.textContent = `
+      .action-circle-grid{display:grid;grid-template-columns:repeat(3,42px);gap:6px;justify-content:flex-end;margin-top:8px}
+      .action-circle{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:#f6ede4;color:var(--text);font-family:inherit;font-size:11px;line-height:1.15;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;padding:0;user-select:none}
+      .action-circle:hover{background:#eadfce}
+      .action-circle.action-admin{font-size:17px}
+      .action-circle.action-add{font-size:18px}
+      .compact-lineage-box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;line-height:2;font-size:18px;text-align:center}
+      .relation-picker-wrap{display:grid;gap:10px}
+      .relation-picker-breadcrumb{display:flex;gap:6px;flex-wrap:wrap}
+      .relation-picker-breadcrumb button{background:#efe4d5;color:var(--text);border-radius:999px;padding:7px 10px}
+      .relation-picker-list{display:grid;gap:8px;max-height:48vh;overflow:auto}
+      .relation-picker-item{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;background:#faf5ef;border:1px solid var(--line);border-radius:12px;padding:10px}
+      .relation-picker-name{font-weight:700;line-height:1.7}
+      .relation-picker-item .select-dot{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--main);font-size:14px}
+      .relation-picker-item .open-btn{background:#efe4d5;color:var(--text);border-radius:10px;padding:8px 10px}
+      .relation-picker-item.selected{border-color:var(--main);background:#fff9f2}
+      .relation-summary-box{background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:18px;padding:18px;line-height:2}
+      .relation-summary-box h3{margin:0 0 10px;color:var(--main);text-align:center}
+      .relation-summary-box .lineage{font-weight:700}
+      .relation-summary-box .result-main{font-size:20px;color:var(--gold);text-align:center;margin:12px 0;font-weight:700}
+      .relation-summary-box .common{font-size:15px;text-align:center;color:var(--muted)}
+    `;
+    document.head.appendChild(style);
+  }
+
+  function ensureRelationModal(){
+    if(document.getElementById(MODAL_ID)) return;
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = MODAL_ID;
+    modal.innerHTML = `
+      <div class="modal-box" style="max-width:640px;">
+        <div class="modal-title">صلة القرابة</div>
+        <div class="relation-picker-wrap">
+          <div class="modal-text" id="relationPickerIntro"></div>
+          <div class="relation-picker-breadcrumb" id="relationPickerBreadcrumb"></div>
+          <div class="relation-picker-list" id="relationPickerList"></div>
+        </div>
+        <div class="modal-actions" style="margin-top:12px;">
+          <button class="btn-soft" onclick="closeRelationPicker()">إلغاء</button>
+          <button class="btn-main" onclick="confirmRelationPicker()">تأكيد</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  function escapeHtmlSafe(v){
+    if(typeof escapeHtml === 'function') return escapeHtml(v);
+    return String(v ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  function shortNameOf(id){
+    return (people[id]?.name || '').trim();
+  }
+
+  function simpleLineage(id){
+    if(typeof buildSimpleLineageFromPerson === 'function') return buildSimpleLineageFromPerson(id);
+    return shortNameOf(id);
+  }
+
+  function directRelationLabel(me, other){
+    if(!people[me] || !people[other]) return 'قريبك';
+    if(me === other) return 'أنت';
+    const pathMe = typeof getLineage === 'function' ? getLineage(me) : [me];
+    const pathOther = typeof getLineage === 'function' ? getLineage(other) : [other];
+
+    if(pathMe.includes(other)){
+      const dist = pathMe.length - 1 - pathMe.indexOf(other);
+      if(dist === 1) return inferGender(other) === 'f' ? 'أمك' : 'أبوك';
+      if(dist === 2) return inferGender(other) === 'f' ? 'جدتك' : 'جدك';
+      return inferGender(other) === 'f' ? 'من جداتك' : 'من أجدادك';
+    }
+
+    if(pathOther.includes(me)){
+      const dist = pathOther.length - 1 - pathOther.indexOf(me);
+      if(dist === 1) return inferGender(other) === 'f' ? 'ابنتك' : 'ابنك';
+      if(dist === 2) return inferGender(other) === 'f' ? 'حفيدتك' : 'حفيدك';
+      return inferGender(other) === 'f' ? 'من حفيداتك' : 'من أحفادك';
+    }
+
+    const myParent = typeof getParentId === 'function' ? getParentId(me) : null;
+    const otherParent = typeof getParentId === 'function' ? getParentId(other) : null;
+
+    if(myParent && otherParent && myParent === otherParent){
+      return inferGender(other) === 'f' ? 'أختك' : 'أخوك';
+    }
+
+    const myGrand = myParent && typeof getParentId === 'function' ? getParentId(myParent) : null;
+    const otherGrand = otherParent && typeof getParentId === 'function' ? getParentId(otherParent) : null;
+
+    if(myParent && otherGrand && myParent === otherGrand){
+      return inferGender(other) === 'f' ? 'بنت أخيك/أختك' : 'ابن أخيك/أختك';
+    }
+
+    if(otherParent && myGrand && otherParent === myGrand){
+      return inferGender(other) === 'f' ? 'عمتك/خالتك' : 'عمك/خالك';
+    }
+
+    if(myGrand && otherGrand && myGrand === otherGrand && myParent !== otherParent){
+      const parentKind = inferGender(myParent) === 'f'
+        ? (inferGender(otherParent) === 'f' ? 'خالتك' : 'خالك')
+        : (inferGender(otherParent) === 'f' ? 'عمتك' : 'عمك');
+      if(parentKind.includes('خال')) return inferGender(other) === 'f' ? 'بنت خالك/خالتك' : 'ابن خالك/خالتك';
+      return inferGender(other) === 'f' ? 'بنت عمك/عمتك' : 'ابن عمك/عمتك';
+    }
+
+    const rel = typeof relationBetween === 'function' ? relationBetween(me, other) : null;
+    if(rel && rel.common && rel.common !== me && rel.common !== other){
+      return 'قريبك';
+    }
+    return 'قريبك';
+  }
+
+  function relationSummary(me, other){
+    const label = directRelationLabel(me, other);
+    const rel = typeof relationBetween === 'function' ? relationBetween(me, other) : null;
+    const common = rel && rel.common && people[rel.common] ? people[rel.common].name : '';
+    let sentence = `أنت ${simpleLineage(me)}، وتقرب إلى ${simpleLineage(other)} بأنه ${label}.`;
+    if(label === 'أنت') sentence = `أنت ${simpleLineage(me)}، وهذا هو نفس الاسم نفسه.`;
+    else if(label === 'قريبك' && common) sentence = `أنت ${simpleLineage(me)}، وتقرب إلى ${simpleLineage(other)} بأنه قريبك، وتتشاركون عند ${common}.`;
+    return { label, common, sentence };
+  }
+
+  function actionGrid(id){
+    const gen = typeof generationLabelShort === 'function' ? generationLabelShort(getGeneration(id)) : ('ج' + (typeof getGeneration === 'function' ? getGeneration(id) : ''));
+    return `
+      <div class="action-circle-grid">
+        <button class="action-circle" onclick="event.stopPropagation(); return false;">${escapeHtmlSafe(gen)}</button>
+        <button class="action-circle" onclick="event.stopPropagation(); openWhoAmIForPerson('${id}')">من</button>
+        <button class="action-circle" onclick="event.stopPropagation(); openLineageModal('${id}')">هرم</button>
+        <button class="action-circle" onclick="event.stopPropagation(); openRelationPicker('${id}')">صلة</button>
+        <button class="action-circle action-add" onclick="event.stopPropagation(); openAddRequestModal('${id}')">+</button>
+        <button class="action-circle action-admin" onclick="event.stopPropagation(); quickAdminForPerson('${id}')">⚙</button>
+      </div>
+    `;
+  }
+
+  window.quickAdminForPerson = function(id){
+    if(window.currentAdminSession){
+      if(typeof showAdminPage === 'function') showAdminPage();
+      return;
+    }
+    if(typeof openAdminPassword === 'function') openAdminPassword();
+  };
+
+  window.openLineageModal = function(id){
+    const body = document.getElementById('lineageModalBody');
+    if(!body || !people[id]) return;
+    body.innerHTML = `<div class="compact-lineage-box protected-name">${escapeHtmlSafe(simpleLineage(id))}</div>`;
+    document.getElementById('lineageModal')?.classList.add('active');
+  };
+
+  window.showHierarchyPage = function(id){
+    window.openLineageModal(id || rootId);
+  };
+
+  window.__rootExpanded = false;
+
+  function renderSingleCard(id, opts = {}){
+    const child = people[id];
+    const directChildren = typeof getChildrenCount === 'function' ? getChildrenCount(id) : ((child.children || []).length);
+    const totalDesc = typeof getDescendantsCount === 'function' ? getDescendantsCount(id) : directChildren;
+    const locked = typeof isPersonLocked === 'function' ? isPersonLocked(id) : false;
+    const clickAction = opts.rootClosed ? `openRootChildren()` : `handleClick('${id}')`;
+    const helper = opts.rootClosed
+      ? 'اضغط على الاسم لإظهار الأبناء.'
+      : (directChildren ? `عدد الأبناء: ${directChildren}<br>إجمالي الذرية: ${totalDesc}` : 'لا توجد أسماء أبناء مسجلة حاليًا لهذا الفرع.');
+    return `
+      <div class="card ${directChildren ? '' : 'no-children'}" onclick="${clickAction}">
+        <div class="name-row">
+          <div class="name protected-name">${escapeHtmlSafe(child.name)}</div>
+          <div class="badges">
+            ${locked ? `<div class="status-badge">🔒 فرع مقفل</div>` : ''}
+          </div>
+        </div>
+        <div class="meta">${helper}${child.note ? `<br>ملاحظة: ${escapeHtmlSafe(child.note)}` : ''}</div>
+        ${actionGrid(id)}
+      </div>
+    `;
+  }
+
+  window.openRootChildren = function(){
+    window.__rootExpanded = true;
+    window.render(rootId, false);
+  };
+
+  const originalGoRoot = window.goRoot;
+  window.goRoot = function(){
+    window.__rootExpanded = false;
+    if(typeof originalGoRoot === 'function') return originalGoRoot();
+    currentView = 'tree';
+    currentPerson = rootId;
+    historyStack = [rootId];
+    render(rootId, false);
+  };
+
+  window.renderCard = function(id){
+    return renderSingleCard(id);
+  };
+
+  window.render = function(id, pushHash = true){
+    if(!people[id]) id = rootId;
+    if(typeof showTreePage === 'function') showTreePage();
+    currentPerson = id;
+    const title = document.getElementById('title');
+    if(title) title.textContent = people[id].name;
+    const breadcrumb = document.getElementById('breadcrumb');
+    if(breadcrumb){
+      const lineage = typeof getLineage === 'function' ? getLineage(id) : [id];
+      breadcrumb.innerHTML = lineage.map(pid => `<button onclick="window.__rootExpanded=${pid===rootId ? 'true' : 'true'}; render('${pid}')">${escapeHtmlSafe(people[pid].name)}</button>`).join('');
+    }
+    const quick = document.getElementById('quickBranches');
+    if(quick) quick.innerHTML = '';
+    const info = document.getElementById('infoBar');
+    const content = document.getElementById('content');
+    if(!content) return;
+
+    if(id === rootId && !window.__rootExpanded){
+      if(info) info.innerHTML = 'اضغط على <strong>محمد بن حميد المجيني</strong> لعرض الأبناء.';
+      content.className = 'cards';
+      content.innerHTML = renderSingleCard(rootId, {rootClosed:true});
+      if(pushHash) history.replaceState({personId:rootId}, '', '#'+rootId);
+      return;
+    }
+
+    const children = people[id].children || [];
+    if(info) info.innerHTML = `عدد الأبناء المباشرين: <strong>${children.length}</strong>`;
+    content.className = 'cards';
+    content.innerHTML = children.length ? children.map(cid => renderSingleCard(cid)).join('') : `<div class="card no-children"><div class="meta">لا توجد أسماء أبناء مسجلة حاليًا لهذا الفرع.</div>${actionGrid(id)}</div>`;
+    if(pushHash){
+      if(id === rootId) history.replaceState({personId:rootId}, '', '#'+rootId);
+      else history.pushState({personId:id}, '', '#'+id);
+    }
+  };
+
+  window.renderSearchResults = function(keyword){
+    const results = [];
+    for(const key in people){
+      const person = people[key];
+      const score = typeof scoreNameOnlySearch === 'function' ? scoreNameOnlySearch(keyword, person.name) : 0;
+      if(score >= 60) results.push({id:key, score});
+    }
+    results.sort((a,b)=>b.score-a.score);
+    if(typeof showTreePage === 'function') showTreePage();
+    document.getElementById('title').textContent = 'نتائج البحث';
+    document.getElementById('breadcrumb').innerHTML = '';
+    document.getElementById('quickBranches').innerHTML = '';
+    document.getElementById('infoBar').innerHTML = `عدد النتائج: <strong>${results.length}</strong>`;
+    document.getElementById('content').className = 'cards';
+    document.getElementById('content').innerHTML = results.length
+      ? results.map(r => renderSingleCard(r.id)).join('')
+      : `<div class="card no-children"><div class="meta">لا توجد نتائج مطابقة.</div></div>`;
+  };
+
+  window.showPersonPage = function(id, pushHash = true){
+    if(!people[id]) return;
+    currentView = 'person';
+    currentPerson = id;
+    if(typeof hideAllPages === 'function') hideAllPages();
+    const page = document.getElementById('personPage');
+    page.classList.remove('hidden');
+    const children = people[id].children || [];
+    page.innerHTML = `
+      <div class="person-page">
+        <div class="title protected-name">${escapeHtmlSafe(people[id].name)}</div>
+        <div style="display:flex;justify-content:center;">${actionGrid(id)}</div>
+        ${children.length ? `<div class="cards" style="margin-top:14px;">${children.map(cid => renderSingleCard(cid)).join('')}</div>` : `<div class="card no-children" style="margin-top:14px;"><div class="meta">لا توجد أسماء أبناء مسجلة لهذا الشخص.</div>${actionGrid(id)}</div>`}
+      </div>
+    `;
+    if(pushHash) history.pushState({personPage:id}, '', location.pathname + '?person=' + id);
+  };
+
+  const originalShowWhoAmIProfile = window.showWhoAmIProfile;
+  window.showWhoAmIProfile = function(id, pushHash = true){
+    if(typeof originalShowWhoAmIProfile === 'function'){
+      originalShowWhoAmIProfile(id, pushHash);
+      setTimeout(function(){
+        const card = document.querySelector('#whoAmIProfilePage .whoami-card');
+        if(card && !card.querySelector('.action-circle-grid')){
+          const wrap = document.createElement('div');
+          wrap.style.display = 'flex';
+          wrap.style.justifyContent = 'center';
+          wrap.style.marginTop = '14px';
+          wrap.innerHTML = actionGrid(id);
+          card.appendChild(wrap);
+        }
+      }, 0);
+    }
+  };
+
+  window.relationSourceId = null;
+  window.relationTrail = [rootId];
+  window.relationTargetId = null;
+
+  window.openRelationPicker = function(sourceId){
+    if(!people[sourceId]) return;
+    relationSourceId = sourceId;
+    relationTrail = [rootId];
+    relationTargetId = null;
+    ensureRelationModal();
+    renderRelationPicker();
+    document.getElementById(MODAL_ID).classList.add('active');
+  };
+
+  window.closeRelationPicker = function(){
+    document.getElementById(MODAL_ID)?.classList.remove('active');
+  };
+
+  window.openRelationBranch = function(id){
+    if(!people[id]) return;
+    relationTrail.push(id);
+    renderRelationPicker();
+  };
+
+  window.goRelationBreadcrumb = function(index){
+    relationTrail = relationTrail.slice(0, index + 1);
+    renderRelationPicker();
+  };
+
+  window.pickRelationTarget = function(id){
+    relationTargetId = id;
+    renderRelationPicker();
+  };
+
+  window.renderRelationPicker = function(){
+    const parentId = relationTrail[relationTrail.length - 1];
+    const intro = document.getElementById('relationPickerIntro');
+    const crumb = document.getElementById('relationPickerBreadcrumb');
+    const list = document.getElementById('relationPickerList');
+    if(!intro || !crumb || !list) return;
+    intro.innerHTML = `الاسم الأول ثابت: <strong>${escapeHtmlSafe(simpleLineage(relationSourceId))}</strong><br>اختر الاسم الثاني من الشجرة.`;
+    crumb.innerHTML = relationTrail.map((pid, idx) => `<button onclick="goRelationBreadcrumb(${idx})">${escapeHtmlSafe(people[pid].name)}</button>`).join('');
+    const ids = (people[parentId]?.children || []);
+    list.innerHTML = ids.map(id => {
+      const selected = relationTargetId === id;
+      const hasKids = (people[id].children || []).length > 0;
+      return `
+        <div class="relation-picker-item ${selected ? 'selected' : ''}">
+          <div class="relation-picker-name protected-name">${escapeHtmlSafe(people[id].name)}</div>
+          ${hasKids ? `<button class="open-btn" onclick="openRelationBranch('${id}')">فتح</button>` : `<span></span>`}
+          <button class="select-dot" onclick="pickRelationTarget('${id}')">${selected ? '✓' : '○'}</button>
+        </div>
+      `;
+    }).join('') || `<div class="small">لا يوجد أبناء هنا.</div>`;
+  };
+
+  window.confirmRelationPicker = function(){
+    if(!relationSourceId || !relationTargetId){
+      alert('اختر الاسم الثاني أولًا');
+      return;
+    }
+    closeRelationPicker();
+    showRelationResultPage(relationSourceId, relationTargetId);
+  };
+
+  window.showRelationResultPage = function(a, b, pushHash = true){
+    if(!people[a] || !people[b]) return;
+    currentView = 'relation-profile';
+    currentPerson = a;
+    if(typeof hideAllPages === 'function') hideAllPages();
+    const page = document.getElementById('whoAmIProfilePage');
+    page.classList.remove('hidden');
+    const summary = relationSummary(a, b);
+    page.innerHTML = `
+      <div class="whoami-bg panel" style="padding:14px;">
+        <div class="relation-summary-box">
+          <h3>صلة القرابة</h3>
+          <div class="lineage protected-name">${escapeHtmlSafe(simpleLineage(a))}</div>
+          <div style="display:flex;justify-content:center;margin:10px 0;">${actionGrid(a)}</div>
+          <div class="result-main">${escapeHtmlSafe(summary.label)}</div>
+          <div class="lineage protected-name">${escapeHtmlSafe(simpleLineage(b))}</div>
+          <div style="display:flex;justify-content:center;margin:10px 0;">${actionGrid(b)}</div>
+          <div style="margin-top:14px;">${escapeHtmlSafe(summary.sentence)}</div>
+          ${summary.common ? `<div class="common">وتلتقون عند: <strong>${escapeHtmlSafe(summary.common)}</strong></div>` : ''}
+        </div>
+      </div>
+    `;
+    if(pushHash) history.pushState({relation:[a,b]}, '', '#relation=' + a + ',' + b);
+  };
+
+  function setupFinalRequestedUI(){
+    injectStyles();
+    ensureRelationModal();
+    const hp = document.getElementById('hierarchyPage');
+    if(hp) hp.classList.add('hidden');
+    const search = document.getElementById('searchInput');
+    if(search){
+      search.placeholder = 'ابحث عن اسم...';
+      search.oninput = function(){
+        const keyword = this.value.trim();
+        if(keyword) renderSearchResults(keyword);
+        else render(currentPerson || rootId, false);
+      };
+    }
+    if(typeof routeToHash === 'function'){
+      const originalRoute = routeToHash;
+      window.routeToHash = function(){
+        const h = location.hash.replace('#','');
+        if(h.startsWith('relation=')){
+          const raw = h.split('=')[1] || '';
+          const parts = raw.split(',');
+          if(parts.length === 2 && people[parts[0]] && people[parts[1]]) return showRelationResultPage(parts[0], parts[1], false);
+        }
+        return originalRoute();
+      };
+    }
+    render(rootId, false);
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupFinalRequestedUI);
+  else setupFinalRequestedUI();
+})();
+</script>
+
+</body>
         </html>
       `);
       win.document.close();
@@ -5868,7 +6234,579 @@ function markRequestDone(idx) {
           <h1>آخر تحديث</h1>
           <div><strong>${latest}</strong></div>
           <div style="margin-top:10px;">${time}</div>
-        </body>
+        
+<style>
+  #hierarchyPage, #hierarchyModesWrap, .three-mode-wrap { display:none !important; }
+</style>
+<script>
+(function(){
+  function firstToken(name){
+    name = (name || '').trim().replace(/\s+/g,' ');
+    if(!name) return '';
+    return name.split(' ')[0] || name;
+  }
+
+  window.buildSimpleLineageFromPerson = function(id){
+    const path = (typeof getLineage === 'function' ? getLineage(id) : []).slice().reverse();
+    if(!path.length) return '';
+    const raw = path.map(pid => firstToken((people[pid]||{}).name || ''));
+    const dedup = [];
+    for(const n of raw){
+      if(!n) continue;
+      if(!dedup.length || dedup[dedup.length-1] !== n) dedup.push(n);
+    }
+    if(!dedup.length) return '';
+    const gender = typeof inferGender === 'function' ? inferGender(id) : 'm';
+    let out = dedup[0];
+    if(dedup[1]) out += (gender === 'f' ? ' بنت ' : ' بن ') + dedup[1];
+    for(let i=2;i<dedup.length;i++) out += ' بن ' + dedup[i];
+    return out;
+  };
+
+  window.showSimpleLineageModal = function(id){
+    const txt = window.buildSimpleLineageFromPerson(id);
+    const body = document.getElementById('lineageModalBody');
+    if(body){
+      body.innerHTML = `
+        <div style="text-align:center;line-height:2.2;">
+          <div style="font-weight:700;color:var(--main);margin-bottom:10px;">التسلسل المختصر</div>
+          <div class="whoami-card" style="padding:16px;font-size:18px;">${txt || ''}</div>
+        </div>`;
+    }
+    document.getElementById('lineageModal')?.classList.add('active');
+  };
+
+  window.showHierarchyPage = function(startId, pushHash){
+    window.showSimpleLineageModal(startId || rootId);
+  };
+
+  function simpleBadge(id){
+    return `<div class="small-badge" onclick="event.stopPropagation(); showSimpleLineageModal('${id}')">هرم</div>`;
+  }
+
+  window.renderCard = function(id){
+    const person = people[id];
+    const childCount = (person.children || []).length;
+    const note = person.note ? `<div class="meta">${escapeHtml(person.note)}</div>` : '';
+    const status = (typeof getStatus === 'function' ? getStatus(id) : '') ? `<div class="status-badge">${escapeHtml(getStatus(id))}</div>` : '';
+    const countBadge = `<div class="small-badge" title="عدد الأبناء">${childCount}</div>`;
+    const locked = appState && appState.lockedBranches && appState.lockedBranches[id] ? `<div class="small-badge">🔒</div>` : '';
+    const main = typeof isMainBranchRoot === 'function' && isMainBranchRoot(id) ? `<div class="small-badge">فرع رئيسي</div>` : '';
+    return `
+      <div class="card ${childCount ? '' : 'no-children'}" onclick="render('${id}')">
+        <div class="name-row">
+          <div class="name protected-name">${escapeHtml(person.name)}</div>
+          <div class="badges">
+            ${countBadge}
+            ${main}
+            ${locked}
+            ${simpleBadge(id)}
+          </div>
+        </div>
+        <div class="meta">${childCount ? ('عدد الأبناء: ' + childCount) : 'لا يوجد أبناء مسجلون'}</div>
+        ${note}
+        ${status}
+      </div>`;
+  };
+
+  window.renderSearchResults = function(keyword){
+    const q = normalizeArabic(keyword || '');
+    const results = Object.keys(people).filter(id => normalizeArabic((people[id]||{}).name || '').includes(q));
+    const html = results.length ? results.map(id => `
+      <div class="card" onclick="render('${id}')">
+        <div class="name-row">
+          <div class="name protected-name">${escapeHtml(people[id].name)}</div>
+          <div class="badges">${simpleBadge(id)}</div>
+        </div>
+        <div class="meta">${escapeHtml(window.buildSimpleLineageFromPerson(id))}</div>
+      </div>`).join('') : `<div class="card no-children" style="text-align:center;">لا توجد نتائج مطابقة</div>`;
+    document.getElementById('title').textContent = 'نتائج البحث';
+    document.getElementById('breadcrumb').innerHTML = '';
+    document.getElementById('quickBranches').innerHTML = '';
+    document.getElementById('infoBar').innerHTML = `عدد النتائج: ${results.length}`;
+    const content = document.getElementById('content');
+    content.className = 'cards';
+    content.innerHTML = html;
+    currentView = 'main';
+  };
+
+  const originalRender = window.render;
+  window.render = function(id, pushHash = true){
+    if(!people[id]) id = rootId;
+    currentPerson = id;
+    if (pushHash) history.pushState({person:id}, '', '#' + id);
+    hideAllPages();
+    document.getElementById('mainPage').classList.remove('hidden');
+    currentView = 'main';
+    if(typeof recordSectionView === 'function') recordSectionView('main');
+    const person = people[id];
+    document.getElementById('title').textContent = person.name;
+    const lineage = (typeof getLineage === 'function' ? getLineage(id) : [id]);
+    document.getElementById('breadcrumb').innerHTML = lineage.map(pid => `<button onclick="render('${pid}')">${escapeHtml(people[pid].name)}</button>`).join('');
+    const mainChildren = (person.children || []);
+    document.getElementById('quickBranches').innerHTML = '';
+    document.getElementById('infoBar').innerHTML = `عدد الأبناء المباشرين: ${mainChildren.length}`;
+    const content = document.getElementById('content');
+    content.className = 'cards';
+    content.innerHTML = mainChildren.length ? mainChildren.map(cid => window.renderCard(cid)).join('') : `<div class="card no-children" style="text-align:center;">لا يوجد أبناء لهذا الاسم</div>`;
+    try{ if(typeof saveState==='function') saveState(); }catch(e){}
+  };
+
+  window.showPersonPage = function(id, pushHash = true){
+    render(id, pushHash);
+  };
+
+  function simplifyUI(){
+    document.querySelectorAll('button[onclick*="showHierarchyPage"], .nav-map-chip[onclick*="showHierarchyPage"]').forEach(btn=>{
+      btn.textContent = 'هرم';
+      btn.setAttribute('onclick', btn.getAttribute('onclick').replace(/showHierarchyPage/g,'showSimpleLineageModal'));
+    });
+    const hp = document.getElementById('hierarchyPage');
+    if(hp) hp.remove();
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    simplifyUI();
+    setTimeout(simplifyUI, 300);
+    const search = document.getElementById('searchInput');
+    if(search){
+      search.placeholder = 'ابحث عن اسم...';
+      search.oninput = function(){
+        const keyword = this.value.trim();
+        if(keyword) renderSearchResults(keyword); else render(currentPerson || rootId, false);
+      };
+    }
+    render(rootId, false);
+  });
+})();
+</script>
+
+
+<script>
+(function(){
+  const STYLE_ID = 'oai-relation-circle-style';
+  const MODAL_ID = 'relationPickerModal';
+
+  function injectStyles(){
+    if(document.getElementById(STYLE_ID)) return;
+    const style = document.createElement('style');
+    style.id = STYLE_ID;
+    style.textContent = `
+      .action-circle-grid{display:grid;grid-template-columns:repeat(3,42px);gap:6px;justify-content:flex-end;margin-top:8px}
+      .action-circle{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:#f6ede4;color:var(--text);font-family:inherit;font-size:11px;line-height:1.15;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;padding:0;user-select:none}
+      .action-circle:hover{background:#eadfce}
+      .action-circle.action-admin{font-size:17px}
+      .action-circle.action-add{font-size:18px}
+      .compact-lineage-box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;line-height:2;font-size:18px;text-align:center}
+      .relation-picker-wrap{display:grid;gap:10px}
+      .relation-picker-breadcrumb{display:flex;gap:6px;flex-wrap:wrap}
+      .relation-picker-breadcrumb button{background:#efe4d5;color:var(--text);border-radius:999px;padding:7px 10px}
+      .relation-picker-list{display:grid;gap:8px;max-height:48vh;overflow:auto}
+      .relation-picker-item{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;background:#faf5ef;border:1px solid var(--line);border-radius:12px;padding:10px}
+      .relation-picker-name{font-weight:700;line-height:1.7}
+      .relation-picker-item .select-dot{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--main);font-size:14px}
+      .relation-picker-item .open-btn{background:#efe4d5;color:var(--text);border-radius:10px;padding:8px 10px}
+      .relation-picker-item.selected{border-color:var(--main);background:#fff9f2}
+      .relation-summary-box{background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:18px;padding:18px;line-height:2}
+      .relation-summary-box h3{margin:0 0 10px;color:var(--main);text-align:center}
+      .relation-summary-box .lineage{font-weight:700}
+      .relation-summary-box .result-main{font-size:20px;color:var(--gold);text-align:center;margin:12px 0;font-weight:700}
+      .relation-summary-box .common{font-size:15px;text-align:center;color:var(--muted)}
+    `;
+    document.head.appendChild(style);
+  }
+
+  function ensureRelationModal(){
+    if(document.getElementById(MODAL_ID)) return;
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = MODAL_ID;
+    modal.innerHTML = `
+      <div class="modal-box" style="max-width:640px;">
+        <div class="modal-title">صلة القرابة</div>
+        <div class="relation-picker-wrap">
+          <div class="modal-text" id="relationPickerIntro"></div>
+          <div class="relation-picker-breadcrumb" id="relationPickerBreadcrumb"></div>
+          <div class="relation-picker-list" id="relationPickerList"></div>
+        </div>
+        <div class="modal-actions" style="margin-top:12px;">
+          <button class="btn-soft" onclick="closeRelationPicker()">إلغاء</button>
+          <button class="btn-main" onclick="confirmRelationPicker()">تأكيد</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  function escapeHtmlSafe(v){
+    if(typeof escapeHtml === 'function') return escapeHtml(v);
+    return String(v ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  function shortNameOf(id){
+    return (people[id]?.name || '').trim();
+  }
+
+  function simpleLineage(id){
+    if(typeof buildSimpleLineageFromPerson === 'function') return buildSimpleLineageFromPerson(id);
+    return shortNameOf(id);
+  }
+
+  function directRelationLabel(me, other){
+    if(!people[me] || !people[other]) return 'قريبك';
+    if(me === other) return 'أنت';
+    const pathMe = typeof getLineage === 'function' ? getLineage(me) : [me];
+    const pathOther = typeof getLineage === 'function' ? getLineage(other) : [other];
+
+    if(pathMe.includes(other)){
+      const dist = pathMe.length - 1 - pathMe.indexOf(other);
+      if(dist === 1) return inferGender(other) === 'f' ? 'أمك' : 'أبوك';
+      if(dist === 2) return inferGender(other) === 'f' ? 'جدتك' : 'جدك';
+      return inferGender(other) === 'f' ? 'من جداتك' : 'من أجدادك';
+    }
+
+    if(pathOther.includes(me)){
+      const dist = pathOther.length - 1 - pathOther.indexOf(me);
+      if(dist === 1) return inferGender(other) === 'f' ? 'ابنتك' : 'ابنك';
+      if(dist === 2) return inferGender(other) === 'f' ? 'حفيدتك' : 'حفيدك';
+      return inferGender(other) === 'f' ? 'من حفيداتك' : 'من أحفادك';
+    }
+
+    const myParent = typeof getParentId === 'function' ? getParentId(me) : null;
+    const otherParent = typeof getParentId === 'function' ? getParentId(other) : null;
+
+    if(myParent && otherParent && myParent === otherParent){
+      return inferGender(other) === 'f' ? 'أختك' : 'أخوك';
+    }
+
+    const myGrand = myParent && typeof getParentId === 'function' ? getParentId(myParent) : null;
+    const otherGrand = otherParent && typeof getParentId === 'function' ? getParentId(otherParent) : null;
+
+    if(myParent && otherGrand && myParent === otherGrand){
+      return inferGender(other) === 'f' ? 'بنت أخيك/أختك' : 'ابن أخيك/أختك';
+    }
+
+    if(otherParent && myGrand && otherParent === myGrand){
+      return inferGender(other) === 'f' ? 'عمتك/خالتك' : 'عمك/خالك';
+    }
+
+    if(myGrand && otherGrand && myGrand === otherGrand && myParent !== otherParent){
+      const parentKind = inferGender(myParent) === 'f'
+        ? (inferGender(otherParent) === 'f' ? 'خالتك' : 'خالك')
+        : (inferGender(otherParent) === 'f' ? 'عمتك' : 'عمك');
+      if(parentKind.includes('خال')) return inferGender(other) === 'f' ? 'بنت خالك/خالتك' : 'ابن خالك/خالتك';
+      return inferGender(other) === 'f' ? 'بنت عمك/عمتك' : 'ابن عمك/عمتك';
+    }
+
+    const rel = typeof relationBetween === 'function' ? relationBetween(me, other) : null;
+    if(rel && rel.common && rel.common !== me && rel.common !== other){
+      return 'قريبك';
+    }
+    return 'قريبك';
+  }
+
+  function relationSummary(me, other){
+    const label = directRelationLabel(me, other);
+    const rel = typeof relationBetween === 'function' ? relationBetween(me, other) : null;
+    const common = rel && rel.common && people[rel.common] ? people[rel.common].name : '';
+    let sentence = `أنت ${simpleLineage(me)}، وتقرب إلى ${simpleLineage(other)} بأنه ${label}.`;
+    if(label === 'أنت') sentence = `أنت ${simpleLineage(me)}، وهذا هو نفس الاسم نفسه.`;
+    else if(label === 'قريبك' && common) sentence = `أنت ${simpleLineage(me)}، وتقرب إلى ${simpleLineage(other)} بأنه قريبك، وتتشاركون عند ${common}.`;
+    return { label, common, sentence };
+  }
+
+  function actionGrid(id){
+    const gen = typeof generationLabelShort === 'function' ? generationLabelShort(getGeneration(id)) : ('ج' + (typeof getGeneration === 'function' ? getGeneration(id) : ''));
+    return `
+      <div class="action-circle-grid">
+        <button class="action-circle" onclick="event.stopPropagation(); return false;">${escapeHtmlSafe(gen)}</button>
+        <button class="action-circle" onclick="event.stopPropagation(); openWhoAmIForPerson('${id}')">من</button>
+        <button class="action-circle" onclick="event.stopPropagation(); openLineageModal('${id}')">هرم</button>
+        <button class="action-circle" onclick="event.stopPropagation(); openRelationPicker('${id}')">صلة</button>
+        <button class="action-circle action-add" onclick="event.stopPropagation(); openAddRequestModal('${id}')">+</button>
+        <button class="action-circle action-admin" onclick="event.stopPropagation(); quickAdminForPerson('${id}')">⚙</button>
+      </div>
+    `;
+  }
+
+  window.quickAdminForPerson = function(id){
+    if(window.currentAdminSession){
+      if(typeof showAdminPage === 'function') showAdminPage();
+      return;
+    }
+    if(typeof openAdminPassword === 'function') openAdminPassword();
+  };
+
+  window.openLineageModal = function(id){
+    const body = document.getElementById('lineageModalBody');
+    if(!body || !people[id]) return;
+    body.innerHTML = `<div class="compact-lineage-box protected-name">${escapeHtmlSafe(simpleLineage(id))}</div>`;
+    document.getElementById('lineageModal')?.classList.add('active');
+  };
+
+  window.showHierarchyPage = function(id){
+    window.openLineageModal(id || rootId);
+  };
+
+  window.__rootExpanded = false;
+
+  function renderSingleCard(id, opts = {}){
+    const child = people[id];
+    const directChildren = typeof getChildrenCount === 'function' ? getChildrenCount(id) : ((child.children || []).length);
+    const totalDesc = typeof getDescendantsCount === 'function' ? getDescendantsCount(id) : directChildren;
+    const locked = typeof isPersonLocked === 'function' ? isPersonLocked(id) : false;
+    const clickAction = opts.rootClosed ? `openRootChildren()` : `handleClick('${id}')`;
+    const helper = opts.rootClosed
+      ? 'اضغط على الاسم لإظهار الأبناء.'
+      : (directChildren ? `عدد الأبناء: ${directChildren}<br>إجمالي الذرية: ${totalDesc}` : 'لا توجد أسماء أبناء مسجلة حاليًا لهذا الفرع.');
+    return `
+      <div class="card ${directChildren ? '' : 'no-children'}" onclick="${clickAction}">
+        <div class="name-row">
+          <div class="name protected-name">${escapeHtmlSafe(child.name)}</div>
+          <div class="badges">
+            ${locked ? `<div class="status-badge">🔒 فرع مقفل</div>` : ''}
+          </div>
+        </div>
+        <div class="meta">${helper}${child.note ? `<br>ملاحظة: ${escapeHtmlSafe(child.note)}` : ''}</div>
+        ${actionGrid(id)}
+      </div>
+    `;
+  }
+
+  window.openRootChildren = function(){
+    window.__rootExpanded = true;
+    window.render(rootId, false);
+  };
+
+  const originalGoRoot = window.goRoot;
+  window.goRoot = function(){
+    window.__rootExpanded = false;
+    if(typeof originalGoRoot === 'function') return originalGoRoot();
+    currentView = 'tree';
+    currentPerson = rootId;
+    historyStack = [rootId];
+    render(rootId, false);
+  };
+
+  window.renderCard = function(id){
+    return renderSingleCard(id);
+  };
+
+  window.render = function(id, pushHash = true){
+    if(!people[id]) id = rootId;
+    if(typeof showTreePage === 'function') showTreePage();
+    currentPerson = id;
+    const title = document.getElementById('title');
+    if(title) title.textContent = people[id].name;
+    const breadcrumb = document.getElementById('breadcrumb');
+    if(breadcrumb){
+      const lineage = typeof getLineage === 'function' ? getLineage(id) : [id];
+      breadcrumb.innerHTML = lineage.map(pid => `<button onclick="window.__rootExpanded=${pid===rootId ? 'true' : 'true'}; render('${pid}')">${escapeHtmlSafe(people[pid].name)}</button>`).join('');
+    }
+    const quick = document.getElementById('quickBranches');
+    if(quick) quick.innerHTML = '';
+    const info = document.getElementById('infoBar');
+    const content = document.getElementById('content');
+    if(!content) return;
+
+    if(id === rootId && !window.__rootExpanded){
+      if(info) info.innerHTML = 'اضغط على <strong>محمد بن حميد المجيني</strong> لعرض الأبناء.';
+      content.className = 'cards';
+      content.innerHTML = renderSingleCard(rootId, {rootClosed:true});
+      if(pushHash) history.replaceState({personId:rootId}, '', '#'+rootId);
+      return;
+    }
+
+    const children = people[id].children || [];
+    if(info) info.innerHTML = `عدد الأبناء المباشرين: <strong>${children.length}</strong>`;
+    content.className = 'cards';
+    content.innerHTML = children.length ? children.map(cid => renderSingleCard(cid)).join('') : `<div class="card no-children"><div class="meta">لا توجد أسماء أبناء مسجلة حاليًا لهذا الفرع.</div>${actionGrid(id)}</div>`;
+    if(pushHash){
+      if(id === rootId) history.replaceState({personId:rootId}, '', '#'+rootId);
+      else history.pushState({personId:id}, '', '#'+id);
+    }
+  };
+
+  window.renderSearchResults = function(keyword){
+    const results = [];
+    for(const key in people){
+      const person = people[key];
+      const score = typeof scoreNameOnlySearch === 'function' ? scoreNameOnlySearch(keyword, person.name) : 0;
+      if(score >= 60) results.push({id:key, score});
+    }
+    results.sort((a,b)=>b.score-a.score);
+    if(typeof showTreePage === 'function') showTreePage();
+    document.getElementById('title').textContent = 'نتائج البحث';
+    document.getElementById('breadcrumb').innerHTML = '';
+    document.getElementById('quickBranches').innerHTML = '';
+    document.getElementById('infoBar').innerHTML = `عدد النتائج: <strong>${results.length}</strong>`;
+    document.getElementById('content').className = 'cards';
+    document.getElementById('content').innerHTML = results.length
+      ? results.map(r => renderSingleCard(r.id)).join('')
+      : `<div class="card no-children"><div class="meta">لا توجد نتائج مطابقة.</div></div>`;
+  };
+
+  window.showPersonPage = function(id, pushHash = true){
+    if(!people[id]) return;
+    currentView = 'person';
+    currentPerson = id;
+    if(typeof hideAllPages === 'function') hideAllPages();
+    const page = document.getElementById('personPage');
+    page.classList.remove('hidden');
+    const children = people[id].children || [];
+    page.innerHTML = `
+      <div class="person-page">
+        <div class="title protected-name">${escapeHtmlSafe(people[id].name)}</div>
+        <div style="display:flex;justify-content:center;">${actionGrid(id)}</div>
+        ${children.length ? `<div class="cards" style="margin-top:14px;">${children.map(cid => renderSingleCard(cid)).join('')}</div>` : `<div class="card no-children" style="margin-top:14px;"><div class="meta">لا توجد أسماء أبناء مسجلة لهذا الشخص.</div>${actionGrid(id)}</div>`}
+      </div>
+    `;
+    if(pushHash) history.pushState({personPage:id}, '', location.pathname + '?person=' + id);
+  };
+
+  const originalShowWhoAmIProfile = window.showWhoAmIProfile;
+  window.showWhoAmIProfile = function(id, pushHash = true){
+    if(typeof originalShowWhoAmIProfile === 'function'){
+      originalShowWhoAmIProfile(id, pushHash);
+      setTimeout(function(){
+        const card = document.querySelector('#whoAmIProfilePage .whoami-card');
+        if(card && !card.querySelector('.action-circle-grid')){
+          const wrap = document.createElement('div');
+          wrap.style.display = 'flex';
+          wrap.style.justifyContent = 'center';
+          wrap.style.marginTop = '14px';
+          wrap.innerHTML = actionGrid(id);
+          card.appendChild(wrap);
+        }
+      }, 0);
+    }
+  };
+
+  window.relationSourceId = null;
+  window.relationTrail = [rootId];
+  window.relationTargetId = null;
+
+  window.openRelationPicker = function(sourceId){
+    if(!people[sourceId]) return;
+    relationSourceId = sourceId;
+    relationTrail = [rootId];
+    relationTargetId = null;
+    ensureRelationModal();
+    renderRelationPicker();
+    document.getElementById(MODAL_ID).classList.add('active');
+  };
+
+  window.closeRelationPicker = function(){
+    document.getElementById(MODAL_ID)?.classList.remove('active');
+  };
+
+  window.openRelationBranch = function(id){
+    if(!people[id]) return;
+    relationTrail.push(id);
+    renderRelationPicker();
+  };
+
+  window.goRelationBreadcrumb = function(index){
+    relationTrail = relationTrail.slice(0, index + 1);
+    renderRelationPicker();
+  };
+
+  window.pickRelationTarget = function(id){
+    relationTargetId = id;
+    renderRelationPicker();
+  };
+
+  window.renderRelationPicker = function(){
+    const parentId = relationTrail[relationTrail.length - 1];
+    const intro = document.getElementById('relationPickerIntro');
+    const crumb = document.getElementById('relationPickerBreadcrumb');
+    const list = document.getElementById('relationPickerList');
+    if(!intro || !crumb || !list) return;
+    intro.innerHTML = `الاسم الأول ثابت: <strong>${escapeHtmlSafe(simpleLineage(relationSourceId))}</strong><br>اختر الاسم الثاني من الشجرة.`;
+    crumb.innerHTML = relationTrail.map((pid, idx) => `<button onclick="goRelationBreadcrumb(${idx})">${escapeHtmlSafe(people[pid].name)}</button>`).join('');
+    const ids = (people[parentId]?.children || []);
+    list.innerHTML = ids.map(id => {
+      const selected = relationTargetId === id;
+      const hasKids = (people[id].children || []).length > 0;
+      return `
+        <div class="relation-picker-item ${selected ? 'selected' : ''}">
+          <div class="relation-picker-name protected-name">${escapeHtmlSafe(people[id].name)}</div>
+          ${hasKids ? `<button class="open-btn" onclick="openRelationBranch('${id}')">فتح</button>` : `<span></span>`}
+          <button class="select-dot" onclick="pickRelationTarget('${id}')">${selected ? '✓' : '○'}</button>
+        </div>
+      `;
+    }).join('') || `<div class="small">لا يوجد أبناء هنا.</div>`;
+  };
+
+  window.confirmRelationPicker = function(){
+    if(!relationSourceId || !relationTargetId){
+      alert('اختر الاسم الثاني أولًا');
+      return;
+    }
+    closeRelationPicker();
+    showRelationResultPage(relationSourceId, relationTargetId);
+  };
+
+  window.showRelationResultPage = function(a, b, pushHash = true){
+    if(!people[a] || !people[b]) return;
+    currentView = 'relation-profile';
+    currentPerson = a;
+    if(typeof hideAllPages === 'function') hideAllPages();
+    const page = document.getElementById('whoAmIProfilePage');
+    page.classList.remove('hidden');
+    const summary = relationSummary(a, b);
+    page.innerHTML = `
+      <div class="whoami-bg panel" style="padding:14px;">
+        <div class="relation-summary-box">
+          <h3>صلة القرابة</h3>
+          <div class="lineage protected-name">${escapeHtmlSafe(simpleLineage(a))}</div>
+          <div style="display:flex;justify-content:center;margin:10px 0;">${actionGrid(a)}</div>
+          <div class="result-main">${escapeHtmlSafe(summary.label)}</div>
+          <div class="lineage protected-name">${escapeHtmlSafe(simpleLineage(b))}</div>
+          <div style="display:flex;justify-content:center;margin:10px 0;">${actionGrid(b)}</div>
+          <div style="margin-top:14px;">${escapeHtmlSafe(summary.sentence)}</div>
+          ${summary.common ? `<div class="common">وتلتقون عند: <strong>${escapeHtmlSafe(summary.common)}</strong></div>` : ''}
+        </div>
+      </div>
+    `;
+    if(pushHash) history.pushState({relation:[a,b]}, '', '#relation=' + a + ',' + b);
+  };
+
+  function setupFinalRequestedUI(){
+    injectStyles();
+    ensureRelationModal();
+    const hp = document.getElementById('hierarchyPage');
+    if(hp) hp.classList.add('hidden');
+    const search = document.getElementById('searchInput');
+    if(search){
+      search.placeholder = 'ابحث عن اسم...';
+      search.oninput = function(){
+        const keyword = this.value.trim();
+        if(keyword) renderSearchResults(keyword);
+        else render(currentPerson || rootId, false);
+      };
+    }
+    if(typeof routeToHash === 'function'){
+      const originalRoute = routeToHash;
+      window.routeToHash = function(){
+        const h = location.hash.replace('#','');
+        if(h.startsWith('relation=')){
+          const raw = h.split('=')[1] || '';
+          const parts = raw.split(',');
+          if(parts.length === 2 && people[parts[0]] && people[parts[1]]) return showRelationResultPage(parts[0], parts[1], false);
+        }
+        return originalRoute();
+      };
+    }
+    render(rootId, false);
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupFinalRequestedUI);
+  else setupFinalRequestedUI();
+})();
+</script>
+
+</body>
         </html>
       `);
       win.document.close();
@@ -6584,5 +7522,577 @@ setTimeout(applyCopyProtection, 300);
   document.addEventListener('DOMContentLoaded', function(){ ensureMiniAdminModal(); setTimeout(()=>{ try{ enhanceTreeUI(); }catch(e){} }, 200); });
 })();
 </script>
+
+<style>
+  #hierarchyPage, #hierarchyModesWrap, .three-mode-wrap { display:none !important; }
+</style>
+<script>
+(function(){
+  function firstToken(name){
+    name = (name || '').trim().replace(/\s+/g,' ');
+    if(!name) return '';
+    return name.split(' ')[0] || name;
+  }
+
+  window.buildSimpleLineageFromPerson = function(id){
+    const path = (typeof getLineage === 'function' ? getLineage(id) : []).slice().reverse();
+    if(!path.length) return '';
+    const raw = path.map(pid => firstToken((people[pid]||{}).name || ''));
+    const dedup = [];
+    for(const n of raw){
+      if(!n) continue;
+      if(!dedup.length || dedup[dedup.length-1] !== n) dedup.push(n);
+    }
+    if(!dedup.length) return '';
+    const gender = typeof inferGender === 'function' ? inferGender(id) : 'm';
+    let out = dedup[0];
+    if(dedup[1]) out += (gender === 'f' ? ' بنت ' : ' بن ') + dedup[1];
+    for(let i=2;i<dedup.length;i++) out += ' بن ' + dedup[i];
+    return out;
+  };
+
+  window.showSimpleLineageModal = function(id){
+    const txt = window.buildSimpleLineageFromPerson(id);
+    const body = document.getElementById('lineageModalBody');
+    if(body){
+      body.innerHTML = `
+        <div style="text-align:center;line-height:2.2;">
+          <div style="font-weight:700;color:var(--main);margin-bottom:10px;">التسلسل المختصر</div>
+          <div class="whoami-card" style="padding:16px;font-size:18px;">${txt || ''}</div>
+        </div>`;
+    }
+    document.getElementById('lineageModal')?.classList.add('active');
+  };
+
+  window.showHierarchyPage = function(startId, pushHash){
+    window.showSimpleLineageModal(startId || rootId);
+  };
+
+  function simpleBadge(id){
+    return `<div class="small-badge" onclick="event.stopPropagation(); showSimpleLineageModal('${id}')">هرم</div>`;
+  }
+
+  window.renderCard = function(id){
+    const person = people[id];
+    const childCount = (person.children || []).length;
+    const note = person.note ? `<div class="meta">${escapeHtml(person.note)}</div>` : '';
+    const status = (typeof getStatus === 'function' ? getStatus(id) : '') ? `<div class="status-badge">${escapeHtml(getStatus(id))}</div>` : '';
+    const countBadge = `<div class="small-badge" title="عدد الأبناء">${childCount}</div>`;
+    const locked = appState && appState.lockedBranches && appState.lockedBranches[id] ? `<div class="small-badge">🔒</div>` : '';
+    const main = typeof isMainBranchRoot === 'function' && isMainBranchRoot(id) ? `<div class="small-badge">فرع رئيسي</div>` : '';
+    return `
+      <div class="card ${childCount ? '' : 'no-children'}" onclick="render('${id}')">
+        <div class="name-row">
+          <div class="name protected-name">${escapeHtml(person.name)}</div>
+          <div class="badges">
+            ${countBadge}
+            ${main}
+            ${locked}
+            ${simpleBadge(id)}
+          </div>
+        </div>
+        <div class="meta">${childCount ? ('عدد الأبناء: ' + childCount) : 'لا يوجد أبناء مسجلون'}</div>
+        ${note}
+        ${status}
+      </div>`;
+  };
+
+  window.renderSearchResults = function(keyword){
+    const q = normalizeArabic(keyword || '');
+    const results = Object.keys(people).filter(id => normalizeArabic((people[id]||{}).name || '').includes(q));
+    const html = results.length ? results.map(id => `
+      <div class="card" onclick="render('${id}')">
+        <div class="name-row">
+          <div class="name protected-name">${escapeHtml(people[id].name)}</div>
+          <div class="badges">${simpleBadge(id)}</div>
+        </div>
+        <div class="meta">${escapeHtml(window.buildSimpleLineageFromPerson(id))}</div>
+      </div>`).join('') : `<div class="card no-children" style="text-align:center;">لا توجد نتائج مطابقة</div>`;
+    document.getElementById('title').textContent = 'نتائج البحث';
+    document.getElementById('breadcrumb').innerHTML = '';
+    document.getElementById('quickBranches').innerHTML = '';
+    document.getElementById('infoBar').innerHTML = `عدد النتائج: ${results.length}`;
+    const content = document.getElementById('content');
+    content.className = 'cards';
+    content.innerHTML = html;
+    currentView = 'main';
+  };
+
+  const originalRender = window.render;
+  window.render = function(id, pushHash = true){
+    if(!people[id]) id = rootId;
+    currentPerson = id;
+    if (pushHash) history.pushState({person:id}, '', '#' + id);
+    hideAllPages();
+    document.getElementById('mainPage').classList.remove('hidden');
+    currentView = 'main';
+    if(typeof recordSectionView === 'function') recordSectionView('main');
+    const person = people[id];
+    document.getElementById('title').textContent = person.name;
+    const lineage = (typeof getLineage === 'function' ? getLineage(id) : [id]);
+    document.getElementById('breadcrumb').innerHTML = lineage.map(pid => `<button onclick="render('${pid}')">${escapeHtml(people[pid].name)}</button>`).join('');
+    const mainChildren = (person.children || []);
+    document.getElementById('quickBranches').innerHTML = '';
+    document.getElementById('infoBar').innerHTML = `عدد الأبناء المباشرين: ${mainChildren.length}`;
+    const content = document.getElementById('content');
+    content.className = 'cards';
+    content.innerHTML = mainChildren.length ? mainChildren.map(cid => window.renderCard(cid)).join('') : `<div class="card no-children" style="text-align:center;">لا يوجد أبناء لهذا الاسم</div>`;
+    try{ if(typeof saveState==='function') saveState(); }catch(e){}
+  };
+
+  window.showPersonPage = function(id, pushHash = true){
+    render(id, pushHash);
+  };
+
+  function simplifyUI(){
+    document.querySelectorAll('button[onclick*="showHierarchyPage"], .nav-map-chip[onclick*="showHierarchyPage"]').forEach(btn=>{
+      btn.textContent = 'هرم';
+      btn.setAttribute('onclick', btn.getAttribute('onclick').replace(/showHierarchyPage/g,'showSimpleLineageModal'));
+    });
+    const hp = document.getElementById('hierarchyPage');
+    if(hp) hp.remove();
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    simplifyUI();
+    setTimeout(simplifyUI, 300);
+    const search = document.getElementById('searchInput');
+    if(search){
+      search.placeholder = 'ابحث عن اسم...';
+      search.oninput = function(){
+        const keyword = this.value.trim();
+        if(keyword) renderSearchResults(keyword); else render(currentPerson || rootId, false);
+      };
+    }
+    render(rootId, false);
+  });
+})();
+</script>
+
+
+<script>
+(function(){
+  const STYLE_ID = 'oai-relation-circle-style';
+  const MODAL_ID = 'relationPickerModal';
+
+  function injectStyles(){
+    if(document.getElementById(STYLE_ID)) return;
+    const style = document.createElement('style');
+    style.id = STYLE_ID;
+    style.textContent = `
+      .action-circle-grid{display:grid;grid-template-columns:repeat(3,42px);gap:6px;justify-content:flex-end;margin-top:8px}
+      .action-circle{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:#f6ede4;color:var(--text);font-family:inherit;font-size:11px;line-height:1.15;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;padding:0;user-select:none}
+      .action-circle:hover{background:#eadfce}
+      .action-circle.action-admin{font-size:17px}
+      .action-circle.action-add{font-size:18px}
+      .compact-lineage-box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;line-height:2;font-size:18px;text-align:center}
+      .relation-picker-wrap{display:grid;gap:10px}
+      .relation-picker-breadcrumb{display:flex;gap:6px;flex-wrap:wrap}
+      .relation-picker-breadcrumb button{background:#efe4d5;color:var(--text);border-radius:999px;padding:7px 10px}
+      .relation-picker-list{display:grid;gap:8px;max-height:48vh;overflow:auto}
+      .relation-picker-item{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;background:#faf5ef;border:1px solid var(--line);border-radius:12px;padding:10px}
+      .relation-picker-name{font-weight:700;line-height:1.7}
+      .relation-picker-item .select-dot{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--main);font-size:14px}
+      .relation-picker-item .open-btn{background:#efe4d5;color:var(--text);border-radius:10px;padding:8px 10px}
+      .relation-picker-item.selected{border-color:var(--main);background:#fff9f2}
+      .relation-summary-box{background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:18px;padding:18px;line-height:2}
+      .relation-summary-box h3{margin:0 0 10px;color:var(--main);text-align:center}
+      .relation-summary-box .lineage{font-weight:700}
+      .relation-summary-box .result-main{font-size:20px;color:var(--gold);text-align:center;margin:12px 0;font-weight:700}
+      .relation-summary-box .common{font-size:15px;text-align:center;color:var(--muted)}
+    `;
+    document.head.appendChild(style);
+  }
+
+  function ensureRelationModal(){
+    if(document.getElementById(MODAL_ID)) return;
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = MODAL_ID;
+    modal.innerHTML = `
+      <div class="modal-box" style="max-width:640px;">
+        <div class="modal-title">صلة القرابة</div>
+        <div class="relation-picker-wrap">
+          <div class="modal-text" id="relationPickerIntro"></div>
+          <div class="relation-picker-breadcrumb" id="relationPickerBreadcrumb"></div>
+          <div class="relation-picker-list" id="relationPickerList"></div>
+        </div>
+        <div class="modal-actions" style="margin-top:12px;">
+          <button class="btn-soft" onclick="closeRelationPicker()">إلغاء</button>
+          <button class="btn-main" onclick="confirmRelationPicker()">تأكيد</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  function escapeHtmlSafe(v){
+    if(typeof escapeHtml === 'function') return escapeHtml(v);
+    return String(v ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  function shortNameOf(id){
+    return (people[id]?.name || '').trim();
+  }
+
+  function simpleLineage(id){
+    if(typeof buildSimpleLineageFromPerson === 'function') return buildSimpleLineageFromPerson(id);
+    return shortNameOf(id);
+  }
+
+  function directRelationLabel(me, other){
+    if(!people[me] || !people[other]) return 'قريبك';
+    if(me === other) return 'أنت';
+    const pathMe = typeof getLineage === 'function' ? getLineage(me) : [me];
+    const pathOther = typeof getLineage === 'function' ? getLineage(other) : [other];
+
+    if(pathMe.includes(other)){
+      const dist = pathMe.length - 1 - pathMe.indexOf(other);
+      if(dist === 1) return inferGender(other) === 'f' ? 'أمك' : 'أبوك';
+      if(dist === 2) return inferGender(other) === 'f' ? 'جدتك' : 'جدك';
+      return inferGender(other) === 'f' ? 'من جداتك' : 'من أجدادك';
+    }
+
+    if(pathOther.includes(me)){
+      const dist = pathOther.length - 1 - pathOther.indexOf(me);
+      if(dist === 1) return inferGender(other) === 'f' ? 'ابنتك' : 'ابنك';
+      if(dist === 2) return inferGender(other) === 'f' ? 'حفيدتك' : 'حفيدك';
+      return inferGender(other) === 'f' ? 'من حفيداتك' : 'من أحفادك';
+    }
+
+    const myParent = typeof getParentId === 'function' ? getParentId(me) : null;
+    const otherParent = typeof getParentId === 'function' ? getParentId(other) : null;
+
+    if(myParent && otherParent && myParent === otherParent){
+      return inferGender(other) === 'f' ? 'أختك' : 'أخوك';
+    }
+
+    const myGrand = myParent && typeof getParentId === 'function' ? getParentId(myParent) : null;
+    const otherGrand = otherParent && typeof getParentId === 'function' ? getParentId(otherParent) : null;
+
+    if(myParent && otherGrand && myParent === otherGrand){
+      return inferGender(other) === 'f' ? 'بنت أخيك/أختك' : 'ابن أخيك/أختك';
+    }
+
+    if(otherParent && myGrand && otherParent === myGrand){
+      return inferGender(other) === 'f' ? 'عمتك/خالتك' : 'عمك/خالك';
+    }
+
+    if(myGrand && otherGrand && myGrand === otherGrand && myParent !== otherParent){
+      const parentKind = inferGender(myParent) === 'f'
+        ? (inferGender(otherParent) === 'f' ? 'خالتك' : 'خالك')
+        : (inferGender(otherParent) === 'f' ? 'عمتك' : 'عمك');
+      if(parentKind.includes('خال')) return inferGender(other) === 'f' ? 'بنت خالك/خالتك' : 'ابن خالك/خالتك';
+      return inferGender(other) === 'f' ? 'بنت عمك/عمتك' : 'ابن عمك/عمتك';
+    }
+
+    const rel = typeof relationBetween === 'function' ? relationBetween(me, other) : null;
+    if(rel && rel.common && rel.common !== me && rel.common !== other){
+      return 'قريبك';
+    }
+    return 'قريبك';
+  }
+
+  function relationSummary(me, other){
+    const label = directRelationLabel(me, other);
+    const rel = typeof relationBetween === 'function' ? relationBetween(me, other) : null;
+    const common = rel && rel.common && people[rel.common] ? people[rel.common].name : '';
+    let sentence = `أنت ${simpleLineage(me)}، وتقرب إلى ${simpleLineage(other)} بأنه ${label}.`;
+    if(label === 'أنت') sentence = `أنت ${simpleLineage(me)}، وهذا هو نفس الاسم نفسه.`;
+    else if(label === 'قريبك' && common) sentence = `أنت ${simpleLineage(me)}، وتقرب إلى ${simpleLineage(other)} بأنه قريبك، وتتشاركون عند ${common}.`;
+    return { label, common, sentence };
+  }
+
+  function actionGrid(id){
+    const gen = typeof generationLabelShort === 'function' ? generationLabelShort(getGeneration(id)) : ('ج' + (typeof getGeneration === 'function' ? getGeneration(id) : ''));
+    return `
+      <div class="action-circle-grid">
+        <button class="action-circle" onclick="event.stopPropagation(); return false;">${escapeHtmlSafe(gen)}</button>
+        <button class="action-circle" onclick="event.stopPropagation(); openWhoAmIForPerson('${id}')">من</button>
+        <button class="action-circle" onclick="event.stopPropagation(); openLineageModal('${id}')">هرم</button>
+        <button class="action-circle" onclick="event.stopPropagation(); openRelationPicker('${id}')">صلة</button>
+        <button class="action-circle action-add" onclick="event.stopPropagation(); openAddRequestModal('${id}')">+</button>
+        <button class="action-circle action-admin" onclick="event.stopPropagation(); quickAdminForPerson('${id}')">⚙</button>
+      </div>
+    `;
+  }
+
+  window.quickAdminForPerson = function(id){
+    if(window.currentAdminSession){
+      if(typeof showAdminPage === 'function') showAdminPage();
+      return;
+    }
+    if(typeof openAdminPassword === 'function') openAdminPassword();
+  };
+
+  window.openLineageModal = function(id){
+    const body = document.getElementById('lineageModalBody');
+    if(!body || !people[id]) return;
+    body.innerHTML = `<div class="compact-lineage-box protected-name">${escapeHtmlSafe(simpleLineage(id))}</div>`;
+    document.getElementById('lineageModal')?.classList.add('active');
+  };
+
+  window.showHierarchyPage = function(id){
+    window.openLineageModal(id || rootId);
+  };
+
+  window.__rootExpanded = false;
+
+  function renderSingleCard(id, opts = {}){
+    const child = people[id];
+    const directChildren = typeof getChildrenCount === 'function' ? getChildrenCount(id) : ((child.children || []).length);
+    const totalDesc = typeof getDescendantsCount === 'function' ? getDescendantsCount(id) : directChildren;
+    const locked = typeof isPersonLocked === 'function' ? isPersonLocked(id) : false;
+    const clickAction = opts.rootClosed ? `openRootChildren()` : `handleClick('${id}')`;
+    const helper = opts.rootClosed
+      ? 'اضغط على الاسم لإظهار الأبناء.'
+      : (directChildren ? `عدد الأبناء: ${directChildren}<br>إجمالي الذرية: ${totalDesc}` : 'لا توجد أسماء أبناء مسجلة حاليًا لهذا الفرع.');
+    return `
+      <div class="card ${directChildren ? '' : 'no-children'}" onclick="${clickAction}">
+        <div class="name-row">
+          <div class="name protected-name">${escapeHtmlSafe(child.name)}</div>
+          <div class="badges">
+            ${locked ? `<div class="status-badge">🔒 فرع مقفل</div>` : ''}
+          </div>
+        </div>
+        <div class="meta">${helper}${child.note ? `<br>ملاحظة: ${escapeHtmlSafe(child.note)}` : ''}</div>
+        ${actionGrid(id)}
+      </div>
+    `;
+  }
+
+  window.openRootChildren = function(){
+    window.__rootExpanded = true;
+    window.render(rootId, false);
+  };
+
+  const originalGoRoot = window.goRoot;
+  window.goRoot = function(){
+    window.__rootExpanded = false;
+    if(typeof originalGoRoot === 'function') return originalGoRoot();
+    currentView = 'tree';
+    currentPerson = rootId;
+    historyStack = [rootId];
+    render(rootId, false);
+  };
+
+  window.renderCard = function(id){
+    return renderSingleCard(id);
+  };
+
+  window.render = function(id, pushHash = true){
+    if(!people[id]) id = rootId;
+    if(typeof showTreePage === 'function') showTreePage();
+    currentPerson = id;
+    const title = document.getElementById('title');
+    if(title) title.textContent = people[id].name;
+    const breadcrumb = document.getElementById('breadcrumb');
+    if(breadcrumb){
+      const lineage = typeof getLineage === 'function' ? getLineage(id) : [id];
+      breadcrumb.innerHTML = lineage.map(pid => `<button onclick="window.__rootExpanded=${pid===rootId ? 'true' : 'true'}; render('${pid}')">${escapeHtmlSafe(people[pid].name)}</button>`).join('');
+    }
+    const quick = document.getElementById('quickBranches');
+    if(quick) quick.innerHTML = '';
+    const info = document.getElementById('infoBar');
+    const content = document.getElementById('content');
+    if(!content) return;
+
+    if(id === rootId && !window.__rootExpanded){
+      if(info) info.innerHTML = 'اضغط على <strong>محمد بن حميد المجيني</strong> لعرض الأبناء.';
+      content.className = 'cards';
+      content.innerHTML = renderSingleCard(rootId, {rootClosed:true});
+      if(pushHash) history.replaceState({personId:rootId}, '', '#'+rootId);
+      return;
+    }
+
+    const children = people[id].children || [];
+    if(info) info.innerHTML = `عدد الأبناء المباشرين: <strong>${children.length}</strong>`;
+    content.className = 'cards';
+    content.innerHTML = children.length ? children.map(cid => renderSingleCard(cid)).join('') : `<div class="card no-children"><div class="meta">لا توجد أسماء أبناء مسجلة حاليًا لهذا الفرع.</div>${actionGrid(id)}</div>`;
+    if(pushHash){
+      if(id === rootId) history.replaceState({personId:rootId}, '', '#'+rootId);
+      else history.pushState({personId:id}, '', '#'+id);
+    }
+  };
+
+  window.renderSearchResults = function(keyword){
+    const results = [];
+    for(const key in people){
+      const person = people[key];
+      const score = typeof scoreNameOnlySearch === 'function' ? scoreNameOnlySearch(keyword, person.name) : 0;
+      if(score >= 60) results.push({id:key, score});
+    }
+    results.sort((a,b)=>b.score-a.score);
+    if(typeof showTreePage === 'function') showTreePage();
+    document.getElementById('title').textContent = 'نتائج البحث';
+    document.getElementById('breadcrumb').innerHTML = '';
+    document.getElementById('quickBranches').innerHTML = '';
+    document.getElementById('infoBar').innerHTML = `عدد النتائج: <strong>${results.length}</strong>`;
+    document.getElementById('content').className = 'cards';
+    document.getElementById('content').innerHTML = results.length
+      ? results.map(r => renderSingleCard(r.id)).join('')
+      : `<div class="card no-children"><div class="meta">لا توجد نتائج مطابقة.</div></div>`;
+  };
+
+  window.showPersonPage = function(id, pushHash = true){
+    if(!people[id]) return;
+    currentView = 'person';
+    currentPerson = id;
+    if(typeof hideAllPages === 'function') hideAllPages();
+    const page = document.getElementById('personPage');
+    page.classList.remove('hidden');
+    const children = people[id].children || [];
+    page.innerHTML = `
+      <div class="person-page">
+        <div class="title protected-name">${escapeHtmlSafe(people[id].name)}</div>
+        <div style="display:flex;justify-content:center;">${actionGrid(id)}</div>
+        ${children.length ? `<div class="cards" style="margin-top:14px;">${children.map(cid => renderSingleCard(cid)).join('')}</div>` : `<div class="card no-children" style="margin-top:14px;"><div class="meta">لا توجد أسماء أبناء مسجلة لهذا الشخص.</div>${actionGrid(id)}</div>`}
+      </div>
+    `;
+    if(pushHash) history.pushState({personPage:id}, '', location.pathname + '?person=' + id);
+  };
+
+  const originalShowWhoAmIProfile = window.showWhoAmIProfile;
+  window.showWhoAmIProfile = function(id, pushHash = true){
+    if(typeof originalShowWhoAmIProfile === 'function'){
+      originalShowWhoAmIProfile(id, pushHash);
+      setTimeout(function(){
+        const card = document.querySelector('#whoAmIProfilePage .whoami-card');
+        if(card && !card.querySelector('.action-circle-grid')){
+          const wrap = document.createElement('div');
+          wrap.style.display = 'flex';
+          wrap.style.justifyContent = 'center';
+          wrap.style.marginTop = '14px';
+          wrap.innerHTML = actionGrid(id);
+          card.appendChild(wrap);
+        }
+      }, 0);
+    }
+  };
+
+  window.relationSourceId = null;
+  window.relationTrail = [rootId];
+  window.relationTargetId = null;
+
+  window.openRelationPicker = function(sourceId){
+    if(!people[sourceId]) return;
+    relationSourceId = sourceId;
+    relationTrail = [rootId];
+    relationTargetId = null;
+    ensureRelationModal();
+    renderRelationPicker();
+    document.getElementById(MODAL_ID).classList.add('active');
+  };
+
+  window.closeRelationPicker = function(){
+    document.getElementById(MODAL_ID)?.classList.remove('active');
+  };
+
+  window.openRelationBranch = function(id){
+    if(!people[id]) return;
+    relationTrail.push(id);
+    renderRelationPicker();
+  };
+
+  window.goRelationBreadcrumb = function(index){
+    relationTrail = relationTrail.slice(0, index + 1);
+    renderRelationPicker();
+  };
+
+  window.pickRelationTarget = function(id){
+    relationTargetId = id;
+    renderRelationPicker();
+  };
+
+  window.renderRelationPicker = function(){
+    const parentId = relationTrail[relationTrail.length - 1];
+    const intro = document.getElementById('relationPickerIntro');
+    const crumb = document.getElementById('relationPickerBreadcrumb');
+    const list = document.getElementById('relationPickerList');
+    if(!intro || !crumb || !list) return;
+    intro.innerHTML = `الاسم الأول ثابت: <strong>${escapeHtmlSafe(simpleLineage(relationSourceId))}</strong><br>اختر الاسم الثاني من الشجرة.`;
+    crumb.innerHTML = relationTrail.map((pid, idx) => `<button onclick="goRelationBreadcrumb(${idx})">${escapeHtmlSafe(people[pid].name)}</button>`).join('');
+    const ids = (people[parentId]?.children || []);
+    list.innerHTML = ids.map(id => {
+      const selected = relationTargetId === id;
+      const hasKids = (people[id].children || []).length > 0;
+      return `
+        <div class="relation-picker-item ${selected ? 'selected' : ''}">
+          <div class="relation-picker-name protected-name">${escapeHtmlSafe(people[id].name)}</div>
+          ${hasKids ? `<button class="open-btn" onclick="openRelationBranch('${id}')">فتح</button>` : `<span></span>`}
+          <button class="select-dot" onclick="pickRelationTarget('${id}')">${selected ? '✓' : '○'}</button>
+        </div>
+      `;
+    }).join('') || `<div class="small">لا يوجد أبناء هنا.</div>`;
+  };
+
+  window.confirmRelationPicker = function(){
+    if(!relationSourceId || !relationTargetId){
+      alert('اختر الاسم الثاني أولًا');
+      return;
+    }
+    closeRelationPicker();
+    showRelationResultPage(relationSourceId, relationTargetId);
+  };
+
+  window.showRelationResultPage = function(a, b, pushHash = true){
+    if(!people[a] || !people[b]) return;
+    currentView = 'relation-profile';
+    currentPerson = a;
+    if(typeof hideAllPages === 'function') hideAllPages();
+    const page = document.getElementById('whoAmIProfilePage');
+    page.classList.remove('hidden');
+    const summary = relationSummary(a, b);
+    page.innerHTML = `
+      <div class="whoami-bg panel" style="padding:14px;">
+        <div class="relation-summary-box">
+          <h3>صلة القرابة</h3>
+          <div class="lineage protected-name">${escapeHtmlSafe(simpleLineage(a))}</div>
+          <div style="display:flex;justify-content:center;margin:10px 0;">${actionGrid(a)}</div>
+          <div class="result-main">${escapeHtmlSafe(summary.label)}</div>
+          <div class="lineage protected-name">${escapeHtmlSafe(simpleLineage(b))}</div>
+          <div style="display:flex;justify-content:center;margin:10px 0;">${actionGrid(b)}</div>
+          <div style="margin-top:14px;">${escapeHtmlSafe(summary.sentence)}</div>
+          ${summary.common ? `<div class="common">وتلتقون عند: <strong>${escapeHtmlSafe(summary.common)}</strong></div>` : ''}
+        </div>
+      </div>
+    `;
+    if(pushHash) history.pushState({relation:[a,b]}, '', '#relation=' + a + ',' + b);
+  };
+
+  function setupFinalRequestedUI(){
+    injectStyles();
+    ensureRelationModal();
+    const hp = document.getElementById('hierarchyPage');
+    if(hp) hp.classList.add('hidden');
+    const search = document.getElementById('searchInput');
+    if(search){
+      search.placeholder = 'ابحث عن اسم...';
+      search.oninput = function(){
+        const keyword = this.value.trim();
+        if(keyword) renderSearchResults(keyword);
+        else render(currentPerson || rootId, false);
+      };
+    }
+    if(typeof routeToHash === 'function'){
+      const originalRoute = routeToHash;
+      window.routeToHash = function(){
+        const h = location.hash.replace('#','');
+        if(h.startsWith('relation=')){
+          const raw = h.split('=')[1] || '';
+          const parts = raw.split(',');
+          if(parts.length === 2 && people[parts[0]] && people[parts[1]]) return showRelationResultPage(parts[0], parts[1], false);
+        }
+        return originalRoute();
+      };
+    }
+    render(rootId, false);
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupFinalRequestedUI);
+  else setupFinalRequestedUI();
+})();
+</script>
+
 </body>
 </html>
