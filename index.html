@@ -4072,7 +4072,41 @@ function relationBetweenDeep(idA, idB) {
   </script>
 
 
-<script id="quick-relation-entry">
+<div class="modal" id="requestReadModal">
+    <div class="modal-box" style="max-width:760px;max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;">
+      <div class="modal-title">قراءة الطلب</div>
+      <div id="requestReadBody" class="subbox" style="line-height:2;"></div>
+      <div style="margin-top:12px;">
+        <button class="btn-main" style="width:100%;" onclick="closeRequestReadModal()">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="adminRoleManageModal">
+    <div class="modal-box" style="max-width:680px;max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;">
+      <div class="modal-title">إدارة الأدمن</div>
+      <div class="top-note">هذه النافذة للماستر فقط.</div>
+      <div class="note-form">
+        <label class="top-note" for="secondaryAdminPasswordInput">تغيير كلمة سر الأدمن</label>
+        <input class="field" id="secondaryAdminPasswordInput" placeholder="كلمة السر الجديدة للأدمن" />
+        <div class="subbox">
+          <h4 style="margin:0 0 10px;color:var(--main);">الصلاحيات</h4>
+          <label><input type="checkbox" id="perm_overview"> الرئيسية</label><br>
+          <label><input type="checkbox" id="perm_requests"> قبول الطلبات</label><br>
+          <label><input type="checkbox" id="perm_add"> الإضافة والتعديل</label><br>
+          <label><input type="checkbox" id="perm_messages"> الرسائل</label><br>
+          <label><input type="checkbox" id="perm_duplicates"> الكشف والمراجعة</label><br>
+        </div>
+        <button class="btn-main" onclick="saveSecondaryAdminSettings()">حفظ كلمة السر والصلاحيات</button>
+      </div>
+      <div style="margin-top:12px;">
+        <button class="btn-soft" style="width:100%;" onclick="closeAdminRoleManageModal()">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
+
+<script id="post-init-consolidated-patch">
 let quickRelationFirstId = null;
 
 function ensureQuickRelationUI(){
@@ -4156,11 +4190,7 @@ function openQuickRelationFrom(id){
     showQuickRelationResult(id, selectedId);
   }, rootId);
 }
-</script>
 
-
-
-<script id="single-admin-role-patch">
 window.currentAdminRole = "guest";
 window.SECONDARY_ADMIN_PASSWORD = "Mujaini3";
 window.ALLOWED_ADMIN_TABS_SECONDARY = ["overview","requests","add"];
@@ -4295,44 +4325,7 @@ window.ALLOWED_ADMIN_TABS_SECONDARY = ["overview","requests","add"];
     }
   };
 })();
-</script>
 
-
-  <div class="modal" id="requestReadModal">
-    <div class="modal-box" style="max-width:760px;max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;">
-      <div class="modal-title">قراءة الطلب</div>
-      <div id="requestReadBody" class="subbox" style="line-height:2;"></div>
-      <div style="margin-top:12px;">
-        <button class="btn-main" style="width:100%;" onclick="closeRequestReadModal()">إغلاق</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal" id="adminRoleManageModal">
-    <div class="modal-box" style="max-width:680px;max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;">
-      <div class="modal-title">إدارة الأدمن</div>
-      <div class="top-note">هذه النافذة للماستر فقط.</div>
-      <div class="note-form">
-        <label class="top-note" for="secondaryAdminPasswordInput">تغيير كلمة سر الأدمن</label>
-        <input class="field" id="secondaryAdminPasswordInput" placeholder="كلمة السر الجديدة للأدمن" />
-        <div class="subbox">
-          <h4 style="margin:0 0 10px;color:var(--main);">الصلاحيات</h4>
-          <label><input type="checkbox" id="perm_overview"> الرئيسية</label><br>
-          <label><input type="checkbox" id="perm_requests"> قبول الطلبات</label><br>
-          <label><input type="checkbox" id="perm_add"> الإضافة والتعديل</label><br>
-          <label><input type="checkbox" id="perm_messages"> الرسائل</label><br>
-          <label><input type="checkbox" id="perm_duplicates"> الكشف والمراجعة</label><br>
-        </div>
-        <button class="btn-main" onclick="saveSecondaryAdminSettings()">حفظ كلمة السر والصلاحيات</button>
-      </div>
-      <div style="margin-top:12px;">
-        <button class="btn-soft" style="width:100%;" onclick="closeAdminRoleManageModal()">إغلاق</button>
-      </div>
-    </div>
-  </div>
-
-
-<script id="request-read-and-admin-role-patch">
 window.SECONDARY_ADMIN_SETTINGS_KEY = "mujaini_secondary_admin_settings_v1";
 
 function getSecondaryAdminSettings(){
@@ -4431,10 +4424,7 @@ function saveSecondaryAdminSettings(){
     }
   }
 })();
-</script>
 
-
-<script id="pending-delete-review-patch">
 function collectSubtreeSnapshot(rootId){
   const nodes = {};
   function walk(id){
@@ -4641,6 +4631,4 @@ function rejectPendingDelete(id){
   };
 })();
 </script>
-
-
-</body>
+  </body>
