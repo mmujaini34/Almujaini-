@@ -4191,9 +4191,45 @@ function openQuickRelationFrom(id){
   }, rootId);
 }
 
+
 window.currentAdminRole = "guest";
 window.SECONDARY_ADMIN_PASSWORD = "Mujaini3";
 window.ALLOWED_ADMIN_TABS_SECONDARY = ["overview","requests","add"];
+
+function getCurrentAdminPermissions(){
+  const role = window.currentAdminRole || "guest";
+  if (role === "master") {
+    return {
+      role: "master",
+      tabs: ["overview","messages","requests","add","duplicates","stats","archive","backup","settings"],
+      canViewAdmin: true,
+      canManageAll: true
+    };
+  }
+  if (role === "editor_admin") {
+    return {
+      role: "editor_admin",
+      tabs: Array.isArray(window.ALLOWED_ADMIN_TABS_SECONDARY) ? window.ALLOWED_ADMIN_TABS_SECONDARY : ["overview","requests","add"],
+      canViewAdmin: true,
+      canManageAll: false
+    };
+  }
+  return {
+    role: "guest",
+    tabs: [],
+    canViewAdmin: false,
+    canManageAll: false
+  };
+}
+
+function canAccessAdminTab(name){
+  const perms = getCurrentAdminPermissions();
+  if (!perms.canViewAdmin) return false;
+  if (perms.canManageAll) return true;
+  return perms.tabs.includes(name);
+}
+
+
 
 (function(){
   const _enterAdmin = window.enterAdmin;
@@ -4223,7 +4259,7 @@ window.ALLOWED_ADMIN_TABS_SECONDARY = ["overview","requests","add"];
   };
 
   window.switchAdminTab = function(name) {
-    if (window.currentAdminRole === "editor_admin" && !window.ALLOWED_ADMIN_TABS_SECONDARY.includes(name)) {
+    if (!canAccessAdminTab(name)) {
       alert("هذا القسم غير متاح لهذا الأدمن");
       return;
     }
@@ -4239,7 +4275,8 @@ window.ALLOWED_ADMIN_TABS_SECONDARY = ["overview","requests","add"];
 
     const title = page.querySelector(".title");
     if (title) {
-      const roleText = window.currentAdminRole === "master" ? "الماستر" : "الأدمن";
+      const perms = getCurrentAdminPermissions();
+      const roleText = perms.role === "master" ? "الماستر" : (perms.role === "editor_admin" ? "الأدمن" : "زائر");
       title.innerHTML = `صفحة الإدارة <span style="font-size:14px;color:var(--muted);">(${roleText})</span>`;
     }
 
@@ -4258,8 +4295,8 @@ window.ALLOWED_ADMIN_TABS_SECONDARY = ["overview","requests","add"];
         "الإعدادات":"settings"
       };
       const key = map[txt];
-      if (window.currentAdminRole === "editor_admin") {
-        if (!window.ALLOWED_ADMIN_TABS_SECONDARY.includes(key)) {
+      if (getCurrentAdminPermissions().role === "editor_admin") {
+        if (!canAccessAdminTab(key)) {
           btn.style.display = "none";
         } else {
           btn.style.display = "";
@@ -4278,7 +4315,7 @@ window.ALLOWED_ADMIN_TABS_SECONDARY = ["overview","requests","add"];
       const tabsBox = page.querySelector(".admin-tabs");
       if (tabsBox && tabsBox.parentNode) tabsBox.parentNode.insertBefore(help, tabsBox.nextSibling);
     }
-    if (window.currentAdminRole === "editor_admin") {
+    if (getCurrentAdminPermissions().role === "editor_admin") {
       help.innerHTML = `
         <strong>صلاحيات هذا الأدمن:</strong><br>
         - قبول طلبات الإضافة<br>
@@ -4295,7 +4332,7 @@ window.ALLOWED_ADMIN_TABS_SECONDARY = ["overview","requests","add"];
       `;
     }
 
-    if (window.currentAdminRole === "editor_admin") {
+    if (getCurrentAdminPermissions().role === "editor_admin") {
       // force allowed tab
       const active = page.querySelector(".admin-section.active");
       if (active && !["admin-overview","admin-requests","admin-add"].includes(active.id)) {
@@ -4631,4 +4668,4 @@ function rejectPendingDelete(id){
   };
 })();
 </script>
-  </body>
+</body>
