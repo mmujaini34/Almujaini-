@@ -759,6 +759,24 @@
       .lineage-item{min-width:140px}
     }
   </style>
+
+  <style id="relation-grid-fix">
+    .name-row{align-items:flex-start}
+    .badges{
+      display:grid !important;
+      grid-template-columns:repeat(3, max-content) !important;
+      gap:6px !important;
+      justify-content:end !important;
+      align-content:start !important;
+    }
+    .small-badge,.gen-badge{
+      min-width:42px;
+      text-align:center;
+      font-size:11px !important;
+      padding:5px 7px !important;
+    }
+  </style>
+
 </head>
 <body>
   <div class="topbar">
@@ -1616,10 +1634,12 @@ async function syncPeopleToSupabase() {
           <div class="name-row">
             <div class="name">${child.name}${appState.settings.showCounts ? ` (${getChildrenCount(cid)})` : ""}</div>
             <div class="badges">
-              <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${cid}')">طلب إضافة</div>
-              <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${cid}')">نسب</div>
-              <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${cid}')">هرم</div>
+              <div class="gen-badge">${generationLabelShort(getGeneration(cid))}</div>
               <div class="small-badge who-badge" onclick="event.stopPropagation(); openWhoAmIForPerson('${cid}')">من؟</div>
+              <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${cid}')">هرم</div>
+              <div class="small-badge" onclick="event.stopPropagation(); openQuickRelationFrom('${cid}')">صلة</div>
+              <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${cid}')">نسب</div>
+              <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${cid}')">إضافة</div>
               ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(cid))}</div>` : ""}
             </div>
           </div>
@@ -2224,9 +2244,12 @@ if (!h) {
             <div class="name-row">
               <div class="name">${people[r.id].name}${idx === 0 ? ' <span style="font-size:12px;color:var(--gold);">• الأقرب</span>' : ''}</div>
               <div class="badges">
-                <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${r.id}')">طلب إضافة</div>
+                <div class="gen-badge">${generationLabelShort(getGeneration(r.id))}</div>
+                <div class="small-badge who-badge" onclick="event.stopPropagation(); openWhoAmIForPerson('${r.id}')">من؟</div>
+                
+                <div class="small-badge" onclick="event.stopPropagation(); openQuickRelationFrom('${r.id}')">صلة</div>
                 <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${r.id}')">نسب</div>
-                                <div class="small-badge who-badge" onclick="event.stopPropagation(); openWhoAmIForPerson('${r.id}')">من؟</div>
+                <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${r.id}')">إضافة</div>
                 ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(r.id))}</div>` : ""}
               </div>
             </div>
@@ -2235,7 +2258,7 @@ if (!h) {
               الجيل: ${generationLabelShort(getGeneration(r.id))}
             </div>
             <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
-              <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${r.id}')">هرم</div>
+              
             </div>
           </div>
         `).join("")
@@ -3469,10 +3492,12 @@ function renderCard(id) {
       <div class="name-row">
         <div class="name">${child.name}${appState.settings.showCounts ? ` (${directChildren})` : ""}</div>
         <div class="badges">
-          <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${id}')">طلب إضافة</div>
-          <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${id}')">نسب</div>
-          <div class="small-badge who-badge" onclick="event.stopPropagation(); openWhoAmIForPerson('${id}')">من؟</div>
           ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(id))}</div>` : ""}
+          <div class="small-badge who-badge" onclick="event.stopPropagation(); openWhoAmIForPerson('${id}')">من؟</div>
+          <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${id}')">هرم</div>
+          <div class="small-badge" onclick="event.stopPropagation(); openQuickRelationFrom('${id}')">صلة</div>
+          <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${id}')">نسب</div>
+          <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${id}')">إضافة</div>
         </div>
       </div>
       <div class="meta">
@@ -3481,9 +3506,7 @@ function renderCard(id) {
         إجمالي الذرية: ${totalDesc}<br>
         ${child.note ? `ملاحظة: ${child.note}<br>` : ""}
       </div>
-      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
-        <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${id}')">هرم</div>
-      </div>
+      
     </div>
   `;
 }
@@ -3579,7 +3602,7 @@ function renderSearchResults(keyword) {
           الجيل: ${generationLabelShort(getGeneration(r.id))}
         </div>
         <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
-          <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${r.id}')">هرم</div>
+          
         </div>
       </div>
     `).join("")
@@ -3907,4 +3930,25 @@ function markRequestDone(idx) {
 
     initApp();
   </script>
+
+<script id="quick-relation-entry">
+function openQuickRelationFrom(id){
+  showAdminPage();
+  try { switchAdminTab('relation'); } catch(e) {}
+  const aInput = document.getElementById('relationA');
+  const aLabel = document.getElementById('relationALabel');
+  if(aInput) aInput.value = id;
+  if(aLabel) aLabel.textContent = people[id] ? people[id].name : 'تم اختيار الاسم الأول';
+  const box = document.getElementById('relationResult');
+  if(box) box.innerHTML = '';
+  openTreePicker('اختر الاسم الثاني من الشجرة', rootId, function(selectedId){
+    const bInput = document.getElementById('relationB');
+    const bLabel = document.getElementById('relationBLabel');
+    if(bInput) bInput.value = selectedId;
+    if(bLabel) bLabel.textContent = people[selectedId] ? people[selectedId].name : 'تم اختيار الاسم الثاني';
+    try { runRelation(); } catch(e) { console.error(e); }
+  });
+}
+</script>
+
   </body>
