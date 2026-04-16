@@ -3931,24 +3931,83 @@ function markRequestDone(idx) {
     initApp();
   </script>
 
+
 <script id="quick-relation-entry">
-function openQuickRelationFrom(id){
-  showAdminPage();
-  try { switchAdminTab('relation'); } catch(e) {}
-  const aInput = document.getElementById('relationA');
-  const aLabel = document.getElementById('relationALabel');
-  if(aInput) aInput.value = id;
-  if(aLabel) aLabel.textContent = people[id] ? people[id].name : 'تم اختيار الاسم الأول';
-  const box = document.getElementById('relationResult');
+let quickRelationFirstId = null;
+
+function ensureQuickRelationUI(){
+  if(document.getElementById('quickRelationModal')) return;
+  const modal = document.createElement('div');
+  modal.id = 'quickRelationModal';
+  modal.className = 'modal';
+  modal.innerHTML = `
+    <div class="modal-box" style="max-width:520px;">
+      <div class="modal-title">صلة القرابة</div>
+      <div class="modal-text" id="quickRelationFirstLabel">الاسم الأول غير محدد.</div>
+      <div id="quickRelationResult" style="line-height:2;"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;">
+        <button class="btn-soft" onclick="quickRelationChooseAnother()">اختيار اسم آخر</button>
+        <button class="btn-main" onclick="closeQuickRelationModal()">إغلاق</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+function closeQuickRelationModal(){
+  const m = document.getElementById('quickRelationModal');
+  if(m) m.classList.remove('active');
+  quickRelationFirstId = null;
+  const box = document.getElementById('quickRelationResult');
   if(box) box.innerHTML = '';
-  openTreePicker('اختر الاسم الثاني من الشجرة', rootId, function(selectedId){
-    const bInput = document.getElementById('relationB');
-    const bLabel = document.getElementById('relationBLabel');
-    if(bInput) bInput.value = selectedId;
-    if(bLabel) bLabel.textContent = people[selectedId] ? people[selectedId].name : 'تم اختيار الاسم الثاني';
-    try { runRelation(); } catch(e) { console.error(e); }
-  });
+}
+
+function quickRelationChooseAnother(){
+  if(!quickRelationFirstId || !people[quickRelationFirstId]) return;
+  openTreePicker('اختر الاسم الثاني من الشجرة', function(selectedId){
+    showQuickRelationResult(quickRelationFirstId, selectedId);
+  }, rootId);
+}
+
+function showQuickRelationResult(idA, idB){
+  ensureQuickRelationUI();
+  const m = document.getElementById('quickRelationModal');
+  const first = document.getElementById('quickRelationFirstLabel');
+  const box = document.getElementById('quickRelationResult');
+  if(first) first.innerHTML = `<strong>الاسم الأول:</strong> ${people[idA] ? people[idA].name : ''}<br><strong>الاسم الثاني:</strong> ${people[idB] ? people[idB].name : ''}`;
+  let result = null;
+  try{
+    if(typeof relationBetweenDeep === 'function'){
+      result = relationBetweenDeep(idA,idB);
+    } else if(typeof relationBetween === 'function'){
+      result = relationBetween(idA,idB);
+    }
+  }catch(e){
+    console.error(e);
+  }
+  if(!result){
+    box.innerHTML = `<div class="list-item">تعذر حساب صلة القرابة بين الاسمين.</div>`;
+  } else {
+    const commonName = result.common && people[result.common] ? people[result.common].name : 'غير معروف';
+    const pathA = (result.pathA || getLineage(idA) || []).map(id => people[id]?.name || '').filter(Boolean).join(' ← ');
+    const pathB = (result.pathB || getLineage(idB) || []).map(id => people[id]?.name || '').filter(Boolean).join(' ← ');
+    box.innerHTML = `
+      <div class="list-item" style="margin-top:10px;">
+        <strong>النتيجة:</strong> ${people[idB].name} هو ${result.label || 'قريبك'} بالنسبة إلى ${people[idA].name}<br>
+        <strong>الأصل المشترك:</strong> ${commonName}<br><br>
+        <strong>${people[idA].name}</strong><br>${pathA}<br><br>
+        <strong>${people[idB].name}</strong><br>${pathB}
+      </div>`;
+  }
+  if(m) m.classList.add('active');
+}
+
+function openQuickRelationFrom(id){
+  quickRelationFirstId = id;
+  openTreePicker('اختر الاسم الثاني من الشجرة', function(selectedId){
+    showQuickRelationResult(id, selectedId);
+  }, rootId);
 }
 </script>
 
-  </body>
+
+</body>
