@@ -791,6 +791,7 @@
       <div class="top-actions">
         <button onclick="goRoot()">الرئيسية</button>
         <button onclick="showAbout()">📜 نبذة عن قبيلة المجيني</button>
+        <button onclick="openShareInfoModal()">📝 شاركنا بمعلومة</button>
         <button onclick="showWhoAmI()">من أكون؟</button>
         <button class="icon-btn" onclick="openAdminPassword()">⚙️</button>
       </div>
@@ -849,6 +850,26 @@
   <div class="page hidden" id="adminPage"></div>
   <div class="page hidden" id="hierarchyPage"></div>
   <div class="page hidden" id="whoAmIProfilePage"></div>
+
+
+  <div class="modal" id="shareInfoModal">
+    <div class="modal-box" style="max-width:760px;max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;">
+      <div class="modal-title">شاركنا بمعلومة</div>
+      <div class="modal-text">اختر الاسم من الشجرة، ثم اكتب المعلومة أو القصة ليتم إرسالها للمراجعة والاعتماد.</div>
+      <div class="note-form">
+        <input class="field" id="shareInfoSenderName" placeholder="الاسم (اختياري)" />
+        <input type="hidden" id="shareInfoPersonId" />
+        <div id="shareInfoPersonLabel" class="top-note">لم يتم اختيار الاسم بعد.</div>
+        <button class="btn-soft" onclick="pickShareInfoPerson()">اختيار الاسم من الشجرة</button>
+        <input class="field" id="shareInfoSource" placeholder="المصدر" />
+        <textarea class="textarea" id="shareInfoBody" placeholder="اكتب المعلومة أو القصة هنا..." style="min-height:180px;"></textarea>
+        <div class="modal-actions" style="grid-template-columns:1fr 1fr;">
+          <button class="btn-soft" onclick="closeShareInfoModal()">إلغاء</button>
+          <button class="btn-main" onclick="submitShareInfo()">إرسال</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div class="modal" id="confirmModal">
     <div class="modal-box">
@@ -920,6 +941,115 @@ async function saveMessageToSupabase(payload) {
 async function saveRequestToSupabase(payload) {
   const { error } = await supabaseClient.from("requests").insert([payload]);
   if (error) throw error;
+}
+
+const PERSON_INFO_STORAGE_KEY = "mujaini_person_info_notes_v1";
+
+function getApprovedPersonInfoStore() {
+  try { return JSON.parse(localStorage.getItem(PERSON_INFO_STORAGE_KEY) || "{}"); }
+  catch (e) { return {}; }
+}
+function saveApprovedPersonInfoStore(store) {
+  localStorage.setItem(PERSON_INFO_STORAGE_KEY, JSON.stringify(store || {}));
+}
+function getApprovedInfoForPerson(personId) {
+  const store = getApprovedPersonInfoStore();
+  return Array.isArray(store[personId]) ? store[personId] : [];
+}
+function addApprovedInfoForPerson(personId, entry) {
+  const store = getApprovedPersonInfoStore();
+  if (!Array.isArray(store[personId])) store[personId] = [];
+  store[personId].unshift(entry);
+  saveApprovedPersonInfoStore(store);
+}
+function hasApprovedInfo(personId) {
+  return getApprovedInfoForPerson(personId).length > 0;
+}
+function renderApprovedInfoBox(personId) {
+  const entries = getApprovedInfoForPerson(personId);
+  if (!entries.length) return "";
+  return `
+    <div class="messages-box" style="margin-bottom:16px;padding:16px;">
+      <h3 style="margin:0 0 12px;color:var(--main);">📚 قصص ومعلومات</h3>
+      <div class="list-box">
+        ${entries.map((item, idx) => `
+          <div class="list-item" style="line-height:2;">
+            ${item.sender_name ? `<div class="small">بواسطة: ${item.sender_name}</div>` : ""}
+            ${item.source ? `<div class="small">المصدر: ${item.source}</div>` : ""}
+            ${item.created_at ? `<div class="small">${new Date(item.created_at).toLocaleString("ar")}</div>` : ""}
+            <div id="approvedInfoBody_${personId}_${idx}" style="margin-top:8px;white-space:pre-line;max-height:260px;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;">${item.body || ""}</div>
+            ${((window.currentAdminRole === "master") || (window.currentAdminRole === "editor_admin")) ? `<div style="margin-top:10px;"><button class="btn-soft" onclick="copyApprovedInfoText('approvedInfoBody_${personId}_${idx}')">نسخ الكلام</button></div>` : ""}
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+function copyApprovedInfoText(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const txt = el.innerText || el.textContent || "";
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>alert("تم نسخ الكلام")).catch(()=>alert("تعذر النسخ"));
+  } else {
+    try{
+      const ta = document.createElement("textarea");
+      ta.value = txt;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      alert("تم نسخ الكلام");
+    }catch(e){
+      alert("تعذر النسخ");
+    }
+  }
+}
+function openShareInfoModal() {
+  document.getElementById("shareInfoModal")?.classList.add("active");
+}
+function closeShareInfoModal() {
+  document.getElementById("shareInfoModal")?.classList.remove("active");
+  const sender = document.getElementById("shareInfoSenderName");
+  const pid = document.getElementById("shareInfoPersonId");
+  const label = document.getElementById("shareInfoPersonLabel");
+  const source = document.getElementById("shareInfoSource");
+  const body = document.getElementById("shareInfoBody");
+  if (sender) sender.value = "";
+  if (pid) pid.value = "";
+  if (label) label.textContent = "لم يتم اختيار الاسم بعد.";
+  if (source) source.value = "";
+  if (body) body.value = "";
+}
+function pickShareInfoPerson() {
+  openTreePicker("اختر الاسم المراد إضافة المعلومة له", function(id){
+    const input = document.getElementById("shareInfoPersonId");
+    const label = document.getElementById("shareInfoPersonLabel");
+    if (input) input.value = id;
+    if (label) label.innerHTML = `<strong>الاسم المختار:</strong> ${people[id].name}<br><span class="small">${(getLineage(id)||[]).map(x=>people[x]?.name||"").filter(Boolean).join(" ")}</span>`;
+  });
+}
+async function submitShareInfo() {
+  const personId = (document.getElementById("shareInfoPersonId")?.value || "").trim();
+  const senderName = (document.getElementById("shareInfoSenderName")?.value || "").trim();
+  const source = (document.getElementById("shareInfoSource")?.value || "").trim();
+  const body = (document.getElementById("shareInfoBody")?.value || "").trim();
+  if (!personId || !people[personId]) return alert("يرجى اختيار الاسم من الشجرة أولًا");
+  if (!body) return alert("يرجى كتابة المعلومة أو القصة");
+  try {
+    await saveRequestToSupabase({
+      parent_id: personId,
+      child_name: people[personId].name,
+      children_text: "INFO_SHARE",
+      details: (source ? `[[SOURCE]]${source}\n\n` : "") + body,
+      sender_name: senderName
+    });
+    alert("تم إرسال المعلومة للمراجعة والاعتماد");
+    closeShareInfoModal();
+  } catch (e) {
+    console.error(e);
+    alert("تعذر إرسال المعلومة حاليًا");
+  }
 }
 
 let people = {
@@ -2168,6 +2298,7 @@ if (!h) {
             عدد الأحفاد: ${grandChildren}<br>
             إجمالي الذرية: ${totalDesc}<br>
             ${child.note ? `ملاحظة: ${child.note}<br>` : ""}
+            ${hasApprovedInfo(id) ? `📚 توجد قصة أو معلومة لهذا الاسم<br>` : ""}
                       </div>
           <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
             <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${id}')">هرم</div>
@@ -2605,6 +2736,7 @@ function buildSimpleLineageFromPerson(id) {
       page.innerHTML = `
         <div class="person-page">
           <div class="title">${person.name}</div>
+          ${renderApprovedInfoBox(id)}
           ${
             children.length
               ? `<div class="cards">${children.map(cid => renderCard(cid)).join("")}</div>`
@@ -2833,14 +2965,14 @@ function buildSimpleLineageFromPerson(id) {
                 requestsData.length
                   ? requestsData.map((r)=>`
                     <div class="list-item">
-                      <strong>إضافة</strong> — ${(people[r.parent_id] ? people[r.parent_id].name : r.parent_id) || "غير معروف"}<br>
+                      <strong>${r.children_text === "INFO_SHARE" ? "قصة/معلومة" : "إضافة"}</strong> — ${(people[r.parent_id] ? people[r.parent_id].name : r.parent_id) || "غير معروف"}<br>
                       <span class="small">${r.created_at ? new Date(r.created_at).toLocaleString("ar") : ""}</span><br>
                       ${r.sender_name ? `<span class="small">المرسل: ${r.sender_name}</span><br>` : ""}
-                      ${r.child_name ? `<span class="small">الاسم المطلوب إضافته: ${r.child_name}</span><br>` : ""}
-                      ${r.children_text ? `<span class="small">الأبناء المقترحون: ${r.children_text}</span><br>` : ""}
-                      ${r.details ? `<div style="margin-top:8px;line-height:1.9;white-space:pre-line;">${r.details}</div>` : ""}
+                      ${r.child_name ? `<span class="small">الاسم المستهدف: ${r.child_name}</span><br>` : ""}
+                      ${r.children_text && r.children_text !== "INFO_SHARE" ? `<span class="small">الأبناء المقترحون: ${r.children_text}</span><br>` : ""}
+                      ${(() => { const raw = String(r.details||""); let src=""; let body=raw; if(raw.startsWith("[[SOURCE]]")){ const rest=raw.slice(10); const parts=rest.split(/\n\n/); src=(parts.shift()||"").trim(); body=parts.join("\n\n").trim(); } return `${src ? `<span class="small">المصدر: ${src}</span><br>` : ""}${body ? `<div style="margin-top:8px;line-height:1.9;white-space:pre-line;max-height:240px;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;">${body}</div>` : ""}`; })()}
                       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
-                        <button class="btn-ok" onclick="markSupabaseRequestDone(${r.id})">اعتماد</button>
+                        <button class="btn-ok" onclick="markSupabaseRequestDone(${r.id})">${r.children_text === "INFO_SHARE" ? "اعتماد القصة/المعلومة" : "اعتماد"}</button>
                         <button class="btn-danger" onclick="deleteSupabaseRequest(${r.id})">حذف</button>
                       </div>
                     </div>
@@ -3257,6 +3389,41 @@ async function markSupabaseRequestDone(id) {
     return;
   }
 
+  if (String(data.children_text || "").trim() === "INFO_SHARE") {
+    const personId = data.parent_id;
+    if (!personId || !people[personId]) {
+      alert("الاسم المرتبط بهذه المعلومة غير موجود");
+      return;
+    }
+    const rawDetails = String(data.details || "");
+    let parsedSource = "";
+    let parsedBody = rawDetails;
+    if (rawDetails.startsWith("[[SOURCE]]")) {
+      const rest = rawDetails.slice(10);
+      const parts = rest.split(/\n\n/);
+      parsedSource = (parts.shift() || "").trim();
+      parsedBody = parts.join("\n\n").trim();
+    }
+    addApprovedInfoForPerson(personId, {
+      sender_name: data.sender_name || "",
+      source: parsedSource,
+      body: parsedBody,
+      created_at: new Date().toISOString()
+    });
+    logChange("اعتماد قصة/معلومة للاسم " + people[personId].name);
+    const delRes = await supabaseClient.from("requests").delete().eq("id", id);
+    if (delRes.error) {
+      console.error(delRes.error);
+      alert("تم حفظ المعلومة محليًا لكن تعذر حذف الطلب من Supabase");
+      return;
+    }
+    alert("تم اعتماد القصة/المعلومة");
+    showAdminPage();
+    switchAdminTab("requests");
+    if (currentView === "person" && currentPerson === personId) showPersonPage(personId, false);
+    return;
+  }
+
   const parentId = data.parent_id;
   const childName = String(data.child_name || "").trim();
   const detailsText = String(data.details || "").trim();
@@ -3291,12 +3458,10 @@ async function markSupabaseRequestDone(id) {
         normalized.startsWith("الابناء :")
       ) {
         waitingChildren = true;
-
         const inlineChildren = normalized
           .replace(/^الأبناء\s*:\s*/, "")
           .replace(/^الابناء\s*:\s*/, "")
           .trim();
-
         if (inlineChildren && currentParent) {
           currentParent.children = splitSimpleNames(inlineChildren);
           waitingChildren = false;
@@ -3305,10 +3470,7 @@ async function markSupabaseRequestDone(id) {
       }
 
       if (!currentParent) {
-        currentParent = {
-          name: normalized,
-          children: []
-        };
+        currentParent = { name: normalized, children: [] };
         result.push(currentParent);
         continue;
       }
@@ -3320,10 +3482,7 @@ async function markSupabaseRequestDone(id) {
         continue;
       }
 
-      currentParent = {
-        name: normalized,
-        children: []
-      };
+      currentParent = { name: normalized, children: [] };
       result.push(currentParent);
     }
 
@@ -3400,7 +3559,7 @@ async function markSupabaseRequestDone(id) {
   switchAdminTab("requests");
   render(currentPerson);
 }
-    
+
 function goRoot() {
   currentView = "tree";
   historyStack = [rootId];
