@@ -4136,4 +4136,141 @@ function openQuickRelationFrom(id){
 </script>
 
 
-</body>
+
+<script id="single-admin-role-patch">
+window.currentAdminRole = "guest";
+window.SECONDARY_ADMIN_PASSWORD = "Mujaini3";
+window.ALLOWED_ADMIN_TABS_SECONDARY = ["overview","requests","add"];
+
+(function(){
+  const _enterAdmin = window.enterAdmin;
+  const _showAdminPage = window.showAdminPage;
+  const _switchAdminTab = window.switchAdminTab;
+
+  window.enterAdmin = function() {
+    const pwd = (document.getElementById("adminPasswordInput")?.value || "").trim();
+    if (pwd === "Mmujaini34") {
+      window.currentAdminRole = "master";
+      closeAdminPassword();
+      showAdminPage();
+      return;
+    }
+    if (pwd === window.SECONDARY_ADMIN_PASSWORD) {
+      window.currentAdminRole = "editor_admin";
+      closeAdminPassword();
+      showAdminPage();
+      return;
+    }
+    alert("كلمة المرور غير صحيحة");
+  };
+
+  window.showAdminPage = async function() {
+    await _showAdminPage();
+    applyCurrentAdminRoleUI();
+  };
+
+  window.switchAdminTab = function(name) {
+    if (window.currentAdminRole === "editor_admin" && !window.ALLOWED_ADMIN_TABS_SECONDARY.includes(name)) {
+      alert("هذا القسم غير متاح لهذا الأدمن");
+      return;
+    }
+    _switchAdminTab(name);
+    if (window.currentAdminRole === "editor_admin") {
+      applyCurrentAdminRoleUI();
+    }
+  };
+
+  window.applyCurrentAdminRoleUI = function() {
+    const page = document.getElementById("adminPage");
+    if (!page) return;
+
+    const title = page.querySelector(".title");
+    if (title) {
+      const roleText = window.currentAdminRole === "master" ? "الماستر" : "الأدمن";
+      title.innerHTML = `صفحة الإدارة <span style="font-size:14px;color:var(--muted);">(${roleText})</span>`;
+    }
+
+    const tabs = Array.from(page.querySelectorAll(".admin-tabs button"));
+    tabs.forEach(btn => {
+      const txt = btn.textContent.trim();
+      const map = {
+        "الرئيسية":"overview",
+        "الرسائل":"messages",
+        "طلبات الإضافة":"requests",
+        "إضافة وتعديل":"add",
+        "الكشف والتضارب":"duplicates",
+        "الإحصائيات":"stats",
+        "الأرشيف":"archive",
+        "نسخة احتياطية":"backup",
+        "الإعدادات":"settings"
+      };
+      const key = map[txt];
+      if (window.currentAdminRole === "editor_admin") {
+        if (!window.ALLOWED_ADMIN_TABS_SECONDARY.includes(key)) {
+          btn.style.display = "none";
+        } else {
+          btn.style.display = "";
+        }
+      } else {
+        btn.style.display = "";
+      }
+    });
+
+    // help box
+    let help = page.querySelector("#currentAdminHelpBox");
+    if (!help) {
+      help = document.createElement("div");
+      help.id = "currentAdminHelpBox";
+      help.className = "stats-strip";
+      const tabsBox = page.querySelector(".admin-tabs");
+      if (tabsBox && tabsBox.parentNode) tabsBox.parentNode.insertBefore(help, tabsBox.nextSibling);
+    }
+    if (window.currentAdminRole === "editor_admin") {
+      help.innerHTML = `
+        <strong>صلاحيات هذا الأدمن:</strong><br>
+        - قبول طلبات الإضافة<br>
+        - المراجعة<br>
+        - الإضافة والتعديل<br>
+        - نسخ الأسماء/الأبناء من الأدوات المسموح بها<br>
+        <span class="small">غير مسموح له بالحذف، النسخ الاحتياطي، الإعدادات، الإحصائيات، أو بقية الأقسام العليا.</span>
+      `;
+    } else {
+      help.innerHTML = `
+        <strong>صلاحيات الماستر:</strong><br>
+        تحكم كامل في جميع أقسام الإدارة.
+      `;
+    }
+
+    if (window.currentAdminRole === "editor_admin") {
+      // force allowed tab
+      const active = page.querySelector(".admin-section.active");
+      if (active && !["admin-overview","admin-requests","admin-add"].includes(active.id)) {
+        document.querySelectorAll(".admin-section").forEach(s => s.classList.remove("active"));
+        const fallback = document.getElementById("admin-overview");
+        if (fallback) fallback.classList.add("active");
+      }
+
+      // hide destructive and master-only controls by headings/text
+      page.querySelectorAll(".subbox, .list-item, .messages-box, .stats-strip").forEach(box => {
+        const h = (box.querySelector("h3,h4")?.textContent || "").trim();
+        if (["حذف اسم","الكشف عن تكرار الأسماء","الإحصائيات","النسخ الاحتياطية / التصدير","الإعدادات"].includes(h)) {
+          box.style.display = "none";
+        }
+      });
+
+      // hide destructive buttons by text
+      page.querySelectorAll("button").forEach(btn => {
+        const t = btn.textContent.trim();
+        if ([
+          "حذف","حذف المحدد","حذف نهائي","استيراد JSON","تصدير JSON","تصدير سجل الإدارة",
+          "التراجع عن آخر إجراء","فتح الإعدادات","حفظ الحالة","دمج","نقل","نسخة احتياطية","سلة المحذوفات"
+        ].includes(t)) {
+          btn.style.display = "none";
+        }
+      });
+    }
+  };
+})();
+</script>
+
+  </body>
