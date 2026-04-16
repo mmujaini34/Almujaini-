@@ -2748,7 +2748,6 @@ function buildSimpleLineageFromPerson(id) {
             <button onclick="switchAdminTab('messages')">الرسائل</button>
             <button onclick="switchAdminTab('requests')">طلبات الإضافة</button>
             <button onclick="switchAdminTab('add')">إضافة وتعديل</button>
-            <button onclick="switchAdminTab('relation')">صلة القرابة</button>
             <button onclick="switchAdminTab('duplicates')">الكشف والتضارب</button>
             <button onclick="switchAdminTab('stats')">الإحصائيات</button>
             <button onclick="switchAdminTab('archive')">الأرشيف</button>
@@ -2846,9 +2845,9 @@ function buildSimpleLineageFromPerson(id) {
             <div class="subbox">
               <h3>إضافة اسم جديد تحت أب موجود</h3>
               <div class="note-form">
-                <select class="field" id="adminParentSelect">
-                  ${Object.keys(people).map(id => `<option value="${id}">${people[id].name}</option>`).join("")}
-                </select>
+                <input type="hidden" id="adminParentSelect" />
+                <div id="adminParentSelectLabel" class="top-note">لم يتم اختيار الأب بعد.</div>
+                <button class="btn-soft" onclick="openTreePickerForField('adminParentSelect','adminParentSelectLabel','اختر الأب من الشجرة')">اختيار الأب من الشجرة</button>
                 <input class="field" id="adminNewName" placeholder="الاسم الجديد" />
                 <input class="field" id="adminNewNote" placeholder="ملاحظة (اختياري)" />
                 <button class="btn-main" onclick="adminAddPerson()">إضافة</button>
@@ -2857,9 +2856,9 @@ function buildSimpleLineageFromPerson(id) {
 <div class="subbox" style="margin-top:14px;">
   <h3>تعديل اسم موجود</h3>
   <div class="note-form">
-    <select class="field" id="adminEditPersonSelect">
-      ${Object.keys(people).map(id => `<option value="${id}">${people[id].name}</option>`).join("")}
-    </select>
+    <input type="hidden" id="adminEditPersonSelect" />
+    <div id="adminEditPersonSelectLabel" class="top-note">لم يتم اختيار الاسم بعد.</div>
+    <button class="btn-soft" onclick="openTreePickerForField('adminEditPersonSelect','adminEditPersonSelectLabel','اختر الاسم المراد تعديله')">اختيار الاسم من الشجرة</button>
     <input class="field" id="adminEditPersonName" placeholder="الاسم الجديد" />
     <button class="btn-main" onclick="adminRenamePerson()">حفظ التعديل</button>
   </div>
@@ -2897,9 +2896,9 @@ function buildSimpleLineageFromPerson(id) {
             <div class="subbox">
               <h3>وسم/حالة الفرع</h3>
               <div class="note-form">
-                <select class="field" id="statusPersonSelect">
-                  ${Object.keys(people).map(id => `<option value="${id}">${people[id].name}</option>`).join("")}
-                </select>
+                <input type="hidden" id="statusPersonSelect" />
+                <div id="statusPersonSelectLabel" class="top-note">لم يتم اختيار الاسم بعد.</div>
+                <button class="btn-soft" onclick="openTreePickerForField('statusPersonSelect','statusPersonSelectLabel','اختر الاسم المراد وسمه')">اختيار الاسم من الشجرة</button>
                 <select class="field" id="statusValueSelect">
                   ${statusOptions.map(v => `<option value="${v}">${v || "بدون حالة"}</option>`).join("")}
                 </select>
@@ -2914,30 +2913,6 @@ function buildSimpleLineageFromPerson(id) {
               <input class="field" id="suggestNameInput" placeholder="اكتب اسمًا جديدًا..." />
               <button class="btn-main" onclick="runSuggestParent()">عرض اقتراحات الربط</button>
               <div id="suggestParentResult"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="admin-section" id="admin-relation">
-          <div class="admin-grid">
-            <div class="subbox">
-              <h3>مخطط صلة القرابة بين اسمين</h3>
-              <div class="note-form">
-                <input type="hidden" id="relationA" />
-                <div id="relationALabel" class="top-note">لم يتم اختيار الاسم الأول بعد.</div>
-                <button class="btn-soft" onclick="openTreePickerForField('relationA','relationALabel','اختر الاسم الأول')">اختيار الاسم الأول من الشجرة</button>
-
-                <input type="hidden" id="relationB" />
-                <div id="relationBLabel" class="top-note">لم يتم اختيار الاسم الثاني بعد.</div>
-                <button class="btn-soft" onclick="openTreePickerForField('relationB','relationBLabel','اختر الاسم الثاني')">اختيار الاسم الثاني من الشجرة</button>
-
-                <button class="btn-main" onclick="runRelation()">إظهار الصلة</button>
-                <div id="relationResult"></div>
-              </div>
-            </div>
-            <div class="subbox">
-              <h3>النسب الفردي</h3>
-              <div class="meta">الاختيار هنا صار تفرعيًا من الشجرة لتقليل الالتباس بين الأسماء المتشابهة.</div>
             </div>
           </div>
         </div>
