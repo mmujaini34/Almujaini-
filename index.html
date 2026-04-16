@@ -3779,24 +3779,138 @@ function markRequestDone(idx) {
       box.innerHTML = `<strong>التسلسل:</strong><br>${getLineage(id).map(x => people[x].name).join(" ← ")}`;
     }
 
-    function relationBetweenDeep(idA, idB) {
-      const pathA = getLineage(idA);
-      const pathB = getLineage(idB);
+    
+function relationBetweenDeep(idA, idB) {
+      function lineageToRoot(id){
+        return getLineage(id) || [];
+      }
+
+      function ordinalArabic(n){
+        const map = {1:"الأول",2:"الثاني",3:"الثالث",4:"الرابع",5:"الخامس",6:"السادس",7:"السابع",8:"الثامن"};
+        return map[n] || String(n);
+      }
+
+      function ascLabel(n){
+        if (n === 0) return "نفس الشخص";
+        if (n === 1) return "أبوك";
+        if (n === 2) return "جدك";
+        if (n === 3) return "جد أبيك";
+        if (n === 4) return "جد جدك";
+        if (n === 5) return "جد جد أبيك";
+        return `أحد أجدادك (${n} أجيال صعودًا)`;
+      }
+
+      function descLabel(n){
+        if (n === 1) return "ابنك";
+        if (n === 2) return "حفيدك";
+        if (n === 3) return "ابن حفيدك";
+        if (n === 4) return "ابن ابن حفيدك";
+        if (n === 5) return "ابن ابن ابن حفيدك";
+        return `أحد أحفادك (${n} أجيال نزولًا)`;
+      }
+
+      function siblingLabel(){
+        return "أخوك أو أختك";
+      }
+
+      function nephewLabel(level){
+        if (level === 1) return "ابن أخيك أو ابن أختك";
+        if (level === 2) return "حفيد أخيك أو حفيد أختك";
+        if (level === 3) return "ابن حفيد أخيك أو ابن حفيد أختك";
+        return `من نسل أخيك أو أختك (المستوى ${ordinalArabic(level)})`;
+      }
+
+      function uncleLabel(level){
+        if (level === 1) return "عمك أو خالك";
+        if (level === 2) return "عم أبيك أو خال أبيك";
+        if (level === 3) return "عم جدك أو خال جدك";
+        if (level === 4) return "عم جد أبيك أو خال جد أبيك";
+        if (level === 5) return "عم الجد الأعلى أو خاله";
+        return `قريبك من طبقة الأعمام/الأخوال الأعلى (المستوى ${ordinalArabic(level)})`;
+      }
+
+      function cousinBaseLabel(cousinLevel){
+        if (cousinLevel === 1) return "ابن عمك أو ابن خالك";
+        if (cousinLevel === 2) return "ابن عم أبيك أو ابن خال أبيك";
+        if (cousinLevel === 3) return "ابن عم جدك أو ابن خال جدك";
+        if (cousinLevel === 4) return "ابن عم جد أبيك أو ابن خال جد أبيك";
+        if (cousinLevel === 5) return "ابن عم الجد الأعلى أو ابن خاله";
+        return `قريبك من أبناء العمومة/الخؤولة في المستوى ${ordinalArabic(cousinLevel)}`;
+      }
+
+      function descendantOfCousinLabel(cousinLevel, extraDown){
+        const base = cousinBaseLabel(cousinLevel);
+        if (extraDown === 1) return `ولد ${base}`;
+        if (extraDown === 2) return `حفيد ${base}`;
+        if (extraDown === 3) return `ابن حفيد ${base}`;
+        return `من نسل ${base}`;
+      }
+
+      function ascendantOfCousinLabel(cousinLevel, extraUp){
+        if (extraUp === 1) return uncleLabel(cousinLevel);
+        if (extraUp === 2) return `أصل من أصول ${cousinBaseLabel(cousinLevel)}`;
+        return `قريبك من الطبقة الأعلى المرتبطة بـ ${cousinBaseLabel(cousinLevel)}`;
+      }
+
+      function collateralLabel(up, down){
+        if (up === 1 && down === 1) return siblingLabel();
+        if (up === 1 && down >= 2) return nephewLabel(down - 1);
+        if (up >= 2 && down === 1) return uncleLabel(up - 1);
+
+        if (up >= 2 && down >= 2) {
+          const minSide = Math.min(up, down);
+          const maxSide = Math.max(up, down);
+          const cousinLevel = minSide - 1;
+          const removal = maxSide - minSide;
+
+          if (removal === 0) return cousinBaseLabel(cousinLevel);
+          if (down > up) return descendantOfCousinLabel(cousinLevel, removal);
+          if (up > down) return ascendantOfCousinLabel(cousinLevel, removal);
+        }
+
+        return "قريبك";
+      }
+
+      const pathA = lineageToRoot(idA);
+      const pathB = lineageToRoot(idB);
+
       let i = 0;
       while (i < pathA.length && i < pathB.length && pathA[i] === pathB[i]) i++;
-      const common = pathA[i - 1];
+
+      const common = pathA[i - 1] || null;
       const upA = pathA.length - i;
       const upB = pathB.length - i;
+
       let label = "قريبك";
-      if (idA === idB) label = "نفس الشخص";
-      else if (upA === 0 && upB === 1) label = "ابنك";
-      else if (upA === 1 && upB === 0) label = "أبوك";
-      else if (upA === 1 && upB === 1) label = "أخوك أو أختك";
-      else if (upA === 1 && upB === 2) label = "ابن أخيك أو ابن أختك";
-      else if (upA === 2 && upB === 1) label = "عمك أو خالك";
-      else if (upA === 2 && upB === 2) label = "ابن عمك أو ابن خالك";
-      return { common, pathA, pathB, label };
+      let explanation = "";
+      let summary = "";
+
+      if (idA === idB) {
+        label = "نفس الشخص";
+        explanation = `${people[idB]?.name || ""} هو نفس الشخص المختار.`;
+        summary = "لا توجد قرابة محسوبة لأن الاسمين لشخص واحد.";
+      } else if (upA === 0) {
+        label = descLabel(upB);
+        explanation = `${people[idB]?.name || ""} هو ${label} بالنسبة إلى ${people[idA]?.name || ""}.`;
+        summary = `علاقة مباشرة نازلة بمقدار ${upB} جيل.`;
+      } else if (upB === 0) {
+        label = ascLabel(upA);
+        explanation = `${people[idB]?.name || ""} هو ${label} بالنسبة إلى ${people[idA]?.name || ""}.`;
+        summary = `علاقة مباشرة صاعدة بمقدار ${upA} جيل.`;
+      } else {
+        label = collateralLabel(upA, upB);
+        const commonName = common && people[common] ? people[common].name : "غير معروف";
+        let note = "";
+        if (/عمك أو خالك|ابن عمك أو ابن خالك|عمومة|الخؤولة|خالك|خال/.test(label)) {
+          note = " التفريق النهائي بين جهة العمومة والخؤولة يحتاج بيانات أوضح تفصل جهة الأب عن جهة الأم.";
+        }
+        explanation = `${people[idB]?.name || ""} هو ${label} بالنسبة إلى ${people[idA]?.name || ""}، ويلتقي نسبكما عند ${commonName}.${note}`;
+        summary = `الأصل المشترك: ${commonName} — المسافة من الأول: ${upA}، ومن الثاني: ${upB}`;
+      }
+
+      return { common, pathA, pathB, label, explanation, summary, upA, upB };
     }
+
 
     function runRelation() {
       const a = document.getElementById("relationA")?.value;
@@ -3966,15 +4080,18 @@ function showQuickRelationResult(idA, idB){
     const pathA = (result.pathA || getLineage(idA) || []).map(id => people[id]?.name || '').filter(Boolean).join(' ← ');
     const pathB = (result.pathB || getLineage(idB) || []).map(id => people[id]?.name || '').filter(Boolean).join(' ← ');
     box.innerHTML = `
-      <div class="list-item" style="margin-top:10px;">
+      <div class="list-item" style="margin-top:10px; line-height:2;">
         <strong>النتيجة:</strong> ${people[idB].name} هو ${result.label || 'قريبك'} بالنسبة إلى ${people[idA].name}<br>
-        <strong>الأصل المشترك:</strong> ${commonName}<br><br>
+        ${result.explanation ? `<strong>الشرح:</strong> ${result.explanation}<br>` : ''}
+        <strong>الأصل المشترك:</strong> ${commonName}<br>
+        ${result.summary ? `<strong>الملخص:</strong> ${result.summary}<br>` : ''}<br>
         <strong>${people[idA].name}</strong><br>${pathA}<br><br>
         <strong>${people[idB].name}</strong><br>${pathB}
       </div>`;
   }
   if(m) m.classList.add('active');
 }
+
 
 function openQuickRelationFrom(id){
   quickRelationFirstId = id;
