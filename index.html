@@ -499,17 +499,23 @@
       justify-content:center;
       z-index:2000;
       padding:20px;
+      overflow-y:auto;
+      -webkit-overflow-scrolling:touch;
     }
 
     .modal.active{display:flex}
 
     .modal-box{
       width:100%;
-      max-width:440px;
+      max-width:760px;
+      max-height:85vh;
+      overflow-y:auto;
+      -webkit-overflow-scrolling:touch;
       background:#fff;
       border-radius:18px;
       padding:18px;
       box-shadow:0 16px 40px rgba(0,0,0,.18);
+      touch-action:pan-y;
     }
 
     .modal-title{
