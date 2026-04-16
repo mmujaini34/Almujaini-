@@ -1783,7 +1783,12 @@ async function syncPeopleToSupabase() {
     }
 
     function getLineageText(id) {
-      return getLineage(id).map(x => people[x].name).join(" ← ");
+      return getCompactName(id, 5);
+    }
+
+    function getCompactName(id, maxNames = 5) {
+      const lineage = (getLineage(id) || []).map(x => people[x].name).filter(Boolean);
+      return lineage.slice(-maxNames).reverse().join(" ");
     }
 
     function getParentId(id) {
@@ -3838,37 +3843,26 @@ function relationBetweenDeep(idA, idB) {
         return `قريبك من أبناء العمومة/الخؤولة في المستوى ${ordinalArabic(cousinLevel)}`;
       }
 
-      function descendantOfCousinLabel(cousinLevel, extraDown){
+      function descendantOfCousinLabel(cousinLevel, generationsBelowCousin){
         const base = cousinBaseLabel(cousinLevel);
-        if (extraDown === 1) return `ولد ${base}`;
-        if (extraDown === 2) return `حفيد ${base}`;
-        if (extraDown === 3) return `ابن حفيد ${base}`;
+        if (generationsBelowCousin === 1) return `ولد ${base}`;
+        if (generationsBelowCousin === 2) return `حفيد ${base}`;
+        if (generationsBelowCousin === 3) return `ابن حفيد ${base}`;
         return `من نسل ${base}`;
       }
 
-      function ascendantOfCousinLabel(cousinLevel, extraUp){
-        if (extraUp === 1) return uncleLabel(cousinLevel);
-        if (extraUp === 2) return `أصل من أصول ${cousinBaseLabel(cousinLevel)}`;
-        return `قريبك من الطبقة الأعلى المرتبطة بـ ${cousinBaseLabel(cousinLevel)}`;
-      }
-
-      function collateralLabel(up, down){
-        if (up === 1 && down === 1) return siblingLabel();
-        if (up === 1 && down >= 2) return nephewLabel(down - 1);
-        if (up >= 2 && down === 1) return uncleLabel(up - 1);
-
-        if (up >= 2 && down >= 2) {
-          const minSide = Math.min(up, down);
-          const maxSide = Math.max(up, down);
-          const cousinLevel = minSide - 1;
-          const removal = maxSide - minSide;
-
-          if (removal === 0) return cousinBaseLabel(cousinLevel);
-          if (down > up) return descendantOfCousinLabel(cousinLevel, removal);
-          if (up > down) return ascendantOfCousinLabel(cousinLevel, removal);
+      function ascendantOfCousinLabel(cousinLevel, ancestorGeneration){
+        if (cousinLevel === 1) {
+          if (ancestorGeneration === 1) return "ابن عم أبيك أو ابن خال أبيك";
+          if (ancestorGeneration === 2) return "ابن عم جدك أو ابن خال جدك";
+          if (ancestorGeneration === 3) return "ابن عم جد أبيك أو ابن خال جد أبيك";
+          return `قريبك من طبقة أبناء عمومة الأصول الأعلى (المستوى ${ordinalArabic(ancestorGeneration)})`;
         }
-
-        return "قريبك";
+        if (cousinLevel === 2) {
+          if (ancestorGeneration === 1) return "ابن عم جدك أو ابن خال جدك";
+          if (ancestorGeneration === 2) return "ابن عم جد أبيك أو ابن خال جد أبيك";
+        }
+        return `قريبك من الطبقة الأعلى المرتبطة بـ ${cousinBaseLabel(cousinLevel)}`;
       }
 
       const pathA = lineageToRoot(idA);
@@ -3891,20 +3885,47 @@ function relationBetweenDeep(idA, idB) {
         summary = "لا توجد قرابة محسوبة لأن الاسمين لشخص واحد.";
       } else if (upA === 0) {
         label = descLabel(upB);
-        explanation = `${people[idB]?.name || ""} هو ${label} بالنسبة إلى ${people[idA]?.name || ""}.`;
+        explanation = `${getCompactName(idB)} هو ${label} بالنسبة إلى ${getCompactName(idA)}.`;
         summary = `علاقة مباشرة نازلة بمقدار ${upB} جيل.`;
       } else if (upB === 0) {
         label = ascLabel(upA);
-        explanation = `${people[idB]?.name || ""} هو ${label} بالنسبة إلى ${people[idA]?.name || ""}.`;
+        explanation = `${getCompactName(idB)} هو ${label} بالنسبة إلى ${getCompactName(idA)}.`;
         summary = `علاقة مباشرة صاعدة بمقدار ${upA} جيل.`;
+      } else if (upA === 1 && upB === 1) {
+        label = siblingLabel();
+        const commonName = common && people[common] ? getCompactName(common) : "غير معروف";
+        explanation = `${getCompactName(idB)} هو ${label} بالنسبة إلى ${getCompactName(idA)}، وتشتركان في الأصل ${commonName}.`;
+        summary = `الأصل المشترك: ${commonName} — المسافة من الأول: 1، ومن الثاني: 1`;
+      } else if (upA === 1 && upB >= 2) {
+        label = nephewLabel(upB - 1);
+        const commonName = common && people[common] ? getCompactName(common) : "غير معروف";
+        explanation = `${getCompactName(idB)} هو ${label} بالنسبة إلى ${getCompactName(idA)}، ويلتقي نسبكما عند ${commonName}.`;
+        summary = `الأصل المشترك: ${commonName} — المسافة من الأول: ${upA}، ومن الثاني: ${upB}`;
+      } else if (upA >= 2 && upB === 1) {
+        label = uncleLabel(upA - 1);
+        const commonName = common && people[common] ? getCompactName(common) : "غير معروف";
+        explanation = `${getCompactName(idB)} هو ${label} بالنسبة إلى ${getCompactName(idA)}، ويلتقي نسبكما عند ${commonName}.`;
+        summary = `الأصل المشترك: ${commonName} — المسافة من الأول: ${upA}، ومن الثاني: ${upB}`;
       } else {
-        label = collateralLabel(upA, upB);
-        const commonName = common && people[common] ? people[common].name : "غير معروف";
+        const minSide = Math.min(upA, upB);
+        const maxSide = Math.max(upA, upB);
+        const cousinLevel = minSide - 1;
+        const removal = maxSide - minSide;
+        const commonName = common && people[common] ? getCompactName(common) : "غير معروف";
+
+        if (removal === 0) {
+          label = cousinBaseLabel(cousinLevel);
+        } else if (upB > upA) {
+          label = descendantOfCousinLabel(cousinLevel, removal);
+        } else {
+          label = ascendantOfCousinLabel(cousinLevel, removal);
+        }
+
         let note = "";
-        if (/عمك أو خالك|ابن عمك أو ابن خالك|عمومة|الخؤولة|خالك|خال/.test(label)) {
+        if (/عمك أو خالك|ابن عمك أو ابن خالك|ابن عم أبيك أو ابن خال أبيك|ابن عم جدك أو ابن خال جدك|عم جدك أو خال جدك|الخؤولة|العمومة|خالك|خال/.test(label)) {
           note = " التفريق النهائي بين جهة العمومة والخؤولة يحتاج بيانات أوضح تفصل جهة الأب عن جهة الأم.";
         }
-        explanation = `${people[idB]?.name || ""} هو ${label} بالنسبة إلى ${people[idA]?.name || ""}، ويلتقي نسبكما عند ${commonName}.${note}`;
+        explanation = `${getCompactName(idB)} هو ${label} بالنسبة إلى ${getCompactName(idA)}، ويلتقي نسبكما عند ${commonName}.${note}`;
         summary = `الأصل المشترك: ${commonName} — المسافة من الأول: ${upA}، ومن الثاني: ${upB}`;
       }
 
@@ -4062,7 +4083,7 @@ function showQuickRelationResult(idA, idB){
   const m = document.getElementById('quickRelationModal');
   const first = document.getElementById('quickRelationFirstLabel');
   const box = document.getElementById('quickRelationResult');
-  if(first) first.innerHTML = `<strong>الاسم الأول:</strong> ${people[idA] ? people[idA].name : ''}<br><strong>الاسم الثاني:</strong> ${people[idB] ? people[idB].name : ''}`;
+  if(first) first.innerHTML = `<strong>الاسم الأول:</strong> ${getCompactName(idA)}<br><strong>الاسم الثاني:</strong> ${getCompactName(idB)}`;
   let result = null;
   try{
     if(typeof relationBetweenDeep === 'function'){
@@ -4076,21 +4097,22 @@ function showQuickRelationResult(idA, idB){
   if(!result){
     box.innerHTML = `<div class="list-item">تعذر حساب صلة القرابة بين الاسمين.</div>`;
   } else {
-    const commonName = result.common && people[result.common] ? people[result.common].name : 'غير معروف';
-    const pathA = (result.pathA || getLineage(idA) || []).map(id => people[id]?.name || '').filter(Boolean).join(' ← ');
-    const pathB = (result.pathB || getLineage(idB) || []).map(id => people[id]?.name || '').filter(Boolean).join(' ← ');
+    const commonName = result.common && people[result.common] ? getCompactName(result.common) : 'غير معروف';
+    const pathA = (result.pathA || getLineage(idA) || []).map(id => people[id]?.name || '').filter(Boolean).reverse().slice(0,5).join(' ');
+    const pathB = (result.pathB || getLineage(idB) || []).map(id => people[id]?.name || '').filter(Boolean).reverse().slice(0,5).join(' ');
     box.innerHTML = `
       <div class="list-item" style="margin-top:10px; line-height:2;">
-        <strong>النتيجة:</strong> ${people[idB].name} هو ${result.label || 'قريبك'} بالنسبة إلى ${people[idA].name}<br>
+        <strong>النتيجة:</strong> ${getCompactName(idB)} هو ${result.label || 'قريبك'} بالنسبة إلى ${getCompactName(idA)}<br>
         ${result.explanation ? `<strong>الشرح:</strong> ${result.explanation}<br>` : ''}
         <strong>الأصل المشترك:</strong> ${commonName}<br>
         ${result.summary ? `<strong>الملخص:</strong> ${result.summary}<br>` : ''}<br>
-        <strong>${people[idA].name}</strong><br>${pathA}<br><br>
-        <strong>${people[idB].name}</strong><br>${pathB}
+        <strong>${getCompactName(idA)}</strong><br>${pathA}<br><br>
+        <strong>${getCompactName(idB)}</strong><br>${pathB}
       </div>`;
   }
   if(m) m.classList.add('active');
 }
+
 
 
 function openQuickRelationFrom(id){
@@ -4102,4 +4124,4 @@ function openQuickRelationFrom(id){
 </script>
 
 
-</body>
+  </body>
