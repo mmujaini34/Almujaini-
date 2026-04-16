@@ -4638,4 +4638,44 @@ function rejectPendingDelete(id){
 })();
 </script>
 
+
+<script id="admin-lock-history-patch">
+(function(){
+  function pushAdminHistoryState(){
+    try{
+      history.pushState({mujainiAdminLock:true}, "", location.href);
+    }catch(e){}
+  }
+
+  const originalShowAdminPage = window.showAdminPage;
+  if (typeof originalShowAdminPage === "function") {
+    window.showAdminPage = async function(...args){
+      const result = await originalShowAdminPage.apply(this, args);
+      try { window.__adminLocked = true; } catch(e){}
+      pushAdminHistoryState();
+      return result;
+    };
+  }
+
+  const originalExitAdmin = window.exitAdmin;
+  if (typeof originalExitAdmin === "function") {
+    window.exitAdmin = function(...args){
+      try { window.__adminLocked = false; } catch(e){}
+      return originalExitAdmin.apply(this, args);
+    };
+  }
+
+  window.addEventListener("popstate", function(){
+    try{
+      if (window.__adminLocked && !document.getElementById("adminPage").classList.contains("hidden")) {
+        pushAdminHistoryState();
+        if (typeof showAdminPage === "function") {
+          showAdminPage();
+        }
+      }
+    }catch(e){}
+  });
+})();
+</script>
+
 </body>
