@@ -3703,6 +3703,7 @@ function markRequestDone(idx) {
       const modal = document.createElement("div");
       modal.className = "modal";
       modal.id = "treePickerModal";
+      modal.style.zIndex = "2200";
       modal.innerHTML = `
         <div class="modal-box" style="max-width:720px;">
           <div class="modal-title" id="treePickerTitle">اختيار من الشجرة</div>
@@ -4056,6 +4057,7 @@ function ensureQuickRelationUI(){
   const modal = document.createElement('div');
   modal.id = 'quickRelationModal';
   modal.className = 'modal';
+  modal.style.zIndex = '2100';
   modal.innerHTML = `
     <div class="modal-box" style="max-width:520px;">
       <div class="modal-title">صلة القرابة</div>
@@ -4079,6 +4081,8 @@ function closeQuickRelationModal(){
 
 function quickRelationChooseAnother(){
   if(!quickRelationFirstId || !people[quickRelationFirstId]) return;
+  const rel = document.getElementById('quickRelationModal');
+  if(rel) rel.classList.remove('active');
   openTreePicker('اختر الاسم الثاني من الشجرة', function(selectedId){
     showQuickRelationResult(quickRelationFirstId, selectedId);
   }, rootId);
@@ -4123,6 +4127,8 @@ function showQuickRelationResult(idA, idB){
 
 function openQuickRelationFrom(id){
   quickRelationFirstId = id;
+  const rel = document.getElementById('quickRelationModal');
+  if(rel) rel.classList.remove('active');
   openTreePicker('اختر الاسم الثاني من الشجرة', function(selectedId){
     showQuickRelationResult(id, selectedId);
   }, rootId);
@@ -4130,4 +4136,4 @@ function openQuickRelationFrom(id){
 </script>
 
 
-  </body>
+</body>
