@@ -1824,17 +1824,20 @@ async function syncPeopleToSupabase() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
     }
 
-    function logChange(text) {
+    function logChange(text, meta = {}) {
       const entry = {
+        id: Date.now() + Math.floor(Math.random() * 100000),
         text,
         time: new Date().toLocaleString("ar"),
-        by: window.currentAdminRole === "master" ? "الماستر" : "الأدمن"
+        by: window.currentAdminRole === "master" ? "الماستر" : "الأدمن",
+        ...meta
       };
       appState.changeLog.unshift(entry);
       if (appState.changeLog.length > 100) appState.changeLog.pop();
       if (!Array.isArray(appState.masterArchive)) appState.masterArchive = [];
       appState.masterArchive.unshift(entry);
       saveState();
+      return entry;
     }
 
     function normalizeArabic(text) {
@@ -2952,6 +2955,7 @@ function buildSimpleLineageFromPerson(id) {
                           <div class="list-item">
                             ${item.text}<br>
                             <span class="small">${item.time} — ${item.by || ""}</span>
+                            ${item.undoable ? `<div style="margin-top:8px;"><button class="btn-soft" onclick="undoArchiveAction(${item.id})">تراجع</button></div>` : ``}
                           </div>
                         `).join("")
                         : `<div class="list-item">لا توجد عمليات مسجلة بعد.</div>`
@@ -3081,6 +3085,7 @@ function buildSimpleLineageFromPerson(id) {
     return;
   }
 
+  const oldName = people[personId].name;
   people[personId].name = newName;
 
   if (peopleTableAvailable) {
@@ -3096,8 +3101,13 @@ function buildSimpleLineageFromPerson(id) {
     }
   }
 
-  logChange("تعديل اسم: " + personId + " إلى " + newName);
-  logChange("تعديل اسم إلى: " + newName);
+  logChange("تعديل اسم: " + oldName + " ← " + newName, {
+    actionType: "rename",
+    undoable: true,
+    personId,
+    oldName,
+    newName
+  });
   alert("تم تعديل الاسم");
   showAdminPage();
   switchAdminTab("add");
@@ -3169,7 +3179,16 @@ function buildSimpleLineageFromPerson(id) {
     by: window.currentAdminRole === "master" ? "الماستر" : "الأدمن"
   });
 
-  logChange("طلب حذف بانتظار مراجعة الماستر: " + deletedName);
+  logChange("طلب حذف بانتظار مراجعة الماستر: " + deletedName, {
+    actionType: "pending_delete",
+    undoable: true,
+    pendingDeleteId: appState.pendingDeleteRequests[0].id,
+    personId,
+    rootName: deletedName,
+    parentId,
+    insertIndex,
+    snapshot
+  });
   saveState();
   alert("تم الحذف وهو الآن قيد المراجعة من قبل الماستر");
   showAdminPage();
@@ -3969,13 +3988,25 @@ function relationBetweenDeep(idA, idB) {
         alert("لا يمكن النسخ إلى نفس الشخص");
         return;
       }
+      const targetParentId = getParentId(b);
+      const targetInsertIndex = targetParentId && people[targetParentId]
+        ? (people[targetParentId].children || []).indexOf(b)
+        : 0;
+      const targetSnapshot = collectSubtreeSnapshot(b);
       let copied = 0;
       (people[a].children || []).forEach(childId => {
         cloneBranchForSpouse(childId, b);
         copied += 1;
       });
       saveState();
-      logChange(`نسخ أبناء بين زوجين: ${people[a].name} ← ${people[b].name}`);
+      logChange(`نسخ أبناء بين زوجين: ${people[a].name} ← ${people[b].name}`, {
+        actionType: "spouse_copy",
+        undoable: true,
+        targetRootId: b,
+        targetParentId,
+        targetInsertIndex,
+        snapshot: targetSnapshot
+      });
       alert(`تم نسخ الأبناء (${copied}) بدون حذف الأصل.`);
       showAdminPage();
       switchAdminTab('add');
@@ -4387,6 +4418,103 @@ function saveSecondaryAdminSettings(){
 
 
 <script id="pending-delete-review-patch">
+function collectSubtreeSnapshot(rootId){
+  const nodes = {};
+  function walk(id){
+    if(!people[id]) return;
+    nodes[id] = JSON.parse(JSON.stringify(people[id]));
+    (people[id].children || []).forEach(walk);
+  }
+  walk(rootId);
+  return nodes;
+}
+
+function removeSubtreeNodes(rootId){
+  if(!rootId || !people[rootId]) return;
+  const parentId = getParentId(rootId);
+  if(parentId && people[parentId]){
+    people[parentId].children = (people[parentId].children || []).filter(id => id !== rootId);
+  }
+  function walk(id){
+    if(!people[id]) return;
+    const kids = [...(people[id].children || [])];
+    kids.forEach(walk);
+    delete people[id];
+  }
+  walk(rootId);
+}
+
+function undoArchiveAction(entryId){
+  const idx = (appState.masterArchive || []).findIndex(x => x.id === entryId);
+  if(idx === -1){ alert("عملية الأرشيف غير موجودة"); return; }
+  const item = appState.masterArchive[idx];
+  if(!item || !item.undoable){ alert("هذه العملية غير قابلة للتراجع"); return; }
+
+  if(item.actionType === "rename"){
+    if(people[item.personId]){
+      const currentName = people[item.personId].name;
+      people[item.personId].name = item.oldName;
+      logChange("تراجع عن تعديل اسم: " + currentName + " ← " + item.oldName, {undoable:false});
+      saveState();
+      alert("تم التراجع عن تعديل الاسم");
+      showAdminPage();
+      switchAdminTab("archive");
+      render(currentPerson);
+      return;
+    }
+    alert("لا يمكن التراجع لأن الاسم لم يعد موجودًا");
+    return;
+  }
+
+  if(item.actionType === "pending_delete"){
+    restoreDeletedSnapshot(item);
+    if(Array.isArray(appState.pendingDeleteRequests)){
+      appState.pendingDeleteRequests = appState.pendingDeleteRequests.filter(x => x.id !== item.pendingDeleteId);
+    }
+    logChange("تراجع عن طلب حذف: " + (item.rootName || item.personId), {undoable:false});
+    saveState();
+    alert("تم التراجع عن طلب الحذف وإرجاع الفرع");
+    showAdminPage();
+    switchAdminTab("archive");
+    render(currentPerson);
+    return;
+  }
+
+  if(item.actionType === "confirmed_delete"){
+    restoreDeletedSnapshot(item);
+    logChange("تراجع عن حذف نهائي: " + (item.rootName || item.personId), {undoable:false});
+    saveState();
+    alert("تم إرجاع المحذوف بعد التراجع");
+    showAdminPage();
+    switchAdminTab("archive");
+    render(currentPerson);
+    return;
+  }
+
+  if(item.actionType === "spouse_copy"){
+    if(item.targetRootId && item.snapshot){
+      removeSubtreeNodes(item.targetRootId);
+      restoreDeletedSnapshot({
+        personId: item.targetRootId,
+        parentId: item.targetParentId,
+        insertIndex: item.targetInsertIndex,
+        snapshot: item.snapshot
+      });
+      logChange("تراجع عن نسخ الأبناء بين الزوجين", {undoable:false});
+      saveState();
+      alert("تم التراجع عن النسخ");
+      showAdminPage();
+      switchAdminTab("archive");
+      render(currentPerson);
+      return;
+    }
+    alert("تعذر التراجع عن النسخ");
+    return;
+  }
+
+  alert("لا يوجد تراجع مخصص لهذا النوع من العمليات");
+}
+
 function ensurePendingDeleteDefaults(){
   if(!Array.isArray(appState.pendingDeleteRequests)) appState.pendingDeleteRequests = [];
 }
@@ -4427,7 +4555,15 @@ async function confirmPendingDelete(id){
   }
 
   appState.pendingDeleteRequests.splice(idx,1);
-  logChange("تأكيد حذف نهائي: " + (item.rootName || item.personId));
+  logChange("تأكيد حذف نهائي: " + (item.rootName || item.personId), {
+    actionType: "confirmed_delete",
+    undoable: true,
+    personId: item.personId,
+    rootName: item.rootName,
+    parentId: item.parentId,
+    insertIndex: item.insertIndex,
+    snapshot: item.snapshot
+  });
   saveState();
   alert("تم تأكيد الحذف نهائيًا");
   showAdminPage();
