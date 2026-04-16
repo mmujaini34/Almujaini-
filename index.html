@@ -2057,6 +2057,15 @@ async function syncPeopleToSupabase() {
       document.getElementById("mainPage").classList.remove("hidden");
     }
 
+    function exitAdmin() {
+      try { window.currentAdminRole = "guest"; } catch (e) {}
+      currentView = "tree";
+      hideAllPages();
+      document.getElementById("mainPage").classList.remove("hidden");
+      const pwd = document.getElementById("adminPasswordInput");
+      if (pwd) pwd.value = "";
+    }
+
     function routeToHash() {
       const params = new URLSearchParams(location.search);
 const h = params.get("person") ? "person=" + params.get("person")
@@ -2709,6 +2718,10 @@ function buildSimpleLineageFromPerson(id) {
       page.innerHTML = `
         <div class="admin-page">
           <div class="title">صفحة الإدارة</div>
+
+          <div style="margin-bottom:12px;">
+            <button class="btn-danger" onclick="exitAdmin()">خروج من الإدارة</button>
+          </div>
 
           <div class="admin-tabs">
             <button onclick="switchAdminTab('overview')">الرئيسية</button>
