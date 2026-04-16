@@ -3326,32 +3326,59 @@ function buildSimpleLineageFromPerson(id) {
     return;
   }
 
-  if ((people[personId].children || []).length > 0) {
-    alert("لا يمكن حذف اسم لديه أبناء حاليًا");
-    return;
-  }
-
   const parentId = getParentId(personId);
   if (!parentId || !people[parentId]) {
     alert("تعذر العثور على الأب");
     return;
   }
 
+  function collectSubtree(rootId) {
+    const nodes = {};
+    function walk(id){
+      if(!people[id]) return;
+      nodes[id] = JSON.parse(JSON.stringify(people[id]));
+      (people[id].children || []).forEach(walk);
+    }
+    walk(rootId);
+    return nodes;
+  }
+
+  function removeSubtree(rootId) {
+    function walk(id){
+      const kids = people[id] ? [...(people[id].children || [])] : [];
+      kids.forEach(walk);
+      delete people[id];
+    }
+    walk(rootId);
+  }
+
   const deletedName = people[personId].name;
+  const parentChildren = people[parentId].children || [];
+  const insertIndex = parentChildren.indexOf(personId);
+  const snapshot = collectSubtree(personId);
 
-  people[parentId].children = people[parentId].children.filter(id => id !== personId);
-  delete people[personId];
+  people[parentId].children = parentChildren.filter(id => id !== personId);
+  removeSubtree(personId);
 
-  if (peopleTableAvailable) {
-    const { error } = await supabaseClient
-      .from("people")
-      .delete()
-      .eq("id", personId);
+  if (!Array.isArray(appState.pendingDeleteRequests)) appState.pendingDeleteRequests = [];
+  appState.pendingDeleteRequests.unshift({
+    id: Date.now(),
+    personId,
+    rootName: deletedName,
+    parentId,
+    parentName: people[parentId] ? people[parentId].name : "",
+    insertIndex,
+    snapshot,
+    createdAt: new Date().toLocaleString("ar"),
+    by: window.currentAdminRole === "master" ? "الماستر" : "الأدمن"
+  });
 
-    if (error) {
-      console.error(error);
-      alert("تم الحذف محليًا لكن تعذر تحديث Supabase");
-      return;
+  logChange("طلب حذف بانتظار مراجعة الماستر: " + deletedName);
+  saveState();
+  alert("تم الحذف وهو الآن قيد المراجعة من قبل الماستر");
+  showAdminPage();
+  switchAdminTab("requests");
+  render(currentPerson);
     }
   }
 
@@ -4407,7 +4434,8 @@ window.ALLOWED_ADMIN_TABS_SECONDARY = ["overview","requests","add"];
         - المراجعة<br>
         - الإضافة والتعديل<br>
         - نسخ الأسماء/الأبناء من الأدوات المسموح بها<br>
-        <span class="small">غير مسموح له بالحذف، النسخ الاحتياطي، الإعدادات، الإحصائيات، أو بقية الأقسام العليا.</span>
+        - حذف الأسماء والفروع (قيد مراجعة الماستر)<br>
+        <span class="small">غير مسموح له بالنسخ الاحتياطي، الإعدادات، الإحصائيات، أو بقية الأقسام العليا.</span>
       `;
     } else {
       help.innerHTML = `
@@ -4437,7 +4465,7 @@ window.ALLOWED_ADMIN_TABS_SECONDARY = ["overview","requests","add"];
       page.querySelectorAll("button").forEach(btn => {
         const t = btn.textContent.trim();
         if ([
-          "حذف","حذف المحدد","حذف نهائي","استيراد JSON","تصدير JSON","تصدير سجل الإدارة",
+          "حذف نهائي","استيراد JSON","تصدير JSON","تصدير سجل الإدارة",
           "التراجع عن آخر إجراء","فتح الإعدادات","حفظ الحالة","دمج","نقل","نسخة احتياطية","سلة المحذوفات"
         ].includes(t)) {
           btn.style.display = "none";
@@ -4584,4 +4612,108 @@ function saveSecondaryAdminSettings(){
 })();
 </script>
 
-  </body>
+
+<script id="pending-delete-review-patch">
+function ensurePendingDeleteDefaults(){
+  if(!Array.isArray(appState.pendingDeleteRequests)) appState.pendingDeleteRequests = [];
+}
+
+function restoreDeletedSnapshot(item){
+  if(!item || !item.snapshot) return false;
+  Object.keys(item.snapshot).forEach(id => {
+    people[id] = JSON.parse(JSON.stringify(item.snapshot[id]));
+  });
+  if(item.parentId && people[item.parentId]){
+    const arr = people[item.parentId].children || [];
+    if(!arr.includes(item.personId)){
+      const idx = typeof item.insertIndex === "number" ? item.insertIndex : arr.length;
+      arr.splice(Math.max(0, Math.min(idx, arr.length)), 0, item.personId);
+      people[item.parentId].children = arr;
+    }
+  }
+  return true;
+}
+
+async function confirmPendingDelete(id){
+  ensurePendingDeleteDefaults();
+  const idx = appState.pendingDeleteRequests.findIndex(x => x.id === id);
+  if(idx === -1){ alert("طلب الحذف غير موجود"); return; }
+  const item = appState.pendingDeleteRequests[idx];
+
+  // حذف نهائي من Supabase إن وجد
+  if (peopleTableAvailable) {
+    try{
+      const ids = Object.keys(item.snapshot || {});
+      if(ids.length){
+        const { error } = await supabaseClient.from("people").delete().in("id", ids);
+        if(error){
+          console.error(error);
+        }
+      }
+    }catch(e){ console.error(e); }
+  }
+
+  appState.pendingDeleteRequests.splice(idx,1);
+  logChange("تأكيد حذف نهائي: " + (item.rootName || item.personId));
+  saveState();
+  alert("تم تأكيد الحذف نهائيًا");
+  showAdminPage();
+  switchAdminTab("requests");
+  render(currentPerson);
+}
+
+function rejectPendingDelete(id){
+  ensurePendingDeleteDefaults();
+  const idx = appState.pendingDeleteRequests.findIndex(x => x.id === id);
+  if(idx === -1){ alert("طلب الحذف غير موجود"); return; }
+  const item = appState.pendingDeleteRequests[idx];
+  restoreDeletedSnapshot(item);
+  appState.pendingDeleteRequests.splice(idx,1);
+  logChange("رفض حذف وإرجاع الاسم/الفرع: " + (item.rootName || item.personId));
+  saveState();
+  alert("تم إرجاع الاسم/الفرع المحذوف");
+  showAdminPage();
+  switchAdminTab("requests");
+  render(currentPerson);
+}
+
+(function(){
+  ensurePendingDeleteDefaults();
+
+  const originalRenderAdminSections = window.renderAdminSections;
+  window.renderAdminSections = function(requestsData = [], messagesData = []){
+    let html = originalRenderAdminSections(requestsData, messagesData);
+    const pending = appState.pendingDeleteRequests || [];
+    const section = `
+      ${window.currentAdminRole === "master" ? `
+      <div class="subbox" style="margin-bottom:14px;">
+        <h3>طلبات حذف بانتظار مراجعة الماستر</h3>
+        <div class="list-box">
+          ${
+            pending.length
+            ? pending.map(item => `
+              <div class="list-item">
+                <strong>${item.rootName || item.personId}</strong><br>
+                <span class="small">الأب: ${item.parentName || "غير معروف"}</span><br>
+                <span class="small">الوقت: ${item.createdAt || ""}</span><br>
+                <span class="small">المنفذ: ${item.by || ""}</span><br>
+                <span class="small">عدد العناصر في الفرع: ${Object.keys(item.snapshot || {}).length}</span>
+                <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+                  <button class="btn-ok" onclick="confirmPendingDelete(${item.id})">تأكيد الحذف</button>
+                  <button class="btn-soft" onclick="rejectPendingDelete(${item.id})">إرجاع المحذوف</button>
+                </div>
+              </div>
+            `).join("")
+            : `<div class="list-item">لا توجد طلبات حذف بانتظار المراجعة.</div>`
+          }
+        </div>
+      </div>` : ``}
+    `;
+    html = html.replace('<div class="admin-section" id="admin-requests">\n          <div class="subbox">', '<div class="admin-section" id="admin-requests">\n          ' + section + '\n          <div class="subbox">');
+    html = html.replace('عدد الطلبات: <strong>${requestsData.length}</strong><br>', `عدد الطلبات: <strong>${requestsData.length}</strong><br>\n                ${window.currentAdminRole === "master" ? `طلبات الحذف: <strong>${pending.length}</strong><br>` : ``}`);
+    return html;
+  };
+})();
+</script>
+
+</body>
