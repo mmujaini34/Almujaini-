@@ -2907,6 +2907,7 @@ function buildSimpleLineageFromPerson(id) {
     }
 
     function renderAdminSections(requestsData = [], messagesData = []) {
+      window.__adminRequestsData = requestsData || [];
       const statusOptions = ["", "مكتمل", "يحتاج مراجعة", "مؤكد", "شفهي"];
       const generationStats = getGenerationStats();
       const duplicateList = detectDuplicateNames();
@@ -2973,7 +2974,7 @@ function buildSimpleLineageFromPerson(id) {
                       ${r.children_text && r.children_text !== "INFO_SHARE" ? `<span class="small">الأبناء المقترحون: ${r.children_text}</span><br>` : ""}
                       ${(() => { const raw = String(r.details||""); let src=""; let body=raw; if(raw.startsWith("[[SOURCE]]")){ const rest=raw.slice(10); const parts=rest.split(/\n\n/); src=(parts.shift()||"").trim(); body=parts.join("\n\n").trim(); } return `${src ? `<span class="small">المصدر: ${src}</span><br>` : ""}${body ? `<div style="margin-top:8px;line-height:1.9;white-space:pre-line;max-height:240px;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;">${body}</div>` : ""}`; })()}
                       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
-                        <button class="btn-soft" onclick='event.stopPropagation(); openRequestReadModalByData(${JSON.stringify("${r.id}")}.replace(/"/g,""), ${"r"})'>فتح</button>
+                        <button class="btn-soft" onclick="event.stopPropagation(); openRequestReadModal(${r.id})">فتح</button>
                         <button class="btn-ok" onclick="event.stopPropagation(); markSupabaseRequestDone(${r.id})">${r.children_text === "INFO_SHARE" ? "اعتماد القصة/المعلومة" : "اعتماد"}</button>
                         <button class="btn-danger" onclick="event.stopPropagation(); deleteSupabaseRequest(${r.id})">حذف</button>
                       </div>
@@ -4450,7 +4451,8 @@ window.ALLOWED_ADMIN_TABS_SECONDARY = ["overview","requests","add"];
       <div class="modal-title">إدارة الأدمن</div>
       <div class="top-note">هذه النافذة للماستر فقط.</div>
       <div class="note-form">
-        <input class="field" id="secondaryAdminPasswordInput" placeholder="باسورد الأدمن" />
+        <label class="top-note" for="secondaryAdminPasswordInput">تغيير كلمة سر الأدمن</label>
+        <input class="field" id="secondaryAdminPasswordInput" placeholder="كلمة السر الجديدة للأدمن" />
         <div class="subbox">
           <h4 style="margin:0 0 10px;color:var(--main);">الصلاحيات</h4>
           <label><input type="checkbox" id="perm_overview"> الرئيسية</label><br>
@@ -4459,7 +4461,7 @@ window.ALLOWED_ADMIN_TABS_SECONDARY = ["overview","requests","add"];
           <label><input type="checkbox" id="perm_messages"> الرسائل</label><br>
           <label><input type="checkbox" id="perm_duplicates"> الكشف والمراجعة</label><br>
         </div>
-        <button class="btn-main" onclick="saveSecondaryAdminSettings()">حفظ التعديلات</button>
+        <button class="btn-main" onclick="saveSecondaryAdminSettings()">حفظ كلمة السر والصلاحيات</button>
       </div>
       <div style="margin-top:12px;">
         <button class="btn-soft" style="width:100%;" onclick="closeAdminRoleManageModal()">إغلاق</button>
@@ -4488,6 +4490,15 @@ function saveSecondaryAdminSettingsStore(data){
 function closeRequestReadModal(){
   const m = document.getElementById('requestReadModal');
   if(m) m.classList.remove('active');
+}
+function openRequestReadModal(id){
+  const list = Array.isArray(window.__adminRequestsData) ? window.__adminRequestsData : [];
+  const item = list.find(x => String(x.id) === String(id));
+  if(!item){
+    alert('تعذر فتح الطلب');
+    return;
+  }
+  openRequestReadModalByData(id, item);
 }
 function openRequestReadModalByData(_id, r){
   const body = document.getElementById('requestReadBody');
