@@ -4229,7 +4229,7 @@ window.ALLOWED_ADMIN_TABS_SECONDARY = ["overview","requests","add"];
       // hide destructive and master-only controls by headings/text
       page.querySelectorAll(".subbox, .list-item, .messages-box, .stats-strip").forEach(box => {
         const h = (box.querySelector("h3,h4")?.textContent || "").trim();
-        if (["حذف اسم","الكشف عن تكرار الأسماء","الإحصائيات","النسخ الاحتياطية / التصدير","الإعدادات"].includes(h)) {
+        if (["الكشف عن تكرار الأسماء","الإحصائيات","النسخ الاحتياطية / التصدير","الإعدادات"].includes(h)) {
           box.style.display = "none";
         }
       });
@@ -4489,4 +4489,4 @@ function rejectPendingDelete(id){
 })();
 </script>
 
-  </body>
+</body>
