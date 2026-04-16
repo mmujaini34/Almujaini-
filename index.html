@@ -2929,6 +2929,7 @@ function buildSimpleLineageFromPerson(id) {
                 <button class="btn-main" onclick="exportBackup()">تصدير JSON</button>
                 <button class="btn-soft" onclick="switchAdminTab('messages')">فتح الرسائل</button>
                 <button class="btn-soft" onclick="switchAdminTab('requests')">فتح الطلبات</button>
+                ${window.currentAdminRole === "master" ? `<button class="btn-soft" onclick="openAdminRoleManageModal()">إدارة الأدمن</button>` : ""}
               </div>
             </div>
           </div>
@@ -2964,7 +2965,7 @@ function buildSimpleLineageFromPerson(id) {
               ${
                 requestsData.length
                   ? requestsData.map((r)=>`
-                    <div class="list-item">
+                    <div class="list-item" style="cursor:pointer;">
                       <strong>${r.children_text === "INFO_SHARE" ? "قصة/معلومة" : "إضافة"}</strong> — ${(people[r.parent_id] ? people[r.parent_id].name : r.parent_id) || "غير معروف"}<br>
                       <span class="small">${r.created_at ? new Date(r.created_at).toLocaleString("ar") : ""}</span><br>
                       ${r.sender_name ? `<span class="small">المرسل: ${r.sender_name}</span><br>` : ""}
@@ -2972,8 +2973,9 @@ function buildSimpleLineageFromPerson(id) {
                       ${r.children_text && r.children_text !== "INFO_SHARE" ? `<span class="small">الأبناء المقترحون: ${r.children_text}</span><br>` : ""}
                       ${(() => { const raw = String(r.details||""); let src=""; let body=raw; if(raw.startsWith("[[SOURCE]]")){ const rest=raw.slice(10); const parts=rest.split(/\n\n/); src=(parts.shift()||"").trim(); body=parts.join("\n\n").trim(); } return `${src ? `<span class="small">المصدر: ${src}</span><br>` : ""}${body ? `<div style="margin-top:8px;line-height:1.9;white-space:pre-line;max-height:240px;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;">${body}</div>` : ""}`; })()}
                       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
-                        <button class="btn-ok" onclick="markSupabaseRequestDone(${r.id})">${r.children_text === "INFO_SHARE" ? "اعتماد القصة/المعلومة" : "اعتماد"}</button>
-                        <button class="btn-danger" onclick="deleteSupabaseRequest(${r.id})">حذف</button>
+                        <button class="btn-soft" onclick='event.stopPropagation(); openRequestReadModalByData(${JSON.stringify("${r.id}")}.replace(/"/g,""), ${"r"})'>فتح</button>
+                        <button class="btn-ok" onclick="event.stopPropagation(); markSupabaseRequestDone(${r.id})">${r.children_text === "INFO_SHARE" ? "اعتماد القصة/المعلومة" : "اعتماد"}</button>
+                        <button class="btn-danger" onclick="event.stopPropagation(); deleteSupabaseRequest(${r.id})">حذف</button>
                       </div>
                     </div>
                   `).join("")
@@ -4432,4 +4434,130 @@ window.ALLOWED_ADMIN_TABS_SECONDARY = ["overview","requests","add"];
 })();
 </script>
 
-  </body>
+
+  <div class="modal" id="requestReadModal">
+    <div class="modal-box" style="max-width:760px;max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;">
+      <div class="modal-title">قراءة الطلب</div>
+      <div id="requestReadBody" class="subbox" style="line-height:2;"></div>
+      <div style="margin-top:12px;">
+        <button class="btn-main" style="width:100%;" onclick="closeRequestReadModal()">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="adminRoleManageModal">
+    <div class="modal-box" style="max-width:680px;max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;">
+      <div class="modal-title">إدارة الأدمن</div>
+      <div class="top-note">هذه النافذة للماستر فقط.</div>
+      <div class="note-form">
+        <input class="field" id="secondaryAdminPasswordInput" placeholder="باسورد الأدمن" />
+        <div class="subbox">
+          <h4 style="margin:0 0 10px;color:var(--main);">الصلاحيات</h4>
+          <label><input type="checkbox" id="perm_overview"> الرئيسية</label><br>
+          <label><input type="checkbox" id="perm_requests"> قبول الطلبات</label><br>
+          <label><input type="checkbox" id="perm_add"> الإضافة والتعديل</label><br>
+          <label><input type="checkbox" id="perm_messages"> الرسائل</label><br>
+          <label><input type="checkbox" id="perm_duplicates"> الكشف والمراجعة</label><br>
+        </div>
+        <button class="btn-main" onclick="saveSecondaryAdminSettings()">حفظ التعديلات</button>
+      </div>
+      <div style="margin-top:12px;">
+        <button class="btn-soft" style="width:100%;" onclick="closeAdminRoleManageModal()">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
+
+<script id="request-read-and-admin-role-patch">
+window.SECONDARY_ADMIN_SETTINGS_KEY = "mujaini_secondary_admin_settings_v1";
+
+function getSecondaryAdminSettings(){
+  try{
+    const raw = JSON.parse(localStorage.getItem(window.SECONDARY_ADMIN_SETTINGS_KEY) || "{}");
+    return {
+      password: raw.password || "Mujaini3",
+      tabs: Array.isArray(raw.tabs) ? raw.tabs : ["overview","requests","add"]
+    };
+  }catch(e){
+    return {password:"Mujaini3", tabs:["overview","requests","add"]};
+  }
+}
+function saveSecondaryAdminSettingsStore(data){
+  localStorage.setItem(window.SECONDARY_ADMIN_SETTINGS_KEY, JSON.stringify(data||{}));
+}
+function closeRequestReadModal(){
+  const m = document.getElementById('requestReadModal');
+  if(m) m.classList.remove('active');
+}
+function openRequestReadModalByData(_id, r){
+  const body = document.getElementById('requestReadBody');
+  if(!body) return;
+  const raw = String(r.details||"");
+  let src="", main=raw;
+  if(raw.startsWith("[[SOURCE]]")){
+    const rest = raw.slice(10);
+    const parts = rest.split(/\n\n/);
+    src = (parts.shift()||"").trim();
+    main = parts.join("\n\n").trim();
+  }
+  body.innerHTML = `
+    <div><strong>النوع:</strong> ${r.children_text === "INFO_SHARE" ? "قصة/معلومة" : "إضافة"}</div>
+    <div><strong>الاسم المرتبط:</strong> ${((people[r.parent_id] ? people[r.parent_id].name : r.parent_id) || "غير معروف")}</div>
+    ${r.sender_name ? `<div><strong>المرسل:</strong> ${r.sender_name}</div>` : ""}
+    ${r.child_name ? `<div><strong>الاسم المستهدف:</strong> ${r.child_name}</div>` : ""}
+    ${src ? `<div><strong>المصدر:</strong> ${src}</div>` : ""}
+    ${r.children_text && r.children_text !== "INFO_SHARE" ? `<div><strong>الأبناء المقترحون:</strong> ${r.children_text}</div>` : ""}
+    ${main ? `<div class="subbox" style="margin-top:10px;white-space:pre-line;max-height:45vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;">${main}</div>` : ""}
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn-ok" onclick="markSupabaseRequestDone(${r.id}); closeRequestReadModal();">${r.children_text === "INFO_SHARE" ? "اعتماد القصة/المعلومة" : "اعتماد"}</button>
+      <button class="btn-danger" onclick="deleteSupabaseRequest(${r.id}); closeRequestReadModal();">حذف</button>
+    </div>
+  `;
+  const m = document.getElementById('requestReadModal');
+  if(m) m.classList.add('active');
+}
+function openAdminRoleManageModal(){
+  const settings = getSecondaryAdminSettings();
+  document.getElementById('secondaryAdminPasswordInput').value = settings.password || 'Mujaini3';
+  ['overview','requests','add','messages','duplicates'].forEach(k=>{
+    const el = document.getElementById('perm_'+k);
+    if(el) el.checked = (settings.tabs||[]).includes(k);
+  });
+  const m = document.getElementById('adminRoleManageModal');
+  if(m) m.classList.add('active');
+}
+function closeAdminRoleManageModal(){
+  const m = document.getElementById('adminRoleManageModal');
+  if(m) m.classList.remove('active');
+}
+function saveSecondaryAdminSettings(){
+  const tabs = ['overview','requests','add','messages','duplicates'].filter(k => document.getElementById('perm_'+k)?.checked);
+  const password = (document.getElementById('secondaryAdminPasswordInput')?.value || 'Mujaini3').trim() || 'Mujaini3';
+  const settings = {password, tabs: tabs.length ? tabs : ['overview']};
+  saveSecondaryAdminSettingsStore(settings);
+  window.SECONDARY_ADMIN_PASSWORD = settings.password;
+  window.ALLOWED_ADMIN_TABS_SECONDARY = settings.tabs;
+  alert('تم حفظ إعدادات الأدمن');
+  closeAdminRoleManageModal();
+}
+(function(){
+  const existingEnter = window.enterAdmin;
+  window.enterAdmin = function(){
+    const settings = getSecondaryAdminSettings();
+    window.SECONDARY_ADMIN_PASSWORD = settings.password;
+    window.ALLOWED_ADMIN_TABS_SECONDARY = settings.tabs;
+    return existingEnter();
+  };
+  const prevApply = window.applyCurrentAdminRoleUI;
+  if(prevApply){
+    window.applyCurrentAdminRoleUI = function(){
+      const settings = getSecondaryAdminSettings();
+      window.SECONDARY_ADMIN_PASSWORD = settings.password;
+      window.ALLOWED_ADMIN_TABS_SECONDARY = settings.tabs;
+      prevApply();
+    }
+  }
+})();
+</script>
+
+</body>
