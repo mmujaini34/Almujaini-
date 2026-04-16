@@ -1825,11 +1825,15 @@ async function syncPeopleToSupabase() {
     }
 
     function logChange(text) {
-      appState.changeLog.unshift({
+      const entry = {
         text,
-        time: new Date().toLocaleString("ar")
-      });
+        time: new Date().toLocaleString("ar"),
+        by: window.currentAdminRole === "master" ? "الماستر" : "الأدمن"
+      };
+      appState.changeLog.unshift(entry);
       if (appState.changeLog.length > 100) appState.changeLog.pop();
+      if (!Array.isArray(appState.masterArchive)) appState.masterArchive = [];
+      appState.masterArchive.unshift(entry);
       saveState();
     }
 
@@ -3120,19 +3124,23 @@ function buildSimpleLineageFromPerson(id) {
 
         <div class="admin-section" id="admin-archive">
           <div class="subbox">
-            <h3>أرشيف التعديلات</h3>
-            <div class="list-box">
-              ${
-                appState.changeLog.length
-                  ? appState.changeLog.map(item => `
-                    <div class="list-item">
-                      ${item.text}<br>
-                      <span class="small">${item.time}</span>
-                    </div>
-                  `).join("")
-                  : `<div class="list-item">لا توجد تعديلات مسجلة بعد.</div>`
-              }
-            </div>
+            <h3>أرشيف الماستر الدائم</h3>
+            ${
+              window.currentAdminRole !== "master"
+                ? `<div class="list-item">هذا الأرشيف يظهر للماستر فقط.</div>`
+                : `<div class="list-box">
+                    ${
+                      (appState.masterArchive || []).length
+                        ? (appState.masterArchive || []).map(item => `
+                          <div class="list-item">
+                            ${item.text}<br>
+                            <span class="small">${item.time} — ${item.by || ""}</span>
+                          </div>
+                        `).join("")
+                        : `<div class="list-item">لا توجد عمليات مسجلة بعد.</div>`
+                    }
+                  </div>`
+            }
           </div>
         </div>
 
@@ -3199,6 +3207,7 @@ function buildSimpleLineageFromPerson(id) {
         alert("تعذر حذف الرسالة");
         return;
       }
+      logChange("حذف رسالة");
       alert("تم حذف الرسالة");
       showAdminPage();
       switchAdminTab("messages");
@@ -3211,6 +3220,7 @@ function buildSimpleLineageFromPerson(id) {
         alert("تعذر حذف الطلب");
         return;
       }
+      logChange("رفض/حذف طلب");
       alert("تم حذف الطلب");
       showAdminPage();
       switchAdminTab("requests");
@@ -3270,6 +3280,7 @@ function buildSimpleLineageFromPerson(id) {
   }
 
   logChange("تعديل اسم: " + personId + " إلى " + newName);
+  logChange("تعديل اسم إلى: " + newName);
   alert("تم تعديل الاسم");
   showAdminPage();
   switchAdminTab("add");
@@ -3345,6 +3356,7 @@ function buildSimpleLineageFromPerson(id) {
   }
 
   logChange("حذف اسم: " + deletedName);
+  logChange("حذف اسم: " + deletedName);
   alert("تم حذف الاسم");
   showAdminPage();
   switchAdminTab("add");
@@ -3355,6 +3367,7 @@ function buildSimpleLineageFromPerson(id) {
       const id = document.getElementById("statusPersonSelect").value;
       const value = document.getElementById("statusValueSelect").value;
       setStatus(id, value);
+      logChange("تحديث حالة فرع");
       alert("تم حفظ الحالة");
       showAdminPage();
       switchAdminTab("add");
@@ -4571,4 +4584,4 @@ function saveSecondaryAdminSettings(){
 })();
 </script>
 
-</body>
+  </body>
