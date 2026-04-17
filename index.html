@@ -789,11 +789,11 @@
     <div class="topbar-inner">
       <div class="brand">شجرة عائلة محمد بن حميد المجيني</div>
       <div class="top-actions">
-        <button onclick="goRoot()">الرئيسية</button>
-        <button onclick="showAbout()">📜 نبذة عن قبيلة المجيني</button>
+        <button id="btnTopRoot">الرئيسية</button>
+        <button id="btnTopAbout">📜 نبذة عن قبيلة المجيني</button>
         <button onclick="openShareInfoModal()">📝 شاركنا بمعلومة</button>
-        <button onclick="showWhoAmI()">من أكون؟</button>
-        <button class="icon-btn" onclick="openAdminPassword()">⚙️</button>
+        <button id="btnTopWho">من أكون؟</button>
+        <button id="btnTopAdmin" class="icon-btn">⚙️</button>
       </div>
     </div>
   </div>
@@ -809,9 +809,9 @@
     </div>
 
     <div class="toolbar">
-      <button class="btn-main" onclick="goRoot()">الرجوع للجذر</button>
-      <button class="btn-main" onclick="goBack()">رجوع خطوة</button>
-      <button class="btn-main" onclick="shareCurrent()">مشاركة الرابط</button>
+      <button id="btnToolbarRoot" class="btn-main">الرجوع للجذر</button>
+      <button id="btnToolbarBack" class="btn-main">رجوع خطوة</button>
+      <button id="btnToolbarShare" class="btn-main">مشاركة الرابط</button>
           </div>
 
     <div class="title" id="title">محمد حميد المجيني</div>
@@ -876,8 +876,8 @@
       <div class="modal-title">إضافة أو تعديل البيانات</div>
       <div class="modal-text" id="confirmText">هل تريد فتح واتساب؟</div>
       <div class="modal-actions">
-        <button class="btn-soft" onclick="closeConfirmModal()">إلغاء</button>
-        <button class="btn-main" onclick="confirmWhatsApp()">فتح واتساب</button>
+        <button id="btnConfirmCancel" class="btn-soft">إلغاء</button>
+        <button id="btnConfirmOpenWa" class="btn-main">فتح واتساب</button>
       </div>
     </div>
   </div>
@@ -888,8 +888,8 @@
       <div class="modal-text">أدخل كلمة المرور لفتح صفحة الإدارة.</div>
       <input class="field" type="password" id="adminPasswordInput" placeholder="كلمة المرور" />
       <div class="modal-actions" style="margin-top:12px;">
-        <button class="btn-soft" onclick="closeAdminPassword()">إلغاء</button>
-        <button class="btn-main" onclick="enterAdmin()">دخول</button>
+        <button id="btnAdminPwdCancel" class="btn-soft">إلغاء</button>
+        <button id="btnAdminPwdEnter" class="btn-main">دخول</button>
       </div>
     </div>
   </div>
@@ -907,8 +907,8 @@
         <textarea class="textarea" id="reqDetails" placeholder="أحمد&#10;الأبناء: عبدالله، محمد، علي&#10;&#10;سعيد&#10;الأبناء: خالد، يوسف&#10;&#10;حسن&#10;لا يوجد أبناء"></textarea>
       </div>
       <div class="modal-actions" style="margin-top:12px;">
-        <button class="btn-soft" onclick="closeAddRequestModal()">إلغاء</button>
-        <button class="btn-main" onclick="submitAddRequest()">إرسال الطلب</button>
+        <button id="btnAddReqCancel" class="btn-soft">إلغاء</button>
+        <button id="btnAddReqSubmit" class="btn-main">إرسال الطلب</button>
       </div>
     </div>
   </div>
@@ -918,7 +918,7 @@
       <div class="modal-title">تسلسل النسب</div>
       <div id="lineageModalBody"></div>
       <div style="margin-top:14px;">
-        <button class="btn-main" style="width:100%;" onclick="closeLineageModal()">إغلاق</button>
+        <button id="btnLineageClose" class="btn-main" style="width:100%;">إغلاق</button>
       </div>
     </div>
   </div>
@@ -2722,7 +2722,7 @@ function buildSimpleLineageFromPerson(id) {
           <div class="title">صفحة الإدارة</div>
 
           <div style="margin-bottom:12px;">
-            <button class="btn-danger" onclick="exitAdmin()">خروج من الإدارة</button>
+            <button id="btnExitAdmin" class="btn-danger">خروج من الإدارة</button>
           </div>
 
           <div class="admin-tabs">
@@ -3232,13 +3232,8 @@ function buildSimpleLineageFromPerson(id) {
         : `<div class="list-item" style="margin-top:10px;">لا توجد اقتراحات.</div>`;
     }
 
-    function deleteRequest(idx) {
-      appState.requests.splice(idx,1);
-      saveState();
-      logChange("حذف طلب");
-      showAdminPage();
-      switchAdminTab("requests");
-    }
+    
+
 
 async function markSupabaseRequestDone(id) {
   const { data, error } = await supabaseClient
@@ -3620,45 +3615,8 @@ function renderSearchResults(keyword) {
   document.getElementById("content").innerHTML = html;
 }
 
-function markRequestDone(idx) {
-  const item = appState.requests[idx];
-  if (!item) return;
 
-  if (item.type === "إضافة" && item.parentId && item.childName) {
-    const parentId = item.parentId;
-    const childName = String(item.childName || "").trim();
 
-    if (people[parentId] && childName) {
-      const mainChildId = createPersonNode(childName);
-      people[parentId].children.push(mainChildId);
-
-      if (item.childrenText && String(item.childrenText).trim()) {
-        const childrenNames = String(item.childrenText)
-          .split(",")
-          .map(name => name.trim())
-          .filter(Boolean);
-
-        childrenNames.forEach(name => {
-          const subChildId = createPersonNode(name);
-          people[mainChildId].children.push(subChildId);
-        });
-      }
-
-      logChange("اعتماد طلب وإضافة الاسم: " + childName + " تحت " + people[parentId].name);
-    } else {
-      logChange("تم اعتماد طلب لكن تعذر الإضافة لعدم اكتمال البيانات");
-    }
-  } else {
-    logChange("اعتماد طلب: " + item.type + " - " + item.target);
-  }
-
-  appState.requests.splice(idx, 1);
-  saveState();
-
-  showAdminPage();
-  switchAdminTab("requests");
-  render(currentPerson);
-    }
         
     
 
@@ -3949,26 +3907,8 @@ function relationBetweenDeep(idA, idB) {
     }
 
 
-    function runRelation() {
-      const a = document.getElementById("relationA")?.value;
-      const b = document.getElementById("relationB")?.value;
-      const box = document.getElementById("relationResult");
-      if (!a || !b || !people[a] || !people[b]) {
-        box.innerHTML = `<div class="list-item" style="margin-top:10px;">اختر الاسمين أولًا من الشجرة.</div>`;
-        return;
-      }
-      const r = relationBetweenDeep(a,b);
-      box.innerHTML = `
-        <div class="list-item" style="margin-top:10px;line-height:2;">
-          <strong>النتيجة:</strong> ${people[b].name} هو ${r.label} بالنسبة إلى ${people[a].name}<br>
-          <strong>الأصل المشترك:</strong> ${r.common ? people[r.common].name : "غير معروف"}<br><br>
-          <strong>${people[a].name}</strong><br>
-          ${r.pathA.map(id => "← " + people[id].name).join("<br>")}<br><br>
-          <strong>${people[b].name}</strong><br>
-          ${r.pathB.map(id => "← " + people[id].name).join("<br>")}
-        </div>
-      `;
-    }
+    
+
 
     function cloneBranchForSpouse(sourceId, targetParentId) {
       const source = people[sourceId];
@@ -4488,6 +4428,13 @@ function removeSubtreeNodes(rootId){
   walk(rootId);
 }
 
+
+function refreshAdminAfterAction(tabName = "overview") {
+      showAdminPage();
+      switchAdminTab(tabName);
+      render(currentPerson);
+    }
+
 function undoArchiveAction(entryId){
   const idx = (appState.masterArchive || []).findIndex(x => x.id === entryId);
   if(idx === -1){ alert("عملية الأرشيف غير موجودة"); return; }
@@ -4501,9 +4448,7 @@ function undoArchiveAction(entryId){
       logChange("تراجع عن تعديل اسم: " + currentName + " ← " + item.oldName, {undoable:false});
       saveState();
       alert("تم التراجع عن تعديل الاسم");
-      showAdminPage();
-      switchAdminTab("archive");
-      render(currentPerson);
+      refreshAdminAfterAction("archive");
       return;
     }
     alert("لا يمكن التراجع لأن الاسم لم يعد موجودًا");
@@ -4518,9 +4463,7 @@ function undoArchiveAction(entryId){
     logChange("تراجع عن طلب حذف: " + (item.rootName || item.personId), {undoable:false});
     saveState();
     alert("تم التراجع عن طلب الحذف وإرجاع الفرع");
-    showAdminPage();
-    switchAdminTab("archive");
-    render(currentPerson);
+    refreshAdminAfterAction("archive");
     return;
   }
 
@@ -4529,9 +4472,7 @@ function undoArchiveAction(entryId){
     logChange("تراجع عن حذف نهائي: " + (item.rootName || item.personId), {undoable:false});
     saveState();
     alert("تم إرجاع المحذوف بعد التراجع");
-    showAdminPage();
-    switchAdminTab("archive");
-    render(currentPerson);
+    refreshAdminAfterAction("archive");
     return;
   }
 
@@ -4547,9 +4488,7 @@ function undoArchiveAction(entryId){
       logChange("تراجع عن نسخ الأبناء بين الزوجين", {undoable:false});
       saveState();
       alert("تم التراجع عن النسخ");
-      showAdminPage();
-      switchAdminTab("archive");
-      render(currentPerson);
+      refreshAdminAfterAction("archive");
       return;
     }
     alert("تعذر التراجع عن النسخ");
@@ -4668,4 +4607,31 @@ function rejectPendingDelete(id){
   };
 })();
 </script>
+
+<script id="onclick-cleanup-stage1">
+(function(){
+  const bindings = [
+    ["btnTopRoot", () => goRoot()],
+    ["btnTopAbout", () => showAbout()],
+    ["btnTopWho", () => showWhoAmI()],
+    ["btnTopAdmin", () => openAdminPassword()],
+    ["btnToolbarRoot", () => goRoot()],
+    ["btnToolbarBack", () => goBack()],
+    ["btnToolbarShare", () => shareCurrent()],
+    ["btnConfirmCancel", () => closeConfirmModal()],
+    ["btnConfirmOpenWa", () => confirmWhatsApp()],
+    ["btnAdminPwdCancel", () => closeAdminPassword()],
+    ["btnAdminPwdEnter", () => enterAdmin()],
+    ["btnAddReqCancel", () => closeAddRequestModal()],
+    ["btnAddReqSubmit", () => submitAddRequest()],
+    ["btnLineageClose", () => closeLineageModal()],
+    ["btnExitAdmin", () => exitAdmin()]
+  ];
+  bindings.forEach(([id, handler]) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener("click", handler);
+  });
+})();
+</script>
+
 </body>
