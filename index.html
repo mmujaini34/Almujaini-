@@ -1,11 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-    document.addEventListener("DOMContentLoaded", function() {
-      document.getElementById("btnTopShareInfo")?.addEventListener("click", openShareInfoModal);
-    });
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>شجرة عائلة محمد بن حميد المجيني</title>
@@ -4754,6 +4750,7 @@ function rejectPendingDelete(id){
   const bindings = [
     ["btnTopRoot", () => goRoot()],
     ["btnTopAbout", () => showAbout()],
+    ["btnTopShareInfo", () => openShareInfoModal()],
     ["btnTopWho", () => showWhoAmI()],
     ["btnTopAdmin", () => openAdminPassword()],
     ["btnToolbarRoot", () => goRoot()],
