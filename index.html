@@ -1161,7 +1161,7 @@ function pickShareInfoPerson() {
     if (label) label.innerHTML = `<strong>اسم الشخص:</strong> ${people[id].name}<br><span class="small">${(getLineage(id)||[]).map(x=>people[x]?.name||"").filter(Boolean).join(" ")}</span>`;
   });
 }
-async async function submitShareInfo() {
+async function submitShareInfo() {
   const personId = (document.getElementById("shareInfoPersonId")?.value || "").trim();
   const title = (document.getElementById("shareInfoTitle")?.value || "").trim();
   const source = (document.getElementById("shareInfoSource")?.value || "").trim();
@@ -3395,8 +3395,6 @@ async function markSupabaseRequestDone(id) {
       return;
     }
     const rawDetails = String(data.details || "");
-    let parsedSource = "";
-    let parsedBody = rawDetails;
     const parsed = parseApprovedInfoDetails(rawDetails);
     const parsedTitle = parsed.title;
     const parsedSource = parsed.source;
