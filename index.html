@@ -2685,6 +2685,7 @@ function buildSimpleLineageFromPerson(id) {
       page.classList.remove("hidden");
       const special = isSpecialPerson(id);
       page.innerHTML = `
+        ${renderPageNavControls()}
         <div class="whoami-bg panel" style="padding:14px;">
           <div class="whoami-card ${special ? "special-person" : ""}">
             ${special ? `<div class="special-mark">✦</div>` : ""}
@@ -2696,6 +2697,16 @@ function buildSimpleLineageFromPerson(id) {
       if (pushHash) history.pushState({ whoamiPerson:id }, "", `#whoami-person=${id}`);
     }
 
+
+    function renderPageNavControls() {
+      return `
+        <div class="toolbar" style="margin-bottom:12px;">
+          <button class="btn-main" onclick="goRoot()">الرجوع للجذر</button>
+          <button class="btn-main" onclick="goBack()">رجوع خطوة</button>
+        </div>
+      `;
+    }
+
     function showAbout(pushHash = true) {
       currentView = "about";
       hideAllPages();
@@ -2703,6 +2714,7 @@ function buildSimpleLineageFromPerson(id) {
       page.classList.remove("hidden");
       scrollToTopInstant();
       page.innerHTML = `
+        ${renderPageNavControls()}
         <div class="about-wrap">
           <div class="about-box">
             <h2>📜 نبذة عن قبيلة المجيني</h2>
@@ -2838,6 +2850,7 @@ function buildSimpleLineageFromPerson(id) {
       const page = document.getElementById("aboutPage");
       page.classList.remove("hidden");
       page.innerHTML = `
+        ${renderPageNavControls()}
         <div class="about-wrap">
           <div class="about-box">
             <h2>من أكون؟</h2>
@@ -2883,6 +2896,7 @@ function buildSimpleLineageFromPerson(id) {
       const children = person.children || [];
 
       page.innerHTML = `
+        ${renderPageNavControls()}
         <div class="person-page">
           <div class="title">${person.name}</div>
           ${renderApprovedInfoBox(id)}
@@ -2929,6 +2943,7 @@ function buildSimpleLineageFromPerson(id) {
       const selected = hierarchyTrail[hierarchyTrail.length - 1];
 
       let rows = `
+        ${renderPageNavControls()}
         <div class="hierarchy-box">
           <div class="title">عرض الهرم</div>
           <div class="top-note">اضغط على الاسم لفتح صفحة الفرع، أو على زر هرم داخل البطاقة لفتح هرم هذا الشخص فقط.</div>
