@@ -853,40 +853,49 @@
 
 
   
+  
   <div class="modal" id="shareInfoModal">
     <div class="modal-box" style="max-width:920px;max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;">
       <div class="modal-title">📝 شاركنا بمعلومة</div>
-      <div class="modal-text">تصفح المعلومات المعتمدة أولًا، ويمكنك أيضًا إرسال معلومة جديدة ليتم اعتمادها من الإدارة قبل نشرها.</div>
+      <div class="modal-text">هنا تجد المعلومات المعتمدة فقط. ويمكنك الضغط على إضافة معلومة لإرسال معلومة جديدة للمراجعة.</div>
 
-      <div class="subbox" style="margin-bottom:14px;">
-        <h3 style="margin:0 0 10px;color:var(--main);">المعلومات المعتمدة</h3>
-        <div class="note-form">
-          <input type="hidden" id="shareInfoBrowsePersonId" />
-          <div id="shareInfoBrowsePersonLabel" class="top-note">يعرض لك كل المعلومات المعتمدة. ويمكنك تحديد اسم من الشجرة لعرض معلوماته فقط.</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="btn-soft" onclick="pickShareInfoBrowsePerson()">اختيار اسم من الشجرة</button>
-            <button class="btn-soft" onclick="resetShareInfoBrowsePerson()">عرض كل المعلومات</button>
-          </div>
-        </div>
-        <div id="shareInfoApprovedList" class="list-box" style="margin-top:12px;"></div>
+      <div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn-main" onclick="openShareInfoFormModal()">إضافة معلومة</button>
+        <button class="btn-soft" onclick="pickShareInfoBrowsePerson()">اختيار اسم من الشجرة</button>
+        <button class="btn-soft" onclick="resetShareInfoBrowsePerson()">عرض كل المعلومات</button>
       </div>
 
-      <div class="subbox">
-        <h3 style="margin:0 0 10px;color:var(--main);">إضافة معلومة جديدة</h3>
-        <div class="note-form">
-          <input class="field" id="shareInfoTitle" placeholder="العنوان" />
-          <input type="hidden" id="shareInfoPersonId" />
-          <div id="shareInfoPersonLabel" class="top-note">لم يتم اختيار الاسم بعد.</div>
-          <button class="btn-soft" onclick="pickShareInfoPerson()">اختيار الاسم من الشجرة</button>
-          <input class="field" id="shareInfoSource" placeholder="المراجع / المصدر" />
-          <textarea class="textarea" id="shareInfoBody" placeholder="اكتب المعلومة أو القصة هنا..." style="min-height:220px;"></textarea>
-          <div class="top-note">يدعم النسخ واللصق من الهاتف بشكل طبيعي.</div>
-          <div class="modal-actions" style="grid-template-columns:1fr 1fr;">
-            <button class="btn-soft" onclick="closeShareInfoModal()">إغلاق</button>
-            <button class="btn-main" onclick="submitShareInfo()">إرسال للمراجعة</button>
-          </div>
+      <input type="hidden" id="shareInfoBrowsePersonId" />
+      <div id="shareInfoBrowsePersonLabel" class="top-note" style="margin-bottom:12px;">يعرض لك كل المعلومات المعتمدة. ويمكنك تحديد اسم من الشجرة لعرض معلوماته فقط.</div>
+
+      <div id="shareInfoApprovedList" class="list-box"></div>
+
+      <div style="margin-top:12px;">
+        <button class="btn-soft" style="width:100%;" onclick="closeShareInfoModal()">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="shareInfoFormModal">
+    <div class="modal-box" style="max-width:820px;max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;">
+      <div class="modal-title">إضافة معلومة جديدة</div>
+      <div class="modal-text">لن تُنشر هذه المعلومة إلا بعد اعتمادها من الإدارة.</div>
+      <div class="note-form">
+        <input class="field" id="shareInfoTitle" placeholder="العنوان" />
+        <input type="hidden" id="shareInfoPersonId" />
+        <div id="shareInfoPersonLabel" class="top-note">لم يتم اختيار الاسم بعد.</div>
+        <button class="btn-soft" onclick="pickShareInfoPerson()">اختيار الاسم من الشجرة</button>
+        <input class="field" id="shareInfoSource" placeholder="المراجع / المصدر" />
+        <textarea class="textarea" id="shareInfoBody" placeholder="اكتب المعلومة أو القصة هنا..." style="min-height:220px;"></textarea>
+        <div class="top-note">يدعم النسخ واللصق من الهاتف بشكل طبيعي.</div>
+        <div class="modal-actions" style="grid-template-columns:1fr 1fr;">
+          <button class="btn-soft" onclick="closeShareInfoFormModal()">إغلاق</button>
+          <button class="btn-main" onclick="submitShareInfo()">إرسال للمراجعة</button>
         </div>
       </div>
+    </div>
+  </div>
+
     </div>
   </div>
 
@@ -1053,7 +1062,7 @@ function renderApprovedInfoLibrary() {
   if (selectedId) entries = entries.filter(item => item.personId === selectedId);
 
   if (!entries.length) {
-    list.innerHTML = '<div class="list-item">لا توجد معلومات معتمدة في هذا القسم حتى الآن.</div>';
+    list.innerHTML = '<div class="list-item" style="text-align:center;">لا توجد معلومات معتمدة في هذا القسم حتى الآن.</div>';
     return;
   }
 
@@ -1125,6 +1134,13 @@ function openShareInfoModal() {
 }
 function closeShareInfoModal() {
   document.getElementById("shareInfoModal")?.classList.remove("active");
+}
+function openShareInfoFormModal() {
+  document.getElementById("shareInfoFormModal")?.classList.add("active");
+}
+
+function closeShareInfoFormModal() {
+  document.getElementById("shareInfoFormModal")?.classList.remove("active");
   const title = document.getElementById("shareInfoTitle");
   const pid = document.getElementById("shareInfoPersonId");
   const label = document.getElementById("shareInfoPersonLabel");
@@ -1136,6 +1152,7 @@ function closeShareInfoModal() {
   if (source) source.value = "";
   if (body) body.value = "";
 }
+
 function pickShareInfoPerson() {
   openTreePicker("اختر الاسم المراد إضافة المعلومة له", function(id){
     const input = document.getElementById("shareInfoPersonId");
@@ -1168,7 +1185,7 @@ ${body}`;
       sender_name: ""
     });
     alert("تم إرسال المعلومة للمراجعة والاعتماد");
-    closeShareInfoModal();
+    closeShareInfoFormModal();
     openShareInfoModal();
   } catch (e) {
     console.error(e);
@@ -4756,4 +4773,4 @@ function rejectPendingDelete(id){
 })();
 </script>
 
-  </body>
+</body>
