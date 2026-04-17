@@ -925,10 +925,26 @@
       <div class="note-form">
         <input class="field" id="reqParentName" placeholder="اسم الأب" readonly />
         <input class="field" id="reqChildName" placeholder="الاسم المطلوب إضافته" />
-        <input class="field" id="reqChildrenText" placeholder="الأبناء (اختياري، افصل بينهم بفاصلة)" />
+        <input class="field" id="reqChildrenText" placeholder="الأبناء المباشرون (اختياري، كل اسم في سطر مستقل)" />
         <input class="field" id="reqSenderName" placeholder="اسمك (اختياري)" />
-        <div class="top-note">يمكنك كتابة أكثر من ابن مع أبنائهم في رسالة واحدة. اكتب كل اسم في سطر مستقل، ثم اكتب تحته الأبناء إن وجدوا، ويمكنك أيضًا ذكر من لا يوجد له أبناء.</div>
-        <textarea class="textarea" id="reqDetails" placeholder="أحمد&#10;الأبناء: عبدالله، محمد، علي&#10;&#10;سعيد&#10;الأبناء: خالد، يوسف&#10;&#10;حسن&#10;لا يوجد أبناء"></textarea>
+
+        <div class="top-note">الخيار الأول: إضافة اسم واحد ثم كتابة أبنائه المباشرين كل اسم في سطر مستقل. الفواصل غير معتمدة.</div>
+
+        <div class="subbox" style="padding:12px;">
+          <h4 style="margin:0 0 8px;color:var(--main);">إضافة دفعة نصية</h4>
+          <div class="top-note">اكتب كل اسم رئيسي في سطر مستقل، وأبناءه في الأسطر التالية مع بداية كل اسم بشرطة - . الأسماء المركبة مثل مال الله وعبدالله وعبداللطيف مدعومة كما هي.</div>
+          <textarea class="textarea" id="reqDetails" placeholder="محمد&#10;- احمد&#10;- هيثم&#10;- غيث&#10;&#10;مال الله&#10;- سلطان&#10;- عادل&#10;&#10;عبداللطيف&#10;- سلطان&#10;- محمد"></textarea>
+        </div>
+
+        <div class="subbox" style="padding:12px;">
+          <h4 style="margin:0 0 8px;color:var(--main);">بناء شجري مبسط</h4>
+          <div class="top-note">الخيار الثاني: أضف أبناء الأب واحدًا واحدًا، وتحت كل ابن أضف أبناءه. هذا الخيار لا يعتمد على الفواصل ولا يسبب تراكب الأسماء.</div>
+          <div id="requestBuilderList" class="list-box"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+            <button type="button" class="btn-main" id="btnAddBuilderMain">+ إضافة ابن</button>
+            <button type="button" class="btn-soft" id="btnClearBuilderMain">مسح البناء</button>
+          </div>
+        </div>
       </div>
       <div class="modal-actions" style="margin-top:12px;">
         <button id="btnAddReqCancel" class="btn-soft">إلغاء</button>
@@ -1417,67 +1433,7 @@ let people = {
 
       "p20": { name: "محمد بن جابر", note: "", children: ["p30","p31","p32"] },
       "p30": { name: "خديجة", note: "", children: [] },
-      "p31": { name: "مريم", note: "", children: ["p31_1","p31_2","p31_3","p31_4","p31_5","p31_6","p31_7","p31_8"] },
-      "p31_1": { name: "محمد", note: "", children: ["p31_1a","p31_1b","p31_1c","p31_1d","p31_1e","p31_1f","p31_1g"] },
-      "p31_1a": { name: "احمد", note: "", children: [] },
-      "p31_1b": { name: "هيثم", note: "", children: [] },
-      "p31_1c": { name: "غيث", note: "", children: [] },
-      "p31_1d": { name: "سلطان", note: "", children: [] },
-      "p31_1e": { name: "عبير", note: "", children: [] },
-      "p31_1f": { name: "لولوة", note: "", children: [] },
-      "p31_1g": { name: "ناعمه", note: "", children: [] },
-
-      "p31_2": { name: "مال الله", note: "", children: ["p31_2a","p31_2b","p31_2c","p31_2d","p31_2e","p31_2f","p31_2g","p31_2h"] },
-      "p31_2a": { name: "سلطان", note: "", children: [] },
-      "p31_2b": { name: "عادل", note: "", children: [] },
-      "p31_2c": { name: "احمد", note: "", children: [] },
-      "p31_2d": { name: "علي", note: "", children: [] },
-      "p31_2e": { name: "خالد", note: "", children: [] },
-      "p31_2f": { name: "امل", note: "", children: [] },
-      "p31_2g": { name: "عهود", note: "", children: [] },
-      "p31_2h": { name: "فاطمه", note: "", children: [] },
-
-      "p31_3": { name: "يوسف", note: "", children: ["p31_3a","p31_3b","p31_3c","p31_3d","p31_3e","p31_3f","p31_3g"] },
-      "p31_3a": { name: "سلطان", note: "", children: [] },
-      "p31_3b": { name: "منذر", note: "", children: [] },
-      "p31_3c": { name: "مريم", note: "", children: [] },
-      "p31_3d": { name: "مهره", note: "", children: [] },
-      "p31_3e": { name: "شمة", note: "", children: [] },
-      "p31_3f": { name: "جمان", note: "", children: [] },
-      "p31_3g": { name: "ريماس", note: "", children: [] },
-
-      "p31_4": { name: "علي", note: "", children: ["p31_4a","p31_4b","p31_4c","p31_4d","p31_4e"] },
-      "p31_4a": { name: "سلطان", note: "", children: [] },
-      "p31_4b": { name: "شوق", note: "", children: [] },
-      "p31_4c": { name: "دانه", note: "", children: [] },
-      "p31_4d": { name: "مروى", note: "", children: [] },
-      "p31_4e": { name: "درة", note: "", children: [] },
-
-      "p31_5": { name: "سليمان", note: "", children: ["p31_5a","p31_5b","p31_5c","p31_5d","p31_5e","p31_5f","p31_5g"] },
-      "p31_5a": { name: "سلطان", note: "", children: [] },
-      "p31_5b": { name: "فيصل", note: "", children: [] },
-      "p31_5c": { name: "طيف", note: "", children: [] },
-      "p31_5d": { name: "نور", note: "", children: [] },
-      "p31_5e": { name: "فوز", note: "", children: [] },
-      "p31_5f": { name: "همس", note: "", children: [] },
-      "p31_5g": { name: "مسك", note: "", children: [] },
-
-      "p31_6": { name: "عبداللطيف", note: "", children: ["p31_6a","p31_6b","p31_6c","p31_6d","p31_6e","p31_6f"] },
-      "p31_6a": { name: "سلطان", note: "", children: [] },
-      "p31_6b": { name: "محمد", note: "", children: [] },
-      "p31_6c": { name: "امنه", note: "", children: [] },
-      "p31_6d": { name: "نوف", note: "", children: [] },
-      "p31_6e": { name: "روضة", note: "", children: [] },
-      "p31_6f": { name: "نوار", note: "", children: [] },
-
-      "p31_7": { name: "عبدالله", note: "", children: ["p31_7a","p31_7b","p31_7c"] },
-      "p31_7a": { name: "سلطان", note: "", children: [] },
-      "p31_7b": { name: "طلال", note: "", children: [] },
-      "p31_7c": { name: "ميرال", note: "", children: [] },
-
-      "p31_8": { name: "علياء", note: "", children: ["p31_8a","p31_8b"] },
-      "p31_8a": { name: "محمد", note: "", children: [] },
-      "p31_8b": { name: "بدر", note: "", children: [] },
+      "p31": { name: "مريم", note: "", children: [] },
       "p32": { name: "حميد", note: "", children: [] },
 
       "p21": { name: "سليمان بن جابر", note: "أمه من قوم الباش", children: ["p33","p34"] },
@@ -2564,6 +2520,114 @@ if (!h) {
       }
     }
 
+    function createRequestBuilderItem(name = "", children = []) {
+      return { name: String(name || "").trim(), children: Array.isArray(children) ? children.map(v => String(v || "").trim()).filter(Boolean) : [] };
+    }
+
+    function getRequestBuilderState() {
+      if (!Array.isArray(window.requestBuilderState)) window.requestBuilderState = [];
+      return window.requestBuilderState;
+    }
+
+    function resetRequestBuilder(initialItems = []) {
+      window.requestBuilderState = Array.isArray(initialItems) ? initialItems.map(item => createRequestBuilderItem(item.name, item.children)) : [];
+      renderRequestBuilder();
+    }
+
+    function addRequestBuilderMain(name = "") {
+      getRequestBuilderState().push(createRequestBuilderItem(name, []));
+      renderRequestBuilder();
+    }
+
+    function removeRequestBuilderMain(index) {
+      getRequestBuilderState().splice(index, 1);
+      renderRequestBuilder();
+    }
+
+    function updateRequestBuilderMain(index, value) {
+      const item = getRequestBuilderState()[index];
+      if (!item) return;
+      item.name = String(value || "").replace(/\s+/g, " ").trim();
+    }
+
+    function addRequestBuilderChild(index, value = "") {
+      const item = getRequestBuilderState()[index];
+      if (!item) return;
+      item.children.push(String(value || "").trim());
+      renderRequestBuilder();
+    }
+
+    function removeRequestBuilderChild(index, childIndex) {
+      const item = getRequestBuilderState()[index];
+      if (!item) return;
+      item.children.splice(childIndex, 1);
+      renderRequestBuilder();
+    }
+
+    function updateRequestBuilderChild(index, childIndex, value) {
+      const item = getRequestBuilderState()[index];
+      if (!item || !item.children[childIndex] && item.children[childIndex] !== "") return;
+      item.children[childIndex] = String(value || "").replace(/\s+/g, " ").trim();
+    }
+
+    function renderRequestBuilder() {
+      const host = document.getElementById("requestBuilderList");
+      if (!host) return;
+      const state = getRequestBuilderState();
+      if (!state.length) {
+        host.innerHTML = '<div class="list-item" style="text-align:center;">لا توجد أسماء مضافة بعد.</div>';
+        return;
+      }
+      host.innerHTML = state.map((item, index) => `
+        <div class="list-item">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <input class="field js-builder-main-name" data-index="${index}" placeholder="اسم الابن" value="${escapeHtml(item.name || "")}" style="flex:1;min-width:220px;" />
+            <button type="button" class="btn-danger js-builder-remove-main" data-index="${index}">حذف الابن</button>
+          </div>
+          <div style="margin-top:10px;display:grid;gap:8px;">
+            ${(item.children || []).map((childName, childIndex) => `
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <input class="field js-builder-child-name" data-index="${index}" data-child-index="${childIndex}" placeholder="اسم ابن ${escapeHtml(item.name || 'هذا الابن')}" value="${escapeHtml(childName || "")}" style="flex:1;min-width:220px;" />
+                <button type="button" class="btn-soft js-builder-remove-child" data-index="${index}" data-child-index="${childIndex}">حذف</button>
+              </div>
+            `).join("")}
+          </div>
+          <div style="margin-top:10px;">
+            <button type="button" class="btn-soft js-builder-add-child" data-index="${index}">+ إضافة ابن لهذا الاسم</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function buildStructuredDetailsFromBuilder() {
+      const parts = [];
+      getRequestBuilderState().forEach(item => {
+        const mainName = String(item.name || "").replace(/\s+/g, " ").trim();
+        if (!mainName) return;
+        parts.push(mainName);
+        (item.children || []).forEach(childName => {
+          const clean = String(childName || "").replace(/\s+/g, " ").trim();
+          if (clean) parts.push(`- ${clean}`);
+        });
+        parts.push("");
+      });
+      while (parts.length && !parts[parts.length - 1]) parts.pop();
+      return parts.join("\n");
+    }
+
+    function syncBatchTextareaToBuilder() {
+      const detailsEl = document.getElementById("reqDetails");
+      if (!detailsEl) return;
+      const raw = String(detailsEl.value || "").trim();
+      if (!raw) return;
+      if (/[،,]/.test(raw)) return;
+      try {
+        const groups = parseStructuredFamilies(raw);
+        if (!groups.length) return;
+        resetRequestBuilder(groups.map(g => createRequestBuilderItem(g.name, g.children)));
+      } catch (e) { console.error(e); }
+    }
+
     function openAddRequestModal(parentId) {
       pendingParentRequestId = parentId;
       document.getElementById("reqParentName").value = people[parentId].name;
@@ -2571,19 +2635,24 @@ if (!h) {
       document.getElementById("reqChildrenText").value = "";
       document.getElementById("reqSenderName").value = "";
       document.getElementById("reqDetails").value = "";
+      resetRequestBuilder([]);
       document.getElementById("addRequestModal").classList.add("active");
     }
 
     function closeAddRequestModal() {
       document.getElementById("addRequestModal").classList.remove("active");
       pendingParentRequestId = null;
+      resetRequestBuilder([]);
     }
 
     async function submitAddRequest() {
   const childName = document.getElementById("reqChildName").value.trim();
   const childrenText = document.getElementById("reqChildrenText").value.trim();
   const senderName = document.getElementById("reqSenderName").value.trim();
-  const details = document.getElementById("reqDetails").value.trim();
+  const detailsInput = document.getElementById("reqDetails");
+  const batchDetails = detailsInput.value.trim();
+  const builderDetails = buildStructuredDetailsFromBuilder().trim();
+  const details = builderDetails || batchDetails;
 
   if (!pendingParentRequestId) {
     alert("لم يتم تحديد الأب.");
@@ -2591,8 +2660,17 @@ if (!h) {
   }
 
   if (!childName && !details) {
-    alert("اكتب الاسم المطلوب إضافته أو اكتب الأسماء في خانة التفاصيل.");
+    alert("اكتب الاسم المطلوب إضافته أو استخدم مربع الدفعة أو البناء الشجري.");
     return;
+  }
+
+  if (/[،,]/.test(childrenText) || /[،,]/.test(details) || /[،,]/.test(batchDetails)) {
+    alert("الفواصل غير معتمدة. اكتب كل اسم في سطر مستقل، واكتب أبناءه بشرطة - في سطر مستقل.");
+    return;
+  }
+
+  if (builderDetails && detailsInput) {
+    detailsInput.value = builderDetails;
   }
 
   try {
@@ -3718,57 +3796,39 @@ async function markSupabaseRequestDone(id) {
   const childName = String(data.child_name || "").trim();
   const detailsText = String(data.details || "").trim();
 
-  function splitSimpleNames(text) {
+  function splitNamesByLines(text) {
     return String(text || "")
-      .replace(/[،,\n\r\t]+/g, " ")
-      .split(/\s+/)
-      .map(name => name.trim())
-      .filter(Boolean);
+      .split(/\n+/)
+      .map(line => line.replace(/^[-–—*]\s*/, "").replace(/\s+/g, " ").trim())
+      .filter(Boolean)
+      .filter(line => !/^الأبناء\s*:?.*$/i.test(line))
+      .filter(line => !/^الابناء\s*:?.*$/i.test(line))
+      .filter(line => !/^لا\s*يوجد\s*أبناء$/i.test(line))
+      .filter(line => !/^لا\s*يوجد\s*ابناء$/i.test(line));
   }
 
   function parseStructuredFamilies(text) {
-    const lines = String(text || "")
-      .split(/\n+/)
-      .map(line => line.trim())
-      .filter(Boolean);
-
+    const lines = String(text || "").split(/\n/);
     const result = [];
     let currentParent = null;
-    let waitingChildren = false;
 
-    for (const line of lines) {
-      const normalized = line.replace(/\s+/g, " ").trim();
+    for (const rawLine of lines) {
+      const normalized = String(rawLine || "").replace(/\s+/g, " ").trim();
+      if (!normalized) continue;
 
-      if (
-        normalized === "الأبناء" ||
-        normalized === "الابناء" ||
-        normalized.startsWith("الأبناء:") ||
-        normalized.startsWith("الابناء:") ||
-        normalized.startsWith("الأبناء :") ||
-        normalized.startsWith("الابناء :")
-      ) {
-        waitingChildren = true;
-        const inlineChildren = normalized
-          .replace(/^الأبناء\s*:\s*/, "")
-          .replace(/^الابناء\s*:\s*/, "")
-          .trim();
-        if (inlineChildren && currentParent) {
-          currentParent.children = splitSimpleNames(inlineChildren);
-          waitingChildren = false;
-        }
-        continue;
-      }
-
-      if (!currentParent) {
-        currentParent = { name: normalized, children: [] };
-        result.push(currentParent);
-        continue;
-      }
-
-      if (waitingChildren) {
-        currentParent.children = splitSimpleNames(normalized);
-        waitingChildren = false;
+      if (/^لا\s*يوجد\s*أبناء$/i.test(normalized) || /^لا\s*يوجد\s*ابناء$/i.test(normalized)) {
         currentParent = null;
+        continue;
+      }
+
+      if (/^الأبناء\s*:?.*$/i.test(normalized) || /^الابناء\s*:?.*$/i.test(normalized)) {
+        continue;
+      }
+
+      if (/^[-–—*]\s+/.test(normalized)) {
+        if (!currentParent) continue;
+        const childName = normalized.replace(/^[-–—*]\s+/, "").trim();
+        if (childName) currentParent.children.push(childName);
         continue;
       }
 
@@ -3786,9 +3846,14 @@ async function markSupabaseRequestDone(id) {
 
   let addedNames = [];
 
+  if (/[،,]/.test(detailsText) || /[،,]/.test(String(data.children_text || ""))) {
+    alert("هذا الطلب يحتوي فواصل، والفواصل غير معتمدة. استخدم كل اسم في سطر مستقل، وأبناءه بشرطة - .");
+    return;
+  }
+
   if (
     detailsText &&
-    (detailsText.includes("الأبناء") || detailsText.includes("الابناء"))
+    (/(?:^|\n)\s*[-–—*]\s+/m.test(detailsText) || detailsText.includes("الأبناء") || detailsText.includes("الابناء"))
   ) {
     const groups = parseStructuredFamilies(detailsText);
 
@@ -3806,7 +3871,7 @@ async function markSupabaseRequestDone(id) {
       }
     }
   } else if (detailsText) {
-    const names = splitSimpleNames(detailsText);
+    const names = splitNamesByLines(detailsText);
 
     for (const name of names) {
       await addPersonPersist(parentId, name, "");
@@ -3817,10 +3882,7 @@ async function markSupabaseRequestDone(id) {
     addedNames.push(childName);
 
     if (data.children_text && String(data.children_text).trim()) {
-      const childrenNames = String(data.children_text)
-        .split(/[،,]+/)
-        .map(name => name.trim())
-        .filter(Boolean);
+      const childrenNames = splitNamesByLines(String(data.children_text));
 
       for (const name of childrenNames) {
         await addPersonPersist(mainChildId, name, "");
@@ -5120,6 +5182,62 @@ function rejectPendingDelete(id){
 })();
 </script>
 
+<script id="request-builder-patch">
+document.addEventListener("click", function(e){
+  const addMain = e.target.closest("#btnAddBuilderMain");
+  if (addMain) { e.preventDefault(); addRequestBuilderMain(""); return; }
+
+  const clearMain = e.target.closest("#btnClearBuilderMain");
+  if (clearMain) { e.preventDefault(); resetRequestBuilder([]); return; }
+
+  const removeMain = e.target.closest(".js-builder-remove-main");
+  if (removeMain) {
+    e.preventDefault();
+    removeRequestBuilderMain(Number(removeMain.getAttribute("data-index") || "-1"));
+    return;
+  }
+
+  const addChild = e.target.closest(".js-builder-add-child");
+  if (addChild) {
+    e.preventDefault();
+    addRequestBuilderChild(Number(addChild.getAttribute("data-index") || "-1"), "");
+    return;
+  }
+
+  const removeChild = e.target.closest(".js-builder-remove-child");
+  if (removeChild) {
+    e.preventDefault();
+    removeRequestBuilderChild(
+      Number(removeChild.getAttribute("data-index") || "-1"),
+      Number(removeChild.getAttribute("data-child-index") || "-1")
+    );
+    return;
+  }
+});
+
+document.addEventListener("input", function(e){
+  const mainInput = e.target.closest(".js-builder-main-name");
+  if (mainInput) {
+    updateRequestBuilderMain(Number(mainInput.getAttribute("data-index") || "-1"), mainInput.value || "");
+    return;
+  }
+  const childInput = e.target.closest(".js-builder-child-name");
+  if (childInput) {
+    updateRequestBuilderChild(
+      Number(childInput.getAttribute("data-index") || "-1"),
+      Number(childInput.getAttribute("data-child-index") || "-1"),
+      childInput.value || ""
+    );
+    return;
+  }
+});
+
+document.addEventListener("blur", function(e){
+  const details = e.target.closest("#reqDetails");
+  if (details) syncBatchTextareaToBuilder();
+}, true);
+</script>
+
 
 <script id="approved-info-admin-delegate-patch">
 document.addEventListener("click", function(e){
@@ -5457,4 +5575,4 @@ document.addEventListener("click", function(e){
 })();
 </script>
 
-</body>
+  </body>
