@@ -1077,6 +1077,107 @@ function renderApprovedInfoLibrary() {
   `).join("");
 }
 
+
+function setApprovedPersonInfoStore(store){
+  saveApprovedPersonInfoStore(store || {});
+}
+
+function renderAdminApprovedInfoList() {
+  const entries = getAllApprovedInfoEntries();
+  if (!entries.length) {
+    return '<div class="list-item">لا توجد معلومات معتمدة حتى الآن.</div>';
+  }
+  return entries.map((item) => `
+    <div class="list-item" style="line-height:2;">
+      <div style="font-weight:700;color:var(--main);">${item.title || "بدون عنوان"}</div>
+      <div class="small">اسم الشخص: ${item.personName}</div>
+      ${item.source ? `<div class="small">المراجع / المصدر: ${item.source}</div>` : ""}
+      ${item.created_at ? `<div class="small">${new Date(item.created_at).toLocaleString("ar")}</div>` : ""}
+      <div style="margin-top:8px;"><button class="btn-soft" onclick="openAdminInfoEditModal('${item.personId}', ${item.idx})">فتح / تعديل</button></div>
+    </div>
+  `).join("");
+}
+
+function openAdminInfoEditModal(personId, index){
+  const entries = getApprovedInfoForPerson(personId);
+  const item = entries[index];
+  if (!item) {
+    alert("المعلومة غير موجودة");
+    return;
+  }
+  document.getElementById("adminInfoEditPersonId").value = personId;
+  document.getElementById("adminInfoEditIndex").value = String(index);
+  document.getElementById("adminInfoEditPersonLabel").innerHTML = `<strong>اسم الشخص:</strong> ${people[personId] ? people[personId].name : personId}`;
+  document.getElementById("adminInfoEditTitle").value = item.title || "";
+  document.getElementById("adminInfoEditSource").value = item.source || "";
+  document.getElementById("adminInfoEditBody").value = item.body || "";
+  document.getElementById("adminInfoEditModal")?.classList.add("active");
+}
+
+function closeAdminInfoEditModal(){
+  document.getElementById("adminInfoEditModal")?.classList.remove("active");
+}
+
+function saveApprovedInfoEdit(){
+  const personId = (document.getElementById("adminInfoEditPersonId")?.value || "").trim();
+  const index = Number(document.getElementById("adminInfoEditIndex")?.value || "-1");
+  const title = (document.getElementById("adminInfoEditTitle")?.value || "").trim();
+  const source = (document.getElementById("adminInfoEditSource")?.value || "").trim();
+  const body = (document.getElementById("adminInfoEditBody")?.value || "").trim();
+  if (!personId || index < 0) return alert("تعذر تحديد المعلومة");
+  if (!title) return alert("يرجى كتابة العنوان");
+  if (!source) return alert("يرجى كتابة المصدر");
+  if (!body) return alert("يرجى كتابة نص المعلومة");
+
+  const store = getApprovedPersonInfoStore();
+  const arr = Array.isArray(store[personId]) ? store[personId] : [];
+  if (!arr[index]) return alert("المعلومة غير موجودة");
+
+  const oldEntry = JSON.parse(JSON.stringify(arr[index]));
+  arr[index] = { ...arr[index], title, source, body, updated_at: new Date().toISOString() };
+  store[personId] = arr;
+  setApprovedPersonInfoStore(store);
+
+  logChange("تعديل معلومة معتمدة: " + title, {
+    actionType: "approved_info_edit",
+    undoable: true,
+    personId,
+    index,
+    oldEntry,
+    newEntry: JSON.parse(JSON.stringify(arr[index]))
+  });
+
+  closeAdminInfoEditModal();
+  alert("تم حفظ التعديل");
+  refreshAdminAfterAction("info");
+}
+
+function deleteApprovedInfoByAdmin(){
+  const personId = (document.getElementById("adminInfoEditPersonId")?.value || "").trim();
+  const index = Number(document.getElementById("adminInfoEditIndex")?.value || "-1");
+  if (!personId || index < 0) return alert("تعذر تحديد المعلومة");
+  const store = getApprovedPersonInfoStore();
+  const arr = Array.isArray(store[personId]) ? store[personId] : [];
+  if (!arr[index]) return alert("المعلومة غير موجودة");
+  const deletedEntry = JSON.parse(JSON.stringify(arr[index]));
+  arr.splice(index, 1);
+  if (arr.length) store[personId] = arr;
+  else delete store[personId];
+  setApprovedPersonInfoStore(store);
+
+  logChange("حذف معلومة معتمدة: " + (deletedEntry.title || "بدون عنوان"), {
+    actionType: "approved_info_delete",
+    undoable: true,
+    personId,
+    index,
+    deletedEntry
+  });
+
+  closeAdminInfoEditModal();
+  alert("تم حذف المعلومة");
+  refreshAdminAfterAction("info");
+}
+
 function pickShareInfoBrowsePerson() {
   openTreePicker("اختر الاسم لعرض معلوماته المعتمدة", function(id){
     const input = document.getElementById("shareInfoBrowsePersonId");
@@ -2870,6 +2971,7 @@ function buildSimpleLineageFromPerson(id) {
             <button onclick="switchAdminTab('messages')">الرسائل</button>
             <button onclick="switchAdminTab('requests')">طلبات الإضافة</button>
             <button onclick="switchAdminTab('add')">إضافة وتعديل</button>
+            <button onclick="switchAdminTab('info')">معلومات شاركنا بمعلومة</button>
             <button onclick="switchAdminTab('duplicates')">الكشف والتضارب</button>
             <button onclick="switchAdminTab('stats')">الإحصائيات</button>
             <button onclick="switchAdminTab('archive')">الأرشيف</button>
@@ -3038,6 +3140,17 @@ function buildSimpleLineageFromPerson(id) {
               <input class="field" id="suggestNameInput" placeholder="اكتب اسمًا جديدًا..." />
               <button class="btn-main" onclick="runSuggestParent()">عرض اقتراحات الربط</button>
               <div id="suggestParentResult"></div>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="admin-section" id="admin-info">
+          <div class="subbox">
+            <h3>إدارة معلومات شاركنا بمعلومة</h3>
+            <div class="top-note">هنا تستطيع فتح، تعديل، أو حذف أي معلومة معتمدة. ويُسجل ذلك في الأرشيف مع خيار التراجع للماستر.</div>
+            <div id="adminApprovedInfoList" class="list-box">
+              ${renderAdminApprovedInfoList()}
             </div>
           </div>
         </div>
@@ -4159,7 +4272,27 @@ function relationBetweenDeep(idA, idB) {
     </div>
   </div>
 
-  <div class="modal" id="adminRoleManageModal">
+  
+  <div class="modal" id="adminInfoEditModal">
+    <div class="modal-box" style="max-width:820px;max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;">
+      <div class="modal-title">إدارة المعلومة</div>
+      <div class="note-form">
+        <input type="hidden" id="adminInfoEditPersonId" />
+        <input type="hidden" id="adminInfoEditIndex" />
+        <div id="adminInfoEditPersonLabel" class="top-note">اسم الشخص</div>
+        <input class="field" id="adminInfoEditTitle" placeholder="العنوان" />
+        <input class="field" id="adminInfoEditSource" placeholder="المراجع / المصدر" />
+        <textarea class="textarea" id="adminInfoEditBody" placeholder="نص المعلومة" style="min-height:220px;"></textarea>
+        <div class="modal-actions" style="grid-template-columns:1fr 1fr 1fr;">
+          <button class="btn-danger" onclick="deleteApprovedInfoByAdmin()">حذف</button>
+          <button class="btn-soft" onclick="closeAdminInfoEditModal()">إغلاق</button>
+          <button class="btn-main" onclick="saveApprovedInfoEdit()">حفظ التعديل</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<div class="modal" id="adminRoleManageModal">
     <div class="modal-box" style="max-width:680px;max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;">
       <div class="modal-title">إدارة الأدمن</div>
       <div class="top-note">هذه النافذة للماستر فقط.</div>
@@ -4171,6 +4304,7 @@ function relationBetweenDeep(idA, idB) {
           <label><input type="checkbox" id="perm_overview"> الرئيسية</label><br>
           <label><input type="checkbox" id="perm_requests"> قبول الطلبات</label><br>
           <label><input type="checkbox" id="perm_add"> الإضافة والتعديل</label><br>
+          <label><input type="checkbox" id="perm_info"> معلومات شاركنا بمعلومة</label><br>
           <label><input type="checkbox" id="perm_messages"> الرسائل</label><br>
           <label><input type="checkbox" id="perm_duplicates"> الكشف والمراجعة</label><br>
         </div>
@@ -4271,14 +4405,14 @@ function openQuickRelationFrom(id){
 
 window.currentAdminRole = "guest";
 window.SECONDARY_ADMIN_PASSWORD = "Mujaini3";
-window.ALLOWED_ADMIN_TABS_SECONDARY = ["overview","requests","add"];
+window.ALLOWED_ADMIN_TABS_SECONDARY = ["overview","requests","add","info"];
 
 function getCurrentAdminPermissions(){
   const role = window.currentAdminRole || "guest";
   if (role === "master") {
     return {
       role: "master",
-      tabs: ["overview","messages","requests","add","duplicates","stats","archive","backup","settings"],
+      tabs: ["overview","messages","requests","add","info","duplicates","stats","archive","backup","settings"],
       canViewAdmin: true,
       canManageAll: true
     };
@@ -4286,7 +4420,7 @@ function getCurrentAdminPermissions(){
   if (role === "editor_admin") {
     return {
       role: "editor_admin",
-      tabs: Array.isArray(window.ALLOWED_ADMIN_TABS_SECONDARY) ? window.ALLOWED_ADMIN_TABS_SECONDARY : ["overview","requests","add"],
+      tabs: Array.isArray(window.ALLOWED_ADMIN_TABS_SECONDARY) ? window.ALLOWED_ADMIN_TABS_SECONDARY : ["overview","requests","add","info"],
       canViewAdmin: true,
       canManageAll: false
     };
@@ -4365,6 +4499,7 @@ function canAccessAdminTab(name){
         "الرسائل":"messages",
         "طلبات الإضافة":"requests",
         "إضافة وتعديل":"add",
+        "معلومات شاركنا بمعلومة":"info",
         "الكشف والتضارب":"duplicates",
         "الإحصائيات":"stats",
         "الأرشيف":"archive",
@@ -4398,6 +4533,7 @@ function canAccessAdminTab(name){
         - قبول طلبات الإضافة<br>
         - المراجعة<br>
         - الإضافة والتعديل<br>
+        - إدارة معلومات شاركنا بمعلومة<br>
         - نسخ الأسماء/الأبناء من الأدوات المسموح بها<br>
         - حذف الأسماء والفروع (قيد مراجعة الماستر)<br>
         <span class="small">غير مسموح له بالنسخ الاحتياطي، الإعدادات، الإحصائيات، أو بقية الأقسام العليا.</span>
@@ -4447,10 +4583,10 @@ function getSecondaryAdminSettings(){
     const raw = JSON.parse(localStorage.getItem(window.SECONDARY_ADMIN_SETTINGS_KEY) || "{}");
     return {
       password: raw.password || "Mujaini3",
-      tabs: Array.isArray(raw.tabs) ? raw.tabs : ["overview","requests","add"]
+      tabs: Array.isArray(raw.tabs) ? raw.tabs : ["overview","requests","add","info"]
     };
   }catch(e){
-    return {password:"Mujaini3", tabs:["overview","requests","add"]};
+    return {password:"Mujaini3", tabs:["overview","requests","add","info"]};
   }
 }
 function saveSecondaryAdminSettingsStore(data){
@@ -4499,7 +4635,7 @@ function openRequestReadModalByData(_id, r){
 function openAdminRoleManageModal(){
   const settings = getSecondaryAdminSettings();
   document.getElementById('secondaryAdminPasswordInput').value = settings.password || 'Mujaini3';
-  ['overview','requests','add','messages','duplicates'].forEach(k=>{
+  ['overview','requests','add','info','messages','duplicates'].forEach(k=>{
     const el = document.getElementById('perm_'+k);
     if(el) el.checked = (settings.tabs||[]).includes(k);
   });
@@ -4511,7 +4647,7 @@ function closeAdminRoleManageModal(){
   if(m) m.classList.remove('active');
 }
 function saveSecondaryAdminSettings(){
-  const tabs = ['overview','requests','add','messages','duplicates'].filter(k => document.getElementById('perm_'+k)?.checked);
+  const tabs = ['overview','requests','add','info','messages','duplicates'].filter(k => document.getElementById('perm_'+k)?.checked);
   const password = (document.getElementById('secondaryAdminPasswordInput')?.value || 'Mujaini3').trim() || 'Mujaini3';
   const settings = {password, tabs: tabs.length ? tabs : ['overview']};
   saveSecondaryAdminSettingsStore(settings);
@@ -4632,7 +4768,37 @@ function undoArchiveAction(entryId){
     return;
   }
 
-  alert("لا يوجد تراجع مخصص لهذا النوع من العمليات");
+  
+  if(item.actionType === "approved_info_edit"){
+    const store = getApprovedPersonInfoStore();
+    const arr = Array.isArray(store[item.personId]) ? store[item.personId] : [];
+    if (!arr[item.index]) {
+      alert("تعذر التراجع لأن المعلومة لم تعد موجودة");
+      return;
+    }
+    arr[item.index] = JSON.parse(JSON.stringify(item.oldEntry));
+    store[item.personId] = arr;
+    setApprovedPersonInfoStore(store);
+    logChange("تراجع عن تعديل معلومة: " + (item.oldEntry?.title || "بدون عنوان"), {undoable:false});
+    alert("تم التراجع عن تعديل المعلومة");
+    refreshAdminAfterAction("archive");
+    return;
+  }
+
+  if(item.actionType === "approved_info_delete"){
+    const store = getApprovedPersonInfoStore();
+    const arr = Array.isArray(store[item.personId]) ? store[item.personId] : [];
+    const idx = Math.max(0, Math.min(item.index, arr.length));
+    arr.splice(idx, 0, JSON.parse(JSON.stringify(item.deletedEntry)));
+    store[item.personId] = arr;
+    setApprovedPersonInfoStore(store);
+    logChange("تراجع عن حذف معلومة: " + (item.deletedEntry?.title || "بدون عنوان"), {undoable:false});
+    alert("تم إرجاع المعلومة المحذوفة");
+    refreshAdminAfterAction("archive");
+    return;
+  }
+
+alert("لا يوجد تراجع مخصص لهذا النوع من العمليات");
 }
 
 function ensurePendingDeleteDefaults(){
