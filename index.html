@@ -791,7 +791,7 @@
       <div class="top-actions">
         <button id="btnTopRoot">الرئيسية</button>
         <button id="btnTopAbout">📜 نبذة عن قبيلة المجيني</button>
-        <button onclick="openShareInfoModal()">📝 شاركنا بمعلومة</button>
+        <button id="btnTopShareInfo">📝 شاركنا بمعلومة</button>
         <button id="btnTopWho">من أكون؟</button>
         <button id="btnTopAdmin" class="icon-btn">⚙️</button>
       </div>
@@ -852,23 +852,44 @@
   <div class="page hidden" id="whoAmIProfilePage"></div>
 
 
+  
   <div class="modal" id="shareInfoModal">
-    <div class="modal-box" style="max-width:760px;max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;">
-      <div class="modal-title">شاركنا بمعلومة</div>
-      <div class="modal-text">اختر الاسم من الشجرة، ثم اكتب المعلومة أو القصة ليتم إرسالها للمراجعة والاعتماد.</div>
-      <div class="note-form">
-        <input class="field" id="shareInfoSenderName" placeholder="الاسم (اختياري)" />
-        <input type="hidden" id="shareInfoPersonId" />
-        <div id="shareInfoPersonLabel" class="top-note">لم يتم اختيار الاسم بعد.</div>
-        <button class="btn-soft" onclick="pickShareInfoPerson()">اختيار الاسم من الشجرة</button>
-        <input class="field" id="shareInfoSource" placeholder="المصدر" />
-        <textarea class="textarea" id="shareInfoBody" placeholder="اكتب المعلومة أو القصة هنا..." style="min-height:180px;"></textarea>
-        <div class="modal-actions" style="grid-template-columns:1fr 1fr;">
-          <button class="btn-soft" onclick="closeShareInfoModal()">إلغاء</button>
-          <button class="btn-main" onclick="submitShareInfo()">إرسال</button>
+    <div class="modal-box" style="max-width:920px;max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;">
+      <div class="modal-title">📝 شاركنا بمعلومة</div>
+      <div class="modal-text">تصفح المعلومات المعتمدة أولًا، ويمكنك أيضًا إرسال معلومة جديدة ليتم اعتمادها من الإدارة قبل نشرها.</div>
+
+      <div class="subbox" style="margin-bottom:14px;">
+        <h3 style="margin:0 0 10px;color:var(--main);">المعلومات المعتمدة</h3>
+        <div class="note-form">
+          <input type="hidden" id="shareInfoBrowsePersonId" />
+          <div id="shareInfoBrowsePersonLabel" class="top-note">يعرض لك كل المعلومات المعتمدة. ويمكنك تحديد اسم من الشجرة لعرض معلوماته فقط.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn-soft" onclick="pickShareInfoBrowsePerson()">اختيار اسم من الشجرة</button>
+            <button class="btn-soft" onclick="resetShareInfoBrowsePerson()">عرض كل المعلومات</button>
+          </div>
+        </div>
+        <div id="shareInfoApprovedList" class="list-box" style="margin-top:12px;"></div>
+      </div>
+
+      <div class="subbox">
+        <h3 style="margin:0 0 10px;color:var(--main);">إضافة معلومة جديدة</h3>
+        <div class="note-form">
+          <input class="field" id="shareInfoTitle" placeholder="العنوان" />
+          <input type="hidden" id="shareInfoPersonId" />
+          <div id="shareInfoPersonLabel" class="top-note">لم يتم اختيار الاسم بعد.</div>
+          <button class="btn-soft" onclick="pickShareInfoPerson()">اختيار الاسم من الشجرة</button>
+          <input class="field" id="shareInfoSource" placeholder="المراجع / المصدر" />
+          <textarea class="textarea" id="shareInfoBody" placeholder="اكتب المعلومة أو القصة هنا..." style="min-height:220px;"></textarea>
+          <div class="top-note">يدعم النسخ واللصق من الهاتف بشكل طبيعي.</div>
+          <div class="modal-actions" style="grid-template-columns:1fr 1fr;">
+            <button class="btn-soft" onclick="closeShareInfoModal()">إغلاق</button>
+            <button class="btn-main" onclick="submitShareInfo()">إرسال للمراجعة</button>
+          </div>
         </div>
       </div>
     </div>
+  </div>
+
   </div>
 
   <div class="modal" id="confirmModal">
@@ -956,6 +977,115 @@ function getApprovedInfoForPerson(personId) {
   const store = getApprovedPersonInfoStore();
   return Array.isArray(store[personId]) ? store[personId] : [];
 }
+
+
+function parseApprovedInfoDetails(raw) {
+  const txt = String(raw || "");
+  let title = "";
+  let source = "";
+  let body = txt;
+
+  if (txt.startsWith("[[TITLE]]")) {
+    const afterTitle = txt.slice(9);
+    const lines = afterTitle.split(/\n/);
+    title = (lines.shift() || "").trim();
+    const rest = lines.join("\n");
+    if (rest.startsWith("[[SOURCE]]")) {
+      const afterSource = rest.slice(10);
+      const parts = afterSource.split(/\n\n/);
+      source = (parts.shift() || "").trim();
+      body = parts.join("\n\n").trim();
+    } else {
+      body = rest.trim();
+    }
+  } else if (txt.startsWith("[[SOURCE]]")) {
+    const rest = txt.slice(10);
+    const parts = rest.split(/\n\n/);
+    source = (parts.shift() || "").trim();
+    body = parts.join("\n\n").trim();
+  }
+
+  return { title, source, body };
+}
+
+function getAllApprovedInfoEntries() {
+  const store = getApprovedPersonInfoStore();
+  const result = [];
+  Object.keys(store).forEach(personId => {
+    (store[personId] || []).forEach((item, idx) => {
+      result.push({
+        personId,
+        personName: people[personId] ? people[personId].name : personId,
+        lineage: (getLineage(personId) || []).map(x => people[x]?.name || "").filter(Boolean).join(" "),
+        idx,
+        ...item
+      });
+    });
+  });
+  result.sort((a,b) => String(b.created_at || "").localeCompare(String(a.created_at || "")));
+  return result;
+}
+
+function openApprovedInfoEntry(personId, index) {
+  const entries = getApprovedInfoForPerson(personId);
+  const item = entries[index];
+  if (!item) return;
+  const body = document.getElementById("shareInfoApprovedList");
+  if (!body) return;
+  body.innerHTML = `
+    <div class="list-item" style="line-height:2;">
+      <div style="font-weight:700;color:var(--main);">${item.title || "بدون عنوان"}</div>
+      <div class="small">اسم الشخص: ${people[personId] ? people[personId].name : personId}</div>
+      ${item.source ? `<div class="small">المراجع / المصدر: ${item.source}</div>` : ""}
+      ${item.created_at ? `<div class="small">${new Date(item.created_at).toLocaleString("ar")}</div>` : ""}
+      <div id="approvedInfoModalBody_${personId}_${index}" style="margin-top:10px;white-space:pre-line;max-height:40vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;">${item.body || ""}</div>
+      ${((window.currentAdminRole === "master") || (window.currentAdminRole === "editor_admin")) ? `<div style="margin-top:10px;"><button class="btn-soft" onclick="copyApprovedInfoText('approvedInfoModalBody_${personId}_${index}')">نسخ الكلام</button></div>` : ""}
+      <div style="margin-top:12px;"><button class="btn-soft" onclick="renderApprovedInfoLibrary()">العودة لقائمة المعلومات</button></div>
+    </div>
+  `;
+}
+
+function renderApprovedInfoLibrary() {
+  const list = document.getElementById("shareInfoApprovedList");
+  if (!list) return;
+  const selectedId = (document.getElementById("shareInfoBrowsePersonId")?.value || "").trim();
+  let entries = getAllApprovedInfoEntries();
+  if (selectedId) entries = entries.filter(item => item.personId === selectedId);
+
+  if (!entries.length) {
+    list.innerHTML = '<div class="list-item">لا توجد معلومات معتمدة في هذا القسم حتى الآن.</div>';
+    return;
+  }
+
+  list.innerHTML = entries.map((item) => `
+    <div class="list-item" style="line-height:2;">
+      <div style="font-weight:700;color:var(--main);">${item.title || "بدون عنوان"}</div>
+      <div class="small">اسم الشخص: ${item.personName}</div>
+      ${item.source ? `<div class="small">المراجع / المصدر: ${item.source}</div>` : ""}
+      ${item.created_at ? `<div class="small">${new Date(item.created_at).toLocaleString("ar")}</div>` : ""}
+      <div style="margin-top:8px;"><button class="btn-soft" onclick="openApprovedInfoEntry('${item.personId}', ${item.idx})">فتح</button></div>
+    </div>
+  `).join("");
+}
+
+function pickShareInfoBrowsePerson() {
+  openTreePicker("اختر الاسم لعرض معلوماته المعتمدة", function(id){
+    const input = document.getElementById("shareInfoBrowsePersonId");
+    const label = document.getElementById("shareInfoBrowsePersonLabel");
+    if (input) input.value = id;
+    if (label) label.innerHTML = `<strong>يعرض الآن معلومات:</strong> ${people[id].name}`;
+    renderApprovedInfoLibrary();
+  });
+}
+
+function resetShareInfoBrowsePerson() {
+  const input = document.getElementById("shareInfoBrowsePersonId");
+  const label = document.getElementById("shareInfoBrowsePersonLabel");
+  if (input) input.value = "";
+  if (label) label.textContent = "يعرض لك كل المعلومات المعتمدة. ويمكنك تحديد اسم من الشجرة لعرض معلوماته فقط.";
+  renderApprovedInfoLibrary();
+}
+
 function addApprovedInfoForPerson(personId, entry) {
   const store = getApprovedPersonInfoStore();
   if (!Array.isArray(store[personId])) store[personId] = [];
@@ -966,24 +1096,7 @@ function hasApprovedInfo(personId) {
   return getApprovedInfoForPerson(personId).length > 0;
 }
 function renderApprovedInfoBox(personId) {
-  const entries = getApprovedInfoForPerson(personId);
-  if (!entries.length) return "";
-  return `
-    <div class="messages-box" style="margin-bottom:16px;padding:16px;">
-      <h3 style="margin:0 0 12px;color:var(--main);">📚 قصص ومعلومات</h3>
-      <div class="list-box">
-        ${entries.map((item, idx) => `
-          <div class="list-item" style="line-height:2;">
-            ${item.sender_name ? `<div class="small">بواسطة: ${item.sender_name}</div>` : ""}
-            ${item.source ? `<div class="small">المصدر: ${item.source}</div>` : ""}
-            ${item.created_at ? `<div class="small">${new Date(item.created_at).toLocaleString("ar")}</div>` : ""}
-            <div id="approvedInfoBody_${personId}_${idx}" style="margin-top:8px;white-space:pre-line;max-height:260px;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;">${item.body || ""}</div>
-            ${((window.currentAdminRole === "master") || (window.currentAdminRole === "editor_admin")) ? `<div style="margin-top:10px;"><button class="btn-soft" onclick="copyApprovedInfoText('approvedInfoBody_${personId}_${idx}')">نسخ الكلام</button></div>` : ""}
-          </div>
-        `).join("")}
-      </div>
-    </div>
-  `;
+  return "";
 }
 function copyApprovedInfoText(id){
   const el = document.getElementById(id);
@@ -1006,16 +1119,18 @@ function copyApprovedInfoText(id){
   }
 }
 function openShareInfoModal() {
-  document.getElementById("shareInfoModal")?.classList.add("active");
+  const modal = document.getElementById("shareInfoModal");
+  if (modal) modal.classList.add("active");
+  renderApprovedInfoLibrary();
 }
 function closeShareInfoModal() {
   document.getElementById("shareInfoModal")?.classList.remove("active");
-  const sender = document.getElementById("shareInfoSenderName");
+  const title = document.getElementById("shareInfoTitle");
   const pid = document.getElementById("shareInfoPersonId");
   const label = document.getElementById("shareInfoPersonLabel");
   const source = document.getElementById("shareInfoSource");
   const body = document.getElementById("shareInfoBody");
-  if (sender) sender.value = "";
+  if (title) title.value = "";
   if (pid) pid.value = "";
   if (label) label.textContent = "لم يتم اختيار الاسم بعد.";
   if (source) source.value = "";
@@ -1026,26 +1141,35 @@ function pickShareInfoPerson() {
     const input = document.getElementById("shareInfoPersonId");
     const label = document.getElementById("shareInfoPersonLabel");
     if (input) input.value = id;
-    if (label) label.innerHTML = `<strong>الاسم المختار:</strong> ${people[id].name}<br><span class="small">${(getLineage(id)||[]).map(x=>people[x]?.name||"").filter(Boolean).join(" ")}</span>`;
+    if (label) label.innerHTML = `<strong>اسم الشخص:</strong> ${people[id].name}<br><span class="small">${(getLineage(id)||[]).map(x=>people[x]?.name||"").filter(Boolean).join(" ")}</span>`;
   });
 }
-async function submitShareInfo() {
+async async function submitShareInfo() {
   const personId = (document.getElementById("shareInfoPersonId")?.value || "").trim();
-  const senderName = (document.getElementById("shareInfoSenderName")?.value || "").trim();
+  const title = (document.getElementById("shareInfoTitle")?.value || "").trim();
   const source = (document.getElementById("shareInfoSource")?.value || "").trim();
   const body = (document.getElementById("shareInfoBody")?.value || "").trim();
+
+  if (!title) return alert("يرجى كتابة العنوان أولًا");
   if (!personId || !people[personId]) return alert("يرجى اختيار الاسم من الشجرة أولًا");
+  if (!source) return alert("يرجى كتابة المراجع أو المصدر");
   if (!body) return alert("يرجى كتابة المعلومة أو القصة");
+
   try {
+    const details = `[[TITLE]]${title}
+[[SOURCE]]${source}
+
+${body}`;
     await saveRequestToSupabase({
       parent_id: personId,
       child_name: people[personId].name,
       children_text: "INFO_SHARE",
-      details: (source ? `[[SOURCE]]${source}\n\n` : "") + body,
-      sender_name: senderName
+      details,
+      sender_name: ""
     });
     alert("تم إرسال المعلومة للمراجعة والاعتماد");
     closeShareInfoModal();
+    openShareInfoModal();
   } catch (e) {
     console.error(e);
     alert("تعذر إرسال المعلومة حاليًا");
@@ -2570,7 +2694,6 @@ function buildSimpleLineageFromPerson(id) {
       page.innerHTML = `
         <div class="person-page">
           <div class="title">${person.name}</div>
-          ${renderApprovedInfoBox(id)}
           ${
             children.length
               ? `<div class="cards">${children.map(cid => renderCard(cid)).join("")}</div>`
@@ -3257,13 +3380,12 @@ async function markSupabaseRequestDone(id) {
     const rawDetails = String(data.details || "");
     let parsedSource = "";
     let parsedBody = rawDetails;
-    if (rawDetails.startsWith("[[SOURCE]]")) {
-      const rest = rawDetails.slice(10);
-      const parts = rest.split(/\n\n/);
-      parsedSource = (parts.shift() || "").trim();
-      parsedBody = parts.join("\n\n").trim();
-    }
+    const parsed = parseApprovedInfoDetails(rawDetails);
+    const parsedTitle = parsed.title;
+    const parsedSource = parsed.source;
+    const parsedBody = parsed.body;
     addApprovedInfoForPerson(personId, {
+      title: parsedTitle || "بدون عنوان",
       sender_name: data.sender_name || "",
       source: parsedSource,
       body: parsedBody,
@@ -4634,4 +4756,4 @@ function rejectPendingDelete(id){
 })();
 </script>
 
-</body>
+  </body>
