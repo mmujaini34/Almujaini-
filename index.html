@@ -1236,7 +1236,50 @@ function hasApprovedInfo(personId) {
   return getApprovedInfoForPerson(personId).length > 0;
 }
 function renderApprovedInfoBox(personId) {
-  return "";
+  if (!personId) return "";
+
+  const entries = Array.isArray(getApprovedInfoForPerson(personId)) ? getApprovedInfoForPerson(personId) : [];
+  if (!entries.length) return "";
+
+  const escapeHtmlSafe = (value) => String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+  const formatArDate = (value) => {
+    try {
+      return new Date(value).toLocaleString("ar");
+    } catch(e){
+      return String(value || "");
+    }
+  };
+
+  const visible = entries.slice(0, 3);
+
+  return `
+    <div class="subbox" style="margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+        <div style="font-weight:700;color:var(--main);">📚 معلومات معتمدة</div>
+        <div class="small">عدد المعلومات: ${entries.length}</div>
+      </div>
+
+      ${visible.map((item, idx) => `
+        <div class="list-item" style="line-height:2;margin-bottom:10px;">
+          <div style="font-weight:700;color:var(--main);">${escapeHtmlSafe(item.title || "بدون عنوان")}</div>
+          ${item.source ? `<div class="small">المراجع / المصدر: ${escapeHtmlSafe(item.source)}</div>` : ""}
+          ${item.created_at ? `<div class="small">${escapeHtmlSafe(formatArDate(item.created_at))}</div>` : ""}
+          ${item.body ? `<div style="margin-top:6px;white-space:pre-line;">${escapeHtmlSafe(String(item.body).slice(0, 260))}${String(item.body).length > 260 ? "..." : ""}</div>` : ""}
+          <div style="margin-top:8px;">
+            <button class="btn-soft" onclick="openApprovedInfoEntry('${escapeHtmlSafe(personId)}', ${idx})">فتح</button>
+          </div>
+        </div>
+      `).join("")}
+
+      ${entries.length > 3 ? `<div class="small">يوجد ${entries.length - 3} عناصر إضافية داخل المكتبة.</div>` : ""}
+    </div>
+  `;
 }
 function copyApprovedInfoText(id){
   const el = document.getElementById(id);
@@ -2842,6 +2885,7 @@ function buildSimpleLineageFromPerson(id) {
       page.innerHTML = `
         <div class="person-page">
           <div class="title">${person.name}</div>
+          ${renderApprovedInfoBox(id)}
           ${
             children.length
               ? `<div class="cards">${children.map(cid => renderCard(cid)).join("")}</div>`
@@ -4980,4 +5024,329 @@ document.addEventListener("click", function(e){
 });
 </script>
 
-</body>
+
+<script id="update18-merged-inside-update20">
+(function(){
+  "use strict";
+
+  // update18
+  // Light person-name normalization only
+  // Scope:
+  // - normalize person-name inputs only
+  // - normalize before addPersonPersist
+  // - normalize before submitAddRequest
+  // No MutationObserver, no search logic, no duplicate logic, no free-text normalization
+
+  if (window.__MUJAINI_UPDATE18_NAMES_LIGHT__) return;
+  window.__MUJAINI_UPDATE18_NAMES_LIGHT__ = true;
+
+  const NAME_CANONICAL_MAP = {
+    "احمد": "أحمد",
+    "عاشه": "عاشة",
+    "عائشه": "عائشة",
+    "فاطمه": "فاطمة",
+    "امنه": "آمنة",
+    "امنة": "آمنة",
+    "آمنه": "آمنة",
+    "خديجه": "خديجة",
+    "شيخه": "شيخة",
+    "حليمه": "حليمة",
+    "هبه": "هبة",
+    "الهام": "إلهام",
+    "ابراهيم": "إبراهيم",
+    "اسماعيل": "إسماعيل",
+    "اسماء": "أسماء",
+    "ايمان": "إيمان",
+    "اشواق": "أشواق",
+    "انور": "أنور",
+    "امال": "آمال",
+    "اميره": "أميرة"
+  };
+
+  function normalizeLooseArabic(str){
+    return String(str || "")
+      .replace(/\u0640/g, "")
+      .replace(/[إأآٱ]/g, "ا")
+      .replace(/ى/g, "ي")
+      .replace(/ؤ/g, "و")
+      .replace(/ئ/g, "ي")
+      .replace(/ة/g, "ه")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function canonicalizeSingleWord(word){
+    const raw = String(word || "").trim();
+    if (!raw) return raw;
+    const loose = normalizeLooseArabic(raw);
+    return NAME_CANONICAL_MAP[loose] || raw;
+  }
+
+  function canonicalizeNameText(text){
+    const value = String(text || "").trim();
+    if (!value) return value;
+
+    return value
+      .split(/(\s+|،|,|\n|\t|-|\/)/)
+      .map(part => {
+        if (!part || /^(\s+|،|,|\n|\t|-|\/)$/.test(part)) return part;
+        return canonicalizeSingleWord(part);
+      })
+      .join("")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function setInputValuePreserveCaret(input, value){
+    if (!input) return;
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+    input.value = value;
+    try { input.setSelectionRange(start, end); } catch(e) {}
+  }
+
+  function normalizeInputValue(input){
+    if (!input) return;
+    const original = String(input.value || "");
+    const fixed = canonicalizeNameText(original);
+    if (fixed && fixed !== original) {
+      setInputValuePreserveCaret(input, fixed);
+    }
+  }
+
+  function getCandidateInputs(){
+    const ids = [
+      "reqChildName",
+      "reqSenderName",
+      "childNameInput",
+      "personNameInput",
+      "newPersonName",
+      "addNameInput",
+      "editPersonName",
+      "msgName"
+    ];
+
+    const out = [];
+    const seen = new Set();
+
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el || seen.has(el)) return;
+      seen.add(el);
+      out.push(el);
+    });
+
+    return out;
+  }
+
+  function bindNormalizationOnce(){
+    getCandidateInputs().forEach(input => {
+      if (input.__mujainiUpdate18Bound) return;
+      input.__mujainiUpdate18Bound = true;
+
+      const handler = () => normalizeInputValue(input);
+      input.addEventListener("input", handler, true);
+      input.addEventListener("change", handler, true);
+      input.addEventListener("blur", handler, true);
+      handler();
+    });
+  }
+
+  function patchAddPersonPersist(){
+    if (typeof window.addPersonPersist !== "function" || window.addPersonPersist.__mujainiUpdate18Wrapped) return;
+
+    const original = window.addPersonPersist;
+    const wrapped = async function(parentId, name, note){
+      return await original.call(this, parentId, canonicalizeNameText(name), note);
+    };
+
+    wrapped.__mujainiUpdate18Wrapped = true;
+    window.addPersonPersist = wrapped;
+  }
+
+  function patchSubmitAddRequest(){
+    if (typeof window.submitAddRequest !== "function" || window.submitAddRequest.__mujainiUpdate18Wrapped) return;
+
+    const original = window.submitAddRequest;
+    const wrapped = async function(){
+      const reqChild = document.getElementById("reqChildName");
+      const reqSender = document.getElementById("reqSenderName");
+
+      if (reqChild) reqChild.value = canonicalizeNameText(reqChild.value || "");
+      if (reqSender) reqSender.value = canonicalizeNameText(reqSender.value || "");
+
+      return await original.call(this);
+    };
+
+    wrapped.__mujainiUpdate18Wrapped = true;
+    window.submitAddRequest = wrapped;
+  }
+
+  window.canonicalizeMujainiNameUpdate18 = canonicalizeNameText;
+
+  function install(){
+    bindNormalizationOnce();
+    patchAddPersonPersist();
+    patchSubmitAddRequest();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", install, { once: true });
+  } else {
+    install();
+  }
+})();
+</script>
+
+<script id="update19-merged-inside-update20">
+(function(){
+  "use strict";
+
+  // update19
+  // Normalize existing names inside people data only
+  // Rules:
+  // - No delete
+  // - No merge
+  // - No move
+  // - Only normalize person.name text in existing records
+
+  if (window.__MUJAINI_UPDATE19_NORMALIZE_EXISTING_NAMES__) return;
+  window.__MUJAINI_UPDATE19_NORMALIZE_EXISTING_NAMES__ = true;
+
+  const NAME_CANONICAL_MAP = {
+    "احمد": "أحمد",
+    "عاشه": "عاشة",
+    "عائشه": "عائشة",
+    "فاطمه": "فاطمة",
+    "امنه": "آمنة",
+    "امنة": "آمنة",
+    "آمنه": "آمنة",
+    "خديجه": "خديجة",
+    "شيخه": "شيخة",
+    "حليمه": "حليمة",
+    "هبه": "هبة",
+    "الهام": "إلهام",
+    "ابراهيم": "إبراهيم",
+    "اسماعيل": "إسماعيل",
+    "اسماء": "أسماء",
+    "ايمان": "إيمان",
+    "اشواق": "أشواق",
+    "انور": "أنور",
+    "امال": "آمال",
+    "اميره": "أميرة"
+  };
+
+  function normalizeLooseArabic(str){
+    return String(str || "")
+      .replace(/\u0640/g, "")
+      .replace(/[إأآٱ]/g, "ا")
+      .replace(/ى/g, "ي")
+      .replace(/ؤ/g, "و")
+      .replace(/ئ/g, "ي")
+      .replace(/ة/g, "ه")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function canonicalizeSingleWord(word){
+    const raw = String(word || "").trim();
+    if (!raw) return raw;
+    const loose = normalizeLooseArabic(raw);
+    return NAME_CANONICAL_MAP[loose] || raw;
+  }
+
+  function canonicalizeNameText(text){
+    const value = String(text || "").trim();
+    if (!value) return value;
+
+    return value
+      .split(/(\s+|،|,|\n|\t|-|\/)/)
+      .map(part => {
+        if (!part || /^(\s+|،|,|\n|\t|-|\/)$/.test(part)) return part;
+        return canonicalizeSingleWord(part);
+      })
+      .join("")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function getPeopleObject(){
+    return (window.people && typeof window.people === "object") ? window.people : null;
+  }
+
+  function normalizeExistingPeopleNames(){
+    const people = getPeopleObject();
+    if (!people) {
+      window.__MUJAINI_UPDATE19_REPORT__ = {
+        ok: false,
+        reason: "people object not found",
+        changed: 0,
+        total: 0,
+        changes: []
+      };
+      return;
+    }
+
+    let total = 0;
+    let changed = 0;
+    const changes = [];
+
+    Object.keys(people).forEach(id => {
+      const person = people[id];
+      if (!person || typeof person.name !== "string") return;
+
+      total += 1;
+
+      const before = person.name;
+      const after = canonicalizeNameText(before);
+
+      if (after && after !== before) {
+        person.name = after;
+        changed += 1;
+        changes.push({ id, before, after });
+      }
+    });
+
+    window.__MUJAINI_UPDATE19_REPORT__ = {
+      ok: true,
+      changed,
+      total,
+      changes
+    };
+  }
+
+  function refreshUIIfPossible(){
+    const people = getPeopleObject();
+    if (!people) return;
+    const safeId = (window.currentPerson && people[window.currentPerson])
+      ? window.currentPerson
+      : ((window.rootId && people[window.rootId]) ? window.rootId : Object.keys(people)[0]);
+
+    try {
+      if (window.currentView === "person" && typeof window.showPersonPage === "function" && safeId) {
+        window.showPersonPage(safeId, false);
+        return;
+      }
+    } catch(e) {}
+
+    try {
+      if (window.currentView === "hierarchy" && typeof window.showHierarchyPage === "function" && safeId) {
+        window.showHierarchyPage(safeId, false);
+        return;
+      }
+    } catch(e) {}
+
+    try {
+      if (typeof window.render === "function" && safeId) {
+        window.render(safeId);
+        return;
+      }
+    } catch(e) {}
+  }
+
+  normalizeExistingPeopleNames();
+  refreshUIIfPossible();
+})();
+</script>
+
+  </body>
