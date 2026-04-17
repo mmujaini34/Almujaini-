@@ -1957,9 +1957,37 @@ let people = {
 
 
     function scrollToTopInstant() {
+      try {
+        window.scrollTo({ top: 0, behavior: "auto" });
+      } catch (e) {
+        window.scrollTo(0, 0);
+      }
+    }
+
+    function scrollToTopVerySlow() {
+      const startY = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+      if (startY <= 0) return;
+      const duration = 2200;
+      const startTime = performance.now();
+
+      function easeInOutCubic(t) {
+        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      }
+
+      function step(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = easeInOutCubic(progress);
+        const nextY = Math.round(startY * (1 - eased));
+        window.scrollTo(0, nextY);
+        if (progress < 1) requestAnimationFrame(step);
+      }
+
+      requestAnimationFrame(step);
     }
 
     function scrollToFirstChildSlow() {
+      scrollToTopVerySlow();
     }
 
     function flattenPeopleForSupabase() {
@@ -2681,6 +2709,7 @@ function buildSimpleLineageFromPerson(id) {
       currentView = "whoami-profile";
       currentPerson = id;
       hideAllPages();
+      scrollToTopVerySlow();
       const page = document.getElementById("whoAmIProfilePage");
       page.classList.remove("hidden");
       const special = isSpecialPerson(id);
@@ -2847,6 +2876,7 @@ function buildSimpleLineageFromPerson(id) {
     function showWhoAmI(pushHash = true) {
       currentView = "whoami";
       hideAllPages();
+      scrollToTopVerySlow();
       const page = document.getElementById("aboutPage");
       page.classList.remove("hidden");
       page.innerHTML = `
@@ -2889,6 +2919,7 @@ function buildSimpleLineageFromPerson(id) {
       currentView = "person";
       currentPerson = id;
       hideAllPages();
+      scrollToTopVerySlow();
       const page = document.getElementById("personPage");
       page.classList.remove("hidden");
 
@@ -2918,6 +2949,7 @@ function buildSimpleLineageFromPerson(id) {
     function showHierarchyPage(startId = rootId, pushHash = true) {
       currentView = "hierarchy";
       hideAllPages();
+      scrollToTopVerySlow();
       const page = document.getElementById("hierarchyPage");
       page.classList.remove("hidden");
 
@@ -3857,6 +3889,7 @@ function renderCard(id) {
 function render(id) {
   showTreePage();
   currentPerson = id;
+  scrollToTopVerySlow();
 
   document.getElementById("title").textContent = people[id].name;
   renderBreadcrumb();
