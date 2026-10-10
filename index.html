@@ -4,792 +4,755 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#1d3b5c" />
+  <meta name="theme-color" content="#0b1c31" />
   <title>شجرة عائلة محمد بن حميد المجيني</title>
+  <meta name="description" content="شجرة عائلة محمد بن حميد المجيني: ابحث عن اسمك، تتبّع نسبك، واعرف صلة القرابة بين أفراد العائلة." />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ar_OM" />
+  <meta property="og:title" content="شجرة عائلة محمد بن حميد المجيني" />
+  <meta property="og:description" content="ابحث عن اسمك، تتبّع نسبك، واعرف صلة القرابة بين أفراد العائلة." />
+  <link rel="icon" href="emblem.webp" type="image/webp" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- الخطوط تُحمَّل بدون تعطيل ظهور الصفحة، وإن تعذّر تحميلها يُستخدم خط الجهاز -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700&display=swap" media="print" onload="this.media='all'" />
   <style>
-  /* لوحة الألوان: كحلي بحري + ذهبي رملي. لتغيير ألوان الموقع كله عدّل هذه القيم فقط */
+  /* ============================================================
+     شجرة عائلة المجيني — ورقة التنسيق
+     الهوية مأخوذة من شعار القبيلة: كحلي البحر، ذهب عتيق، عاجي الشراع.
+
+     1) المتغيرات          6) بطاقات الأسماء        11) النوافذ والتنبيهات
+     2) الأساس             7) صفحة الشخص والنسب     12) الحركة
+     3) الشريط العلوي      8) نبذة / من أكون        13) الشاشات الصغيرة
+     4) الأزرار            9) الهرم
+     5) الواجهة والصناديق  10) الإدارة
+     ============================================================ */
+
+  /* ---------- 1) المتغيرات: لتغيير ألوان الموقع كله عدّل هذه القيم فقط ---------- */
   :root{
-    --main:#1d3b5c;         /* اللون الأساسي: الأزرار والعناوين */
-    --main2:#2f5d8a;        /* درجة أفتح للتدرج */
-    --gold:#8a6424;         /* اللون المميِّز: الشارات والخطوط الذهبية */
-    --bg:#edf1f5;           /* خلفية الصفحة */
-    --card:#fbfcfd;         /* خلفية الصناديق الكبيرة */
-    --surface:#ffffff;      /* خلفية البطاقات والحقول */
-    --tint:#f3f6f9;         /* خلفية خفيفة داخل الصناديق */
-    --soft:#e2e9f0;         /* الأزرار الثانوية والشارات */
-    --soft-hover:#d3dde8;
-    --accent-soft:#f4ead6;  /* خلفية الشارات الذهبية */
-    --accent-line:#dcc79a;
-    --text:#18232f;
-    --muted:#4f5d6b;
-    --line:#cbd5df;
+    --bg:#0b1c31;            /* خلفية الصفحة: بحر الليل */
+    --main:#17375c;          /* الكحلي الأساسي: الأزرار والعناوين */
+    --main2:#24507f;         /* درجة أفتح للتدرج */
+    --gold:#7a5a16;          /* ذهبي داكن للنص فوق العاجي */
+    --gold-bright:#c6a45c;   /* ذهب الشعار: الخطوط والإطارات */
+    --gold-light:#ecd9a4;    /* ذهبي فاتح للنص فوق الكحلي */
+    --card:#fbf7ee;          /* عاجي الشراع: الصناديق والبطاقات */
+    --surface:#fffdf8;       /* الحقول والعناصر الداخلية */
+    --tint:#f6f0e1;          /* خلفية خفيفة داخل البطاقات */
+    --soft:#efe6d2;          /* الأزرار الثانوية */
+    --soft-hover:#e3d7bb;
+    --accent-soft:#f3e7c6;
+    --accent-line:#d9c48f;
+    --text:#18212d;
+    --muted:#56606c;
+    --line:#dccfae;
+    --on-dark:#dfe7ef;       /* النص فوق الخلفية الكحلية */
     --danger:#8f2f2f;
     --ok:#2f6b4a;
-    --main-rgb:29,59,92;    /* نفس --main بصيغة RGB للظلال والنقوش */
-    --gold-rgb:138,100,36;
-    --shadow:0 8px 24px rgba(16,32,52,.10);
-   }
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    body{
-      margin:0;
-      background:var(--bg);
-      color:var(--text);
-      font-family:Tahoma, Arial, sans-serif;
-      overflow-x:hidden;
+    --main-rgb:23,55,92;
+    --gold-rgb:198,164,92;
+    --font-display:"Amiri","Traditional Arabic","Times New Roman",serif;
+    --font-ui:"Tajawal",Tahoma,Arial,sans-serif;
+    --shadow:0 14px 34px rgba(3,10,22,.38), 0 2px 6px rgba(3,10,22,.22);
+    --shadow-soft:0 8px 20px rgba(3,10,22,.26);
+    --radius:18px;
+    --ease:cubic-bezier(.2,.7,.2,1);
+  }
+
+  /* ---------- 2) الأساس ---------- */
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-ui);
+    font-size:16px;
+    line-height:1.7;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* عمق الخلفية: وهج ذهبي من الأعلى وزرقة البحر من الجانب */
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:-1;
+    pointer-events:none;
+    background:
+      radial-gradient(900px 520px at 85% -8%, rgba(var(--gold-rgb),.16), transparent 62%),
+      radial-gradient(760px 620px at -10% 38%, rgba(64,120,170,.20), transparent 60%),
+      linear-gradient(180deg, #0f2744 0%, #0b1c31 46%, #07131f 100%);
+  }
+  .hidden{display:none !important}
+  .page{max-width:1200px;margin:auto;padding:16px 12px 28px}
+  .small{font-size:12.5px;color:var(--muted)}
+  .top-note{font-size:13px;color:var(--muted);margin-bottom:10px;line-height:1.8}
+  :focus-visible{outline:2px solid var(--gold-bright);outline-offset:2px}
+
+  /* ---------- 3) الشريط العلوي ---------- */
+  .topbar{
+    position:sticky;
+    top:0;
+    z-index:1000;
+    background:rgba(9,24,43,.84);
+    -webkit-backdrop-filter:blur(14px) saturate(140%);
+    backdrop-filter:blur(14px) saturate(140%);
+    border-bottom:1px solid rgba(var(--gold-rgb),.34);
+    transition:transform .38s var(--ease), opacity .26s ease;
+    will-change:transform, opacity;
+  }
+  .topbar.is-hidden{transform:translateY(-110%);opacity:0}
+  .topbar-inner{
+    max-width:1200px;
+    margin:auto;
+    padding:9px 14px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:21px;
+    line-height:1.4;
+    color:var(--gold-light);
+    white-space:nowrap;
+  }
+  .brand::before{
+    content:"";
+    flex:none;
+    width:36px;
+    height:36px;
+    border-radius:50%;
+    background:url("emblem.webp") center / cover no-repeat;
+    box-shadow:0 0 0 1px var(--gold-bright);
+  }
+  .top-actions{display:flex;gap:2px;align-items:center}
+  .top-actions button{
+    background:transparent;
+    color:#e8edf3;
+    padding:10px 12px 7px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+  .top-actions button:hover{background:rgba(255,255,255,.09);color:var(--gold-light)}
+  .top-actions .icon-btn{border-color:rgba(var(--gold-rgb),.5);margin-inline-start:6px}
+
+  /* ---------- 4) الأزرار ---------- */
+  button,.btn{
+    border:1px solid transparent;
+    border-radius:12px;
+    padding:11px 14px 8px;
+    cursor:pointer;
+    font-family:inherit;
+    font-size:14.5px;
+    font-weight:500;
+    line-height:1.5;
+    transition:transform .16s var(--ease), background-color .18s ease, box-shadow .18s ease, border-color .18s ease, color .18s ease;
+  }
+  button:active{transform:scale(.97)}
+  .btn-main{
+    background:linear-gradient(180deg, var(--main2), var(--main));
+    color:#fff;
+    border-color:rgba(var(--gold-rgb),.55);
+    box-shadow:0 4px 12px rgba(3,10,22,.28), inset 0 1px 0 rgba(255,255,255,.14);
+  }
+  .btn-main:hover{
+    border-color:var(--gold-bright);
+    box-shadow:0 6px 18px rgba(3,10,22,.36), inset 0 1px 0 rgba(255,255,255,.22);
+  }
+  .btn-soft{background:var(--soft);color:var(--text);border-color:var(--line)}
+  .btn-soft:hover{background:var(--soft-hover)}
+  .btn-danger{background:var(--danger);color:#fff}
+  .btn-danger:hover{background:#7b2626}
+  .btn-ok{background:var(--ok);color:#fff}
+  .btn-ok:hover{background:#275a3e}
+  .icon-btn{
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    font-size:17px;
+    padding:0;
+  }
+
+  /* ---------- 5) الواجهة والصناديق ---------- */
+  .hero{
+    position:relative;
+    overflow:hidden;
+    text-align:center;
+    color:#fff;
+    border-radius:26px;
+    padding:30px 18px 66px;
+    margin-bottom:16px;
+    background:
+      radial-gradient(520px 300px at 50% 0%, rgba(var(--gold-rgb),.24), transparent 70%),
+      linear-gradient(180deg, #1c4472 0%, #133456 55%, #0d2540 100%);
+    border:1px solid rgba(var(--gold-rgb),.55);
+    box-shadow:var(--shadow), inset 0 0 0 6px rgba(8,22,39,.36), inset 0 0 0 7px rgba(var(--gold-rgb),.30);
+  }
+  .hero-emblem{
+    position:relative;
+    width:148px;
+    height:148px;
+    margin:0 auto 16px;
+    border-radius:50%;
+    box-shadow:0 0 0 2px var(--gold-bright), 0 0 0 7px rgba(8,22,39,.62), 0 0 0 8px rgba(var(--gold-rgb),.45), 0 18px 40px rgba(0,0,0,.45);
+    animation:emblemIn .7s var(--ease) backwards;
+  }
+  .hero-emblem img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
+  /* لمعة تمر على الشعار مرة واحدة عند فتح الصفحة */
+  .hero-emblem::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    border-radius:50%;
+    background:linear-gradient(115deg, transparent 38%, rgba(255,255,255,.6) 50%, transparent 62%);
+    background-size:260% 100%;
+    background-position:130% 0;
+    animation:emblemSheen 1.5s .55s var(--ease) forwards;
+    pointer-events:none;
+  }
+  .hero h1{
+    margin:0 0 6px;
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:36px;
+    line-height:1.5;
+    color:var(--gold-light);
+    text-shadow:0 2px 14px rgba(0,0,0,.4);
+    animation:riseIn .6s .18s var(--ease) backwards;
+  }
+  .hero p{
+    margin:0 auto;
+    max-width:58ch;
+    font-size:15px;
+    line-height:1.9;
+    color:var(--on-dark);
+    animation:riseIn .6s .3s var(--ease) backwards;
+  }
+  /* موج هادئ أسفل الواجهة: القبيلة أهل بحر */
+  .hero-sea{position:absolute;right:0;left:0;bottom:0;width:100%;height:48px;display:block;pointer-events:none}
+  .hero-sea .w1{fill:rgba(127,176,209,.22);animation:seaDrift 18s linear infinite}
+  .hero-sea .w2{fill:rgba(127,176,209,.13);animation:seaDrift 27s linear infinite reverse}
+
+  .panel,
+  .title,
+  .search-box,
+  .stats-strip,
+  .about-box,
+  .admin-page,
+  .messages-box,
+  .hierarchy-box{
+    background:var(--card);
+    border:1px solid var(--accent-line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+  }
+  .search-box{padding:10px;margin-bottom:12px}
+  .search-box input,
+  .search-box select,
+  .field,
+  .textarea{
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:13px 14px;
+    font-family:inherit;
+    font-size:16px;
+    color:var(--text);
+    background:var(--surface);
+    outline:none;
+    transition:border-color .18s ease, box-shadow .18s ease;
+  }
+  .search-box input:focus,
+  .field:focus,
+  .textarea:focus{
+    border-color:var(--gold-bright);
+    box-shadow:0 0 0 3px rgba(var(--gold-rgb),.22);
+  }
+  .textarea{min-height:120px;resize:vertical}
+  .note-form{display:grid;gap:10px}
+
+  .toolbar{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(104px, 1fr));
+    gap:8px;
+    margin-bottom:12px;
+  }
+  .title{
+    padding:14px 16px 12px;
+    margin-bottom:12px;
+    text-align:center;
+    color:var(--main);
+    font-family:var(--font-display);
+    font-size:27px;
+    font-weight:700;
+    line-height:1.5;
+  }
+  .title::after{
+    content:"";
+    display:block;
+    width:72px;
+    height:2px;
+    margin:6px auto 0;
+    background:linear-gradient(90deg, transparent, var(--gold-bright), transparent);
+  }
+  .breadcrumb{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-bottom:12px}
+  .is-root #title,
+  .is-root #breadcrumb{display:none}
+  .breadcrumb button,
+  .quick-branches button{
+    background:rgba(255,255,255,.07);
+    color:var(--on-dark);
+    border-color:rgba(var(--gold-rgb),.38);
+    border-radius:999px;
+    padding:8px 13px 5px;
+    font-size:13.5px;
+  }
+  .breadcrumb button:hover,
+  .quick-branches button:hover{background:rgba(255,255,255,.14);color:var(--gold-light)}
+  .breadcrumb button:last-child{background:var(--accent-soft);color:var(--gold);border-color:var(--gold-bright);font-weight:700}
+  .quick-branches{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+
+  /* شريط المعلومات: سطور بنقاط موصِّلة مثل فهرس الكتاب */
+  .stats-strip{
+    padding:12px 16px;
+    margin-bottom:14px;
+    line-height:2;
+    border-inline-start:4px solid var(--gold-bright);
+  }
+  .fact{display:flex;align-items:baseline;gap:10px;padding:3px 0}
+  .fact > span{color:var(--muted)}
+  .fact > i{flex:1;min-width:18px;border-bottom:1px dotted var(--accent-line);transform:translateY(-5px)}
+  .fact > strong{color:var(--main);font-weight:700}
+  .fact.wide{display:block}
+  .fact.wide > strong{display:block;font-family:var(--font-display);font-size:19px;line-height:1.7}
+
+  .subbox{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:14px;
+  }
+  .subbox h3,
+  .subbox h4{margin:0 0 10px;color:var(--main);font-family:var(--font-display);font-size:21px;line-height:1.5}
+  .messages-box h3{font-family:var(--font-display);font-size:22px}
+  .list-box{display:grid;gap:10px}
+  .list-item{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px}
+  .children-list{display:grid;gap:8px}
+  .children-item{background:var(--tint);border:1px solid var(--line);border-radius:12px;padding:10px;cursor:pointer}
+
+  .footer{
+    margin-top:26px;
+    padding:22px 16px 8px;
+    text-align:center;
+    line-height:2;
+    color:var(--on-dark);
+    border-top:1px solid rgba(var(--gold-rgb),.3);
+  }
+  .footer .line0{font-size:13px;color:#a9b8c8}
+  .footer .line1{font-family:var(--font-display);font-size:23px;font-weight:700;color:var(--gold-light)}
+  .footer .line2{font-family:var(--font-display);font-size:17px;color:var(--on-dark)}
+
+  /* ---------- 6) بطاقات الأسماء ---------- */
+  .cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(270px, 1fr));
+    gap:14px;
+  }
+  .card,
+  .hier-card{
+    position:relative;
+    overflow:hidden;
+    background:var(--card);
+    border:1px solid var(--accent-line);
+    border-radius:var(--radius);
+    padding:17px 16px 12px;
+    cursor:pointer;
+    box-shadow:var(--shadow-soft);
+    display:flex;
+    flex-direction:column;
+    transition:transform .22s var(--ease), box-shadow .22s ease, border-color .22s ease;
+  }
+  /* خيط ذهبي أعلى البطاقة لمن له ذرية، وخط عادي لمن لا أبناء له */
+  .card::before,
+  .hier-card::before{
+    content:"";
+    position:absolute;
+    top:0;
+    right:0;
+    left:0;
+    height:3px;
+    background:linear-gradient(90deg, transparent, var(--gold-bright) 18%, var(--gold-light) 50%, var(--gold-bright) 82%, transparent);
+  }
+  .card.no-children::before{background:var(--line)}
+  .card:hover,
+  .hier-card:hover{
+    transform:translateY(-3px);
+    box-shadow:0 18px 38px rgba(3,10,22,.46);
+    border-color:var(--gold-bright);
+  }
+  .card.root-card{grid-column:1 / -1;align-items:center;text-align:center;padding:26px 16px 22px}
+  .name-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .name{
+    flex:1;
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:22px;
+    line-height:1.5;
+    color:var(--text);
+  }
+  .name .nearest{font-family:var(--font-ui);font-size:12px;font-weight:500;color:var(--gold)}
+  .gen-badge{
+    flex-shrink:0;
+    margin-top:5px;
+    padding:4px 11px 2px;
+    border-radius:999px;
+    font-size:12px;
+    white-space:nowrap;
+    background:var(--main);
+    color:var(--gold-light);
+  }
+  .stats{display:grid;grid-template-columns:repeat(3, 1fr);gap:8px;margin-top:10px;text-align:center}
+  .stats > div{background:var(--tint);border-radius:12px;padding:6px 4px 5px}
+  .stats b{display:block;font-size:17px;font-weight:700;line-height:1.35;color:var(--main)}
+  .stats span{display:block;font-size:12px;color:var(--muted)}
+  .meta{color:var(--muted);font-size:13.5px;line-height:1.9;margin-top:8px}
+  /* صف الأزرار يلتصق بأسفل البطاقة حتى تتساوى البطاقات المتجاورة */
+  .badges{
+    display:flex;
+    flex-wrap:wrap;
+    gap:5px;
+    margin-top:auto;
+    padding-top:10px;
+    border-top:1px solid var(--line);
+  }
+  .card > :nth-last-child(2),
+  .hier-card > :nth-last-child(2){margin-bottom:12px}
+  .small-badge{
+    flex:1 1 auto;
+    text-align:center;
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:6px 8px 4px;
+    font-size:13px;
+    line-height:1.5;
+    white-space:nowrap;
+    background:var(--surface);
+    color:var(--main);
+    cursor:pointer;
+    transition:background-color .18s ease, border-color .18s ease;
+  }
+  .small-badge:hover{background:var(--soft);border-color:var(--gold-bright)}
+  .who-badge{background:var(--accent-soft);color:var(--gold);border-color:var(--accent-line);font-weight:700}
+  .tag{
+    display:inline-block;
+    margin-top:12px;
+    padding:8px 20px;
+    border-radius:999px;
+    font-size:14px;
+    font-weight:700;
+    background:linear-gradient(180deg, var(--main2), var(--main));
+    color:var(--gold-light);
+    border:1px solid var(--gold-bright);
+  }
+  .status-badge{
+    display:inline-block;
+    align-self:flex-start;
+    margin-top:10px;
+    padding:4px 12px;
+    border-radius:999px;
+    font-size:12.5px;
+    background:var(--accent-soft);
+    color:var(--gold);
+    border:1px solid var(--accent-line);
+  }
+
+  /* ---------- 7) صفحة الشخص والنسب ---------- */
+  .person-page{padding:0}
+  .admin-page{padding:18px}
+  .person-grid,
+  .admin-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}
+  /* سلسلة النسب: خيط ذهبي يربط الاسم بآبائه */
+  .lineage-chain{display:grid;gap:18px;justify-content:center;margin-top:10px}
+  .lineage-item{
+    position:relative;
+    min-width:210px;
+    padding:9px 18px;
+    text-align:center;
+    font-family:var(--font-display);
+    font-size:20px;
+    font-weight:700;
+    line-height:1.6;
+    background:var(--surface);
+    border:1px solid var(--accent-line);
+    border-radius:14px;
+  }
+  .lineage-item:first-child{background:var(--main);color:var(--gold-light);border-color:var(--gold-bright)}
+  .lineage-item:not(:last-child)::after{
+    content:"";
+    position:absolute;
+    left:50%;
+    bottom:-19px;
+    width:2px;
+    height:18px;
+    transform:translateX(-50%);
+    background:linear-gradient(var(--gold-bright), var(--accent-line));
+  }
+
+  /* ---------- 8) نبذة / من أكون ---------- */
+  .about-wrap{position:relative}
+  .about-wrap::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+      linear-gradient(rgba(251,247,238,.74), rgba(251,247,238,.74)),
+      url("bg-mujaini.jpg") center center / cover no-repeat;
+    border-radius:var(--radius);
+    pointer-events:none;
+    z-index:1;
+  }
+  .about-box{position:relative;padding:18px;overflow:hidden}
+  .about-box > *{position:relative;z-index:2}
+  .about-box h2{margin:0 0 12px;color:var(--main);font-family:var(--font-display);font-size:28px;line-height:1.5}
+  .about-box details{
+    background:rgba(255,253,248,.9);
+    border:1px solid var(--line);
+    border-radius:14px;
+    margin-bottom:10px;
+    overflow:hidden;
+  }
+  .about-box summary{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    cursor:pointer;
+    padding:13px 14px;
+    font-family:var(--font-display);
+    font-size:19px;
+    font-weight:700;
+    color:var(--main);
+    list-style:none;
+  }
+  .about-box summary::-webkit-details-marker{display:none}
+  .about-box summary::after{
+    content:"";
+    flex:none;
+    width:9px;
+    height:9px;
+    border-left:2px solid var(--gold-bright);
+    border-bottom:2px solid var(--gold-bright);
+    transform:rotate(-45deg);
+    transition:transform .25s var(--ease);
+  }
+  .about-box details[open] summary::after{transform:rotate(135deg)}
+  .about-content{padding:0 14px 14px;line-height:2.1;color:var(--text);font-size:15.5px}
+
+  .whoami-bg{position:relative;overflow:hidden;border-radius:22px;min-height:320px}
+  .whoami-bg::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+      linear-gradient(rgba(251,247,238,.84), rgba(251,247,238,.88)),
+      url("bg-mujaini.jpg") center center / cover no-repeat;
+    pointer-events:none;
+  }
+  .whoami-card{
+    position:relative;
+    z-index:1;
+    background:rgba(255,253,248,.9);
+    border:1px solid var(--accent-line);
+    border-radius:20px;
+    box-shadow:var(--shadow-soft);
+    padding:22px 18px;
+    font-family:var(--font-display);
+    font-size:19px;
+    line-height:1.95;
+  }
+  #whoAmITypedText{white-space:pre-wrap}
+  .whoami-card.special-person{
+    border-color:var(--gold-bright);
+    box-shadow:0 10px 28px rgba(var(--main-rgb),.2), inset 0 0 0 4px rgba(var(--gold-rgb),.18);
+  }
+  .special-mark{text-align:center;color:var(--gold);font-size:20px;margin-bottom:6px;letter-spacing:2px}
+  .whoami-results{display:grid;gap:8px;margin-top:12px}
+  .whoami-results button{
+    text-align:right;
+    background:var(--surface);
+    border-color:var(--line);
+    border-radius:14px;
+    padding:11px 14px;
+    font-family:var(--font-display);
+    font-size:19px;
+    font-weight:700;
+    color:var(--text);
+  }
+  .whoami-results button:hover{border-color:var(--gold-bright);background:var(--accent-soft)}
+
+  /* ---------- 9) الهرم ---------- */
+  .hierarchy-box{padding:18px}
+  .hierarchy-row{margin-bottom:22px;text-align:center}
+  .hierarchy-row-title{
+    color:var(--main);
+    font-family:var(--font-display);
+    font-size:20px;
+    font-weight:700;
+    margin-bottom:10px;
+  }
+  .hierarchy-cards{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+  .hier-card{flex:1 1 250px;max-width:330px;padding:14px 13px 10px;text-align:right;box-shadow:0 6px 16px rgba(3,10,22,.14)}
+  .hier-card .name{font-size:20px}
+  .hier-card.selected{background:var(--accent-soft);border-color:var(--gold-bright)}
+  .hier-card.hier-root{flex:0 1 auto;display:block;text-align:center;font-family:var(--font-display);font-size:21px;font-weight:700;padding:14px 26px}
+
+  /* ---------- 10) الإدارة ---------- */
+  .admin-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+  .admin-tabs button{background:var(--soft);color:var(--text);border-color:var(--line);border-radius:999px;padding:8px 13px 5px}
+  .admin-tabs button:hover{background:var(--soft-hover)}
+  .admin-tabs button.is-active{background:var(--main);color:var(--gold-light);border-color:var(--gold-bright)}
+  .admin-section{display:none}
+  .admin-section.active{display:block;animation:fadeIn .25s ease}
+  .picker-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:8px}
+  .picker-row > div:first-child{font-family:var(--font-display);font-size:19px;font-weight:700}
+  .picker-actions{display:flex;gap:8px;flex-wrap:wrap}
+  .picker-path{background:var(--tint);border:1px dashed var(--accent-line);padding:10px;border-radius:12px;line-height:1.9}
+
+  /* ---------- 11) النوافذ والتنبيهات ---------- */
+  .modal{
+    position:fixed;
+    inset:0;
+    z-index:2000;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:16px;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    background:rgba(5,14,26,.64);
+    -webkit-backdrop-filter:blur(6px);
+    backdrop-filter:blur(6px);
+  }
+  .modal.active{display:flex;animation:fadeIn .2s ease}
+  .modal-box{
+    width:100%;
+    max-width:760px;
+    max-height:85vh;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-y;
+    background:var(--card);
+    border:1px solid var(--accent-line);
+    border-top:3px solid var(--gold-bright);
+    border-radius:20px;
+    padding:20px;
+    box-shadow:0 30px 70px rgba(0,0,0,.5);
+  }
+  .modal.active .modal-box{animation:modalIn .28s var(--ease)}
+  .modal-title{color:var(--main);font-family:var(--font-display);font-weight:700;font-size:23px;line-height:1.5;margin-bottom:8px}
+  .modal-text{line-height:1.9;color:var(--text);font-size:14.5px;margin-bottom:14px}
+  .modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+  .toast-host{
+    position:fixed;
+    right:0;
+    left:0;
+    bottom:18px;
+    z-index:3000;
+    display:grid;
+    justify-items:center;
+    gap:8px;
+    padding:0 14px;
+    pointer-events:none;
+  }
+  .toast{
+    pointer-events:auto;
+    max-width:min(520px, 100%);
+    padding:12px 16px;
+    border-radius:14px;
+    font-size:15px;
+    line-height:1.7;
+    background:#10263f;
+    color:#f4f7fa;
+    border:1px solid rgba(var(--gold-rgb),.6);
+    border-inline-start:4px solid var(--gold-bright);
+    box-shadow:0 16px 40px rgba(0,0,0,.45);
+    overflow-wrap:anywhere;
+    animation:toastIn .3s var(--ease);
+  }
+  .toast.is-warn{border-inline-start-color:#e59a8b}
+  .toast.is-leaving{animation:toastOut .22s ease forwards}
+
+  /* ---------- 12) الحركة ---------- */
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes riseIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  @keyframes modalIn{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+  @keyframes emblemIn{from{opacity:0;transform:scale(.86)}to{opacity:1;transform:none}}
+  @keyframes emblemSheen{to{background-position:-40% 0}}
+  @keyframes seaDrift{to{transform:translateX(-600px)}}
+  @keyframes toastIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  @keyframes toastOut{to{opacity:0;transform:translateY(10px)}}
+
+  .page:not(.hidden){animation:fadeIn .3s ease}
+  /* البطاقات تظهر متتابعة عند فتح فرع */
+  .cards > .card,
+  .hierarchy-cards > .hier-card{animation:riseIn .36s var(--ease) backwards}
+  .cards > .card:nth-child(2), .hierarchy-cards > .hier-card:nth-child(2){animation-delay:.035s}
+  .cards > .card:nth-child(3), .hierarchy-cards > .hier-card:nth-child(3){animation-delay:.07s}
+  .cards > .card:nth-child(4), .hierarchy-cards > .hier-card:nth-child(4){animation-delay:.105s}
+  .cards > .card:nth-child(5), .hierarchy-cards > .hier-card:nth-child(5){animation-delay:.14s}
+  .cards > .card:nth-child(6), .hierarchy-cards > .hier-card:nth-child(6){animation-delay:.175s}
+  .cards > .card:nth-child(7), .hierarchy-cards > .hier-card:nth-child(7){animation-delay:.21s}
+  .cards > .card:nth-child(8), .hierarchy-cards > .hier-card:nth-child(8){animation-delay:.245s}
+  .cards > .card:nth-child(n+9), .hierarchy-cards > .hier-card:nth-child(n+9){animation-delay:.28s}
+  .cards.no-anim > .card,
+  .hierarchy-cards.no-anim > .hier-card{animation:none}
+
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    *, *::before, *::after{
+      animation-duration:.01ms !important;
+      animation-delay:0s !important;
+      animation-iteration-count:1 !important;
+      transition-duration:.01ms !important;
     }
+  }
 
-    .topbar{
-      position:sticky;
-      top:0;
-      z-index:1000;
-      background:rgba(251,252,253,.96);
-      backdrop-filter:blur(8px);
-      border-bottom:1px solid var(--line);
-      transition:transform .45s ease;
-    }
-
-    .topbar.is-hidden{
-      transform:translateY(-110%);
-    }
-
-    .topbar-inner{
-      max-width:1200px;
-      margin:auto;
-      padding:10px 12px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    .brand{
-      font-weight:700;
-      color:var(--main);
-      font-size:18px;
-      white-space:nowrap;
-    }
-
-    .top-actions{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      justify-content:center;
-    }
-
-    button,.btn{
-      border:none;
-      border-radius:12px;
-      padding:10px 12px;
-      cursor:pointer;
-      font-family:inherit;
-      font-size:14px;
-      transition:.18s ease;
-    }
-
-    .btn-main,
-    .top-actions button{
-      background:var(--main);
-      color:#fff;
-      box-shadow:0 4px 12px rgba(var(--main-rgb),.20);
-    }
-
-    .btn-main:hover,
-    .top-actions button:hover{
-      background:var(--gold);
-    }
-
-    .btn-soft{
-      background:var(--soft);
-      color:var(--text);
-    }
-
-    .btn-danger{
-      background:var(--danger);
-      color:#fff;
-    }
-
-    .btn-ok{
-      background:var(--ok);
-      color:#fff;
-    }
-
-    .icon-btn{
-      width:42px;
-      height:42px;
-      border-radius:50%;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      font-size:18px;
-      padding:0;
-    }
-
-    .page{
-      max-width:1200px;
-      margin:auto;
-      padding:14px 12px 28px;
-    }
-
-    .hero{
-      background:linear-gradient(135deg,var(--main),var(--main2));
-      color:#fff;
-      border-radius:22px;
-      padding:24px 18px;
-      box-shadow:var(--shadow);
-      margin-bottom:14px;
-    }
-
-    .hero h1{
-      margin:0 0 8px;
-      font-size:28px;
-    }
-
-    .hero p{
-      margin:0;
-      line-height:1.9;
-      font-size:14px;
-      opacity:.96;
-    }
-
-    .panel,
-    .title,
-    .search-box,
-    .stats-strip,
-    .about-box,
-    .admin-page,
-    .person-page,
-    .messages-box,
-    .hierarchy-box{
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:20px;
-      box-shadow:var(--shadow);
-    }
-
-    .search-box{
-      padding:12px;
-      margin-bottom:12px;
-    }
-
-    .search-box input,
-    .search-box select,
-    .field,
-    .textarea{
-      width:100%;
-      border:1px solid var(--line);
-      border-radius:12px;
-      padding:13px 12px;
-      font-family:inherit;
-      font-size:15px;
-      background:var(--surface);
-      outline:none;
-    }
-
-    .search-box input:focus,
-    .field:focus,
-    .textarea:focus{
-      border-color:var(--main);
-      box-shadow:0 0 0 3px rgba(var(--main-rgb),.12);
-    }
-
-    .toolbar{
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:8px;
-      margin-bottom:12px;
-    }
-
-    .title{
-      padding:16px;
-      margin-bottom:10px;
-      text-align:center;
-      color:var(--main);
-      font-size:22px;
-      font-weight:700;
-    }
-
-    .breadcrumb{
-      text-align:center;
-      margin-bottom:10px;
-    }
-
-    .breadcrumb button{
-      background:var(--soft);
-      color:var(--text);
-      margin:4px;
-      padding:8px 10px;
-      border-radius:999px;
-    }
-
-    .stats-strip{
-      padding:14px;
-      margin-bottom:12px;
-      line-height:2;
-      border-right:5px solid var(--gold);
-    }
-
-    .quick-branches{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin:0 0 12px;
-    }
-
-    .quick-branches button{
-      background:var(--soft);
-      color:var(--text);
-      border-radius:999px;
-      padding:8px 12px;
-      font-size:13px;
-    }
-
-    .cards{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-      gap:12px;
-    }
-
-    .card{
-      position:relative;
-      background:var(--surface);
-      border:1px solid var(--line);
-      border-top:4px solid var(--main);
-      border-radius:18px;
-      padding:14px;
-      cursor:pointer;
-      box-shadow:var(--shadow);
-      transition:.18s ease;
-      overflow:hidden;
-      isolation:isolate;
-    }
-
-    .card::before{
-      content:"";
-      position:absolute;
-      inset:0;
-      pointer-events:none;
-      z-index:0;
-      border-radius:18px;
-      background:
-        linear-gradient(45deg, rgba(var(--main-rgb),.045) 25%, transparent 25%, transparent 50%, rgba(var(--main-rgb),.045) 50%, rgba(var(--main-rgb),.045) 75%, transparent 75%, transparent),
-        linear-gradient(-45deg, rgba(var(--main-rgb),.03) 25%, transparent 25%, transparent 50%, rgba(var(--main-rgb),.03) 50%, rgba(var(--main-rgb),.03) 75%, transparent 75%, transparent),
-        radial-gradient(circle at center, rgba(255,255,255,.58), rgba(255,255,255,.20) 24%, transparent 52%);
-      background-size:28px 28px, 28px 28px, 100% 100%;
-      opacity:.68;
-    }
-
-    .card::after{
-      content:"";
-      position:absolute;
-      inset:0;
-      pointer-events:none;
-      z-index:0;
-      border-radius:18px;
-      background:
-        radial-gradient(circle at top right, rgba(var(--main-rgb),.06), transparent 28%),
-        radial-gradient(circle at top left, rgba(var(--main-rgb),.045), transparent 26%),
-        radial-gradient(circle at bottom right, rgba(var(--main-rgb),.045), transparent 26%),
-        radial-gradient(circle at bottom left, rgba(var(--main-rgb),.06), transparent 28%);
-    }
-
-    .card > *{position:relative; z-index:1}
-
-    .card:hover{
-      transform:translateY(-2px);
-    }
-
-    .card.no-children{
-      border-top-color:var(--gold);
-      background:var(--surface);
-    }
-
-    .name-row{
-      display:flex;
-      justify-content:space-between;
-      gap:8px;
-      align-items:flex-start;
-      margin-bottom:8px;
-    }
-
-    .name{
-      font-weight:700;
-      font-size:18px;
-      line-height:1.6;
-      flex:1;
-    }
-
-    .badges{
-      display:flex;
-      gap:6px;
-      align-items:center;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-    }
-
-    .gen-badge,
-    .small-badge{
-      flex-shrink:0;
-      border-radius:999px;
-      padding:5px 8px;
-      font-size:11px;
-      white-space:nowrap;
-      border:1px solid var(--accent-line);
-    }
-
-    .gen-badge{
-      background:var(--accent-soft);
-      color:var(--gold);
-    }
-
-    .small-badge{
-      background:var(--soft);
-      color:var(--main);
-      cursor:pointer;
-      border-color:var(--line);
-    }
-
-    .small-badge:hover{
-      background:var(--soft-hover);
-    }
-
-    .meta{
-      color:var(--muted);
-      font-size:13px;
-      line-height:1.9;
-    }
-
-    .tag{
-      display:inline-block;
-      margin-top:8px;
-      padding:6px 10px;
-      border-radius:999px;
-      font-size:12px;
-      background:var(--soft);
-      color:var(--main);
-    }
-
-    .status-badge{
-      display:inline-block;
-      margin-top:8px;
-      padding:6px 10px;
-      border-radius:999px;
-      font-size:12px;
-      background:var(--accent-soft);
-      color:var(--gold);
-      border:1px solid var(--accent-line);
-    }
-
-    .person-page,
-    .admin-page{
-      padding:18px;
-    }
-
+  /* ---------- 13) الشاشات الصغيرة ---------- */
+  @media (max-width:900px){
     .person-grid,
-    .admin-grid{
-      display:grid;
-      grid-template-columns:1.2fr .8fr;
-      gap:14px;
-    }
-
-    .subbox{
-      background:var(--surface);
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:14px;
-    }
-
-    .subbox h3,
-    .subbox h4{
-      margin:0 0 10px;
-      color:var(--main);
-    }
-
-    .children-list{
-      display:grid;
-      gap:8px;
-    }
-
-    .children-item{
-      background:var(--tint);
-      border:1px solid var(--line);
-      border-radius:12px;
-      padding:10px;
-      cursor:pointer;
-    }
-
-    .about-wrap{
-      position:relative;
-    }
-
-    .about-wrap::before{
-      content:"";
-      position:absolute;
-      inset:0;
-      background:
-        linear-gradient(rgba(255,255,255,.68), rgba(255,255,255,.68)),
-        url("bg-mujaini.jpg") center center / cover no-repeat;
-      opacity:.90;
-      border-radius:20px;
-      pointer-events:none;
-    }
-
-    .about-box{
-      position:relative;
-      padding:18px;
-      overflow:hidden;
-    }
-
-    .about-box h2{
-      margin:0 0 12px;
-      color:var(--main);
-      font-size:24px;
-    }
-
-    .about-box details{
-      background:rgba(255,255,255,.84);
-      border:1px solid var(--line);
-      border-radius:14px;
-      margin-bottom:10px;
-      overflow:hidden;
-    }
-
-    .about-box summary{
-      cursor:pointer;
-      padding:14px;
-      font-weight:700;
-      color:var(--main);
-      list-style:none;
-    }
-
-    .about-box summary::-webkit-details-marker{display:none}
-    .about-content{
-      padding:0 14px 14px;
-      line-height:2;
-      color:var(--text);
-      font-size:15px;
-    }
-
-    .note-form{
-      display:grid;
-      gap:10px;
-    }
-
-    .textarea{
-      min-height:120px;
-      resize:vertical;
-    }
-
-    .footer{
-      margin-top:16px;
-      padding:16px;
-      text-align:center;
-      line-height:2;
-    }
-
-    .footer .line0,
-    .footer .line1,
-    .footer .line2{
-      color:var(--main);
-      font-weight:700;
-    }
-
-    .footer .line1{
-      font-size:18px;
-    }
-
-    .modal{
-      position:fixed;
-      inset:0;
-      background:rgba(0,0,0,.35);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      z-index:2000;
-      padding:20px;
-      overflow-y:auto;
-      -webkit-overflow-scrolling:touch;
-    }
-
-    .modal.active{display:flex}
-
-    .modal-box{
-      width:100%;
-      max-width:760px;
-      max-height:85vh;
-      overflow-y:auto;
-      -webkit-overflow-scrolling:touch;
-      background:var(--surface);
-      border-radius:18px;
-      padding:18px;
-      box-shadow:0 16px 40px rgba(0,0,0,.18);
-      touch-action:pan-y;
-    }
-
-    .modal-title{
-      color:var(--main);
-      font-weight:700;
-      font-size:18px;
-      margin-bottom:10px;
-    }
-
-    .modal-text{
-      line-height:1.9;
-      color:var(--text);
-      font-size:14px;
-      margin-bottom:14px;
-    }
-
-    .modal-actions{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
-    }
-
-    .hidden{display:none !important}
-
-    .admin-tabs{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin-bottom:14px;
-    }
-
-    .admin-tabs button{
-      background:var(--soft);
-      color:var(--text);
-      border-radius:999px;
-      padding:8px 12px;
-    }
-
-    .admin-section{
-      display:none;
-    }
-
-    .admin-section.active{
-      display:block;
-    }
-
-    .list-box{
-      display:grid;
-      gap:10px;
-    }
-
-    .list-item{
-      background:var(--surface);
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px;
-    }
-
-    .small{
-      font-size:12px;
-      color:var(--muted);
-    }
-
-    .top-note{
-      font-size:12px;
-      color:var(--muted);
-      margin-bottom:10px;
-      line-height:1.8;
-    }
-
-    .lineage-chain{
-      display:grid;
-      gap:10px;
-      justify-content:center;
-      margin-top:10px;
-    }
-
-    .lineage-item{
-      background:var(--surface);
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:10px 14px;
-      text-align:center;
-      position:relative;
-      min-width:180px;
-    }
-
-    .lineage-item:not(:last-child)::after{
-      content:"";
-      position:absolute;
-      left:50%;
-      transform:translateX(-50%);
-      bottom:-10px;
-      width:2px;
-      height:10px;
-      background:var(--gold);
-    }
-
-    .hierarchy-box{
-      padding:18px;
-    }
-
-    .hierarchy-row{
-      margin-bottom:20px;
-      text-align:center;
-    }
-
-    .hierarchy-row-title{
-      color:var(--main);
-      font-weight:700;
-      margin-bottom:10px;
-    }
-
-    .hierarchy-cards{
-      display:flex;
-      flex-wrap:wrap;
-      justify-content:center;
-      gap:10px;
-      position:relative;
-    }
-
-    .hier-card{
-      background:var(--surface);
-      border:1px solid var(--line);
-      border-top:4px solid var(--main);
-      border-radius:16px;
-      padding:10px 12px;
-      min-width:180px;
-      cursor:pointer;
-      box-shadow:var(--shadow);
-      position:relative;
-      overflow:hidden;
-    }
-
-    .hier-card.selected{
-      border-top-color:var(--gold);
-      background:var(--accent-soft);
-    }
-
-    .hier-card::before{
-      content:"";
-      position:absolute;
-      inset:0;
-      background:
-        linear-gradient(45deg, rgba(var(--main-rgb),.04) 25%, transparent 25%, transparent 50%, rgba(var(--main-rgb),.04) 50%, rgba(var(--main-rgb),.04) 75%, transparent 75%, transparent),
-        linear-gradient(-45deg, rgba(var(--main-rgb),.025) 25%, transparent 25%, transparent 50%, rgba(var(--main-rgb),.025) 50%, rgba(var(--main-rgb),.025) 75%, transparent 75%, transparent);
-      background-size:24px 24px;
-      opacity:.35;
-      pointer-events:none;
-    }
-
-
-    .topbar{
-      transition:transform .38s ease, opacity .26s ease;
-      will-change:transform, opacity;
-    }
-
-    .topbar.is-hidden{
-      transform:translateY(-110%);
-      opacity:0;
-    }
-
-    .whoami-bg{
-      position:relative;
-      overflow:hidden;
-      border-radius:22px;
-      min-height:320px;
-    }
-
-    .whoami-bg::before{
-      content:"";
-      position:absolute;
-      inset:0;
-      background:
-        linear-gradient(rgba(243,246,249,.86), rgba(243,246,249,.88)),
-        url("bg-mujaini.jpg") center center / cover no-repeat;
-      opacity:.96;
-      pointer-events:none;
-    }
-
-    .whoami-card{
-      position:relative;
-      z-index:1;
-      background:rgba(255,255,255,.88);
-      border:1px solid var(--line);
-      border-radius:22px;
-      box-shadow:var(--shadow);
-      padding:22px 18px;
-      line-height:2.1;
-      font-size:16px;
-      white-space:pre-wrap;
-    }
-
-    .whoami-card.special-person{
-      border:1px solid rgba(var(--gold-rgb),.45);
-      box-shadow:0 10px 28px rgba(var(--main-rgb),.14);
-      background:rgba(255,253,248,.94);
-    }
-
-    .special-mark{
-      text-align:center;
-      color:var(--gold);
-      font-size:20px;
-      margin-bottom:6px;
-      letter-spacing:2px;
-    }
-
-    .whoami-results{
-      display:grid;
-      gap:8px;
-      margin-top:12px;
-    }
-
-    .whoami-results button{
-      text-align:right;
-      background:var(--surface);
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px 14px;
-      font-family:inherit;
-      color:var(--text);
-    }
-
-    .who-badge{
-      background:var(--accent-soft);
-      color:var(--gold);
-      border-color:var(--accent-line);
-      font-weight:700;
-    }
-
-    @media (max-width:900px){
-      .person-grid,
-      .admin-grid{
-        grid-template-columns:1fr;
-      }
-    }
-
-    @media (max-width:760px){
-      .toolbar{grid-template-columns:1fr}
-      .topbar-inner{flex-direction:column; align-items:stretch}
-      .brand{text-align:center}
-      .top-actions{justify-content:center}
-      .hero h1{font-size:24px}
-      .title{font-size:20px}
-      .name{font-size:16px}
-      .hier-card{min-width:140px}
-      .lineage-item{min-width:140px}
-    }
-  </style>
-
-  <style id="relation-grid-fix">
-    .name-row{align-items:flex-start}
-    .badges{
-      display:grid !important;
-      grid-template-columns:repeat(3, max-content) !important;
-      gap:6px !important;
-      justify-content:end !important;
-      align-content:start !important;
-    }
-    .small-badge,.gen-badge{
-      min-width:42px;
-      text-align:center;
-      font-size:11px !important;
-      padding:5px 7px !important;
-    }
+    .admin-grid{grid-template-columns:1fr}
+  }
+  @media (max-width:760px){
+    /* صف للشعار والاسم مع زر الإعدادات، وتحته صف واحد للروابط */
+    .topbar-inner{position:relative;flex-direction:column;align-items:stretch;gap:2px;padding:8px 10px 5px}
+    .brand{justify-content:center;font-size:19px;padding:0 40px}
+    .brand::before{width:30px;height:30px}
+    .top-actions{justify-content:space-around}
+    .top-actions button{padding:8px 9px 5px;font-size:14px}
+    .top-actions .icon-btn{position:absolute;top:7px;left:10px;width:34px;height:34px;font-size:15px;margin:0;padding:0}
+    .long-label{display:none}
+    .hero{padding:24px 14px 58px;border-radius:22px}
+    .hero-emblem{width:124px;height:124px}
+    .hero h1{font-size:28px}
+    .title{font-size:23px}
+    .name{font-size:20px}
+    .toolbar button{padding:9px 6px;font-size:13.5px}
+    .hier-card{flex-basis:100%;max-width:none}
+    .lineage-item{min-width:170px}
+    .admin-page{padding:12px}
+    .modal-box{padding:16px}
+  }
   </style>
 
 </head>
@@ -799,7 +762,7 @@
       <div class="brand">شجرة عائلة محمد بن حميد المجيني</div>
       <div class="top-actions">
         <button id="btnTopRoot">الرئيسية</button>
-        <button id="btnTopAbout">📜 نبذة عن قبيلة المجيني</button>
+        <button id="btnTopAbout">📜 نبذة<span class="long-label"> عن قبيلة المجيني</span></button>
         <button id="btnTopShareInfo">📝 شاركنا بمعلومة</button>
         <button id="btnTopWho">من أكون؟</button>
         <button id="btnTopAdmin" class="icon-btn">⚙️</button>
@@ -809,8 +772,13 @@
 
   <div class="page" id="mainPage">
     <div class="hero">
+      <div class="hero-emblem"><img src="emblem.webp" alt="شعار قبيلة المجيني، آل جابر" width="148" height="148" /></div>
       <h1>شجرة عائلة محمد بن حميد المجيني</h1>
       <p>واجهة عائلية تفاعلية للبحث والتنقل بين الفروع، مع صفحة نبذة عن القبيلة، وملاحظات ومقترحات، ولوحة إدارة مستقلة.</p>
+      <svg class="hero-sea" viewBox="0 0 1200 48" preserveAspectRatio="none" aria-hidden="true">
+        <path class="w2" d="M-300 30 Q-150 14 0 30 T300 30 T600 30 T900 30 T1200 30 T1500 30 T1800 30 T2100 30 T2400 30 V48 H-300 Z" />
+        <path class="w1" d="M0 28 Q150 8 300 28 T600 28 T900 28 T1200 28 T1500 28 T1800 28 T2100 28 T2400 28 V48 H0 Z" />
+      </svg>
     </div>
 
     <div class="search-box">
@@ -1007,6 +975,34 @@ const supabaseClient = (window.supabase && typeof window.supabase.createClient =
   : createOfflineSupabaseStub();
 
 // ---- أدوات حماية النصوص قبل إدخالها في الصفحة ----
+// ---- تنبيهات خفيفة أسفل الصفحة بدل نوافذ alert التي توقف التصفح ----
+function showToast(message) {
+  const text = String(message ?? "");
+  let host = document.getElementById("toastHost");
+  if (!host) {
+    host = document.createElement("div");
+    host.id = "toastHost";
+    host.className = "toast-host";
+    host.setAttribute("role", "status");
+    host.setAttribute("aria-live", "polite");
+    document.body.appendChild(host);
+  }
+  const el = document.createElement("div");
+  const isWarning = /تعذر|غير صحيحة|غير موجود|لا يمكن|لا توجد|غير متاح|غير معتمدة|ناقصة|اختر|اكتب|يرجى|الصق|اسمح|لم يتم|ليس JSON|لا يحتوي/.test(text);
+  el.className = "toast" + (isWarning ? " is-warn" : "");
+  el.textContent = text;
+  host.appendChild(el);
+  while (host.children.length > 3) host.firstElementChild.remove();
+  const close = () => {
+    if (!el.isConnected || el.classList.contains("is-leaving")) return;
+    el.classList.add("is-leaving");
+    setTimeout(() => el.remove(), 240);
+  };
+  el.addEventListener("click", close);
+  setTimeout(close, Math.min(8000, 2600 + text.length * 45));
+}
+window.alert = showToast;
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -2487,28 +2483,14 @@ async function syncPeopleToSupabase() {
 
     function renderHierarchyCard(cid, selectedChild, levelIndex) {
       const child = people[cid];
-      const status = getStatus(cid);
       return `
         <div class="hier-card ${selectedChild === cid ? "selected" : ""}" onclick="showPersonPage('${cid}')">
-          <div class="name-row">
-            <div class="name">${escapeHtml(child.name)}${appState.settings.showCounts ? ` (${getChildrenCount(cid)})` : ""}</div>
-            <div class="badges">
-              <div class="small-badge who-badge" onclick="event.stopPropagation(); openWhoAmIForPerson('${cid}')">من؟</div>
-              <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${cid}')">هرم</div>
-              <div class="small-badge" onclick="event.stopPropagation(); openQuickRelationFrom('${cid}')">صلة</div>
-              <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${cid}')">نسب</div>
-              <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${cid}')">إضافة</div>
-              ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(cid))}</div>` : ""}
-            </div>
-          </div>
-          <div class="meta">
-            عدد الأبناء: ${getChildrenCount(cid)}<br>
-            عدد الأحفاد: ${getGrandchildren(cid).length}<br>
-            إجمالي الذرية: ${getDescendantsCount(cid)}<br>
-            ${child.note ? `ملاحظة: ${escapeHtml(child.note)}<br>` : ""}
-          </div>
+          ${renderCardHead(cid)}
+          ${renderCardStats(cid)}
+          ${child.note ? `<div class="meta">ملاحظة: ${escapeHtml(child.note)}</div>` : ""}
           ${appState.settings.showStatuses && getStatus(cid) ? `<div class="status-badge">${escapeHtml(getStatus(cid))}</div>` : ""}
-                  </div>
+          ${renderCardActions(cid)}
+        </div>
       `;
     }
 
@@ -2548,6 +2530,7 @@ async function syncPeopleToSupabase() {
           if (!hierarchyTrail.length) hierarchyTrail = [rootId];
           renderHierarchyPage();
         }
+        document.querySelectorAll(".cards, .hierarchy-cards").forEach(el => el.classList.add("no-anim"));
       } finally {
         suppressAutoScroll = false;
       }
@@ -2685,7 +2668,7 @@ async function syncPeopleToSupabase() {
     }
 
     function generationLabelShort(n) {
-      return "G" + n;
+      return "الجيل " + n;
     }
 
     function getLineage(id) {
@@ -3559,7 +3542,7 @@ function buildSimpleLineageFromPerson(id) {
         <div class="hierarchy-row">
           <div class="hierarchy-row-title">الأصل</div>
           <div class="hierarchy-cards">
-            <div class="hier-card selected" onclick="showHierarchyPage('${rootId}')">${escapeHtml(people[rootId].name)}</div>
+            <div class="hier-card hier-root selected" onclick="showHierarchyPage('${rootId}')">${escapeHtml(people[rootId].name)}</div>
           </div>
         </div>
       `;
@@ -3613,6 +3596,7 @@ function buildSimpleLineageFromPerson(id) {
     function openAdminPassword() {
       document.getElementById("adminPasswordInput").value = "";
       document.getElementById("adminPasswordModal").classList.add("active");
+      setTimeout(() => document.getElementById("adminPasswordInput").focus(), 60);
     }
 
     function closeAdminPassword() {
@@ -3971,6 +3955,9 @@ function buildSimpleLineageFromPerson(id) {
       document.querySelectorAll(".admin-section").forEach(s => s.classList.remove("active"));
       const el = document.getElementById("admin-" + name);
       if (el) el.classList.add("active");
+      document.querySelectorAll(".admin-tabs button").forEach(btn => {
+        btn.classList.toggle("is-active", (btn.getAttribute("onclick") || "").includes("'" + name + "'"));
+      });
     }
 
     function deleteMessage(idx) {
@@ -4385,49 +4372,61 @@ function renderQuickBranches() {
   });
 }
 
+// ---- أجزاء البطاقة المشتركة بين كل الصفحات ----
+function factRow(label, valueHtml, wide = false) {
+  return `<div class="fact${wide ? " wide" : ""}"><span>${label}</span>${wide ? "" : "<i></i>"}<strong>${valueHtml}</strong></div>`;
+}
+
+function renderCardHead(id, extraHtml = "") {
+  return `
+      <div class="name-row">
+        <div class="name">${escapeHtml(people[id].name)}${appState.settings.showCounts ? ` (${getChildrenCount(id)})` : ""}${extraHtml}</div>
+        ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(id))}</div>` : ""}
+      </div>`;
+}
+
+function renderCardStats(id) {
+  return `
+      <div class="stats">
+        <div><b>${getChildrenCount(id)}</b><span>الأبناء</span></div>
+        <div><b>${getGrandchildren(id).length}</b><span>الأحفاد</span></div>
+        <div><b>${getDescendantsCount(id)}</b><span>الذرية</span></div>
+      </div>`;
+}
+
+function renderCardActions(id) {
+  return `
+      <div class="badges">
+        <div class="small-badge who-badge" role="button" tabindex="0" title="من أكون؟" onclick="event.stopPropagation(); openWhoAmIForPerson('${id}')">من؟</div>
+        <div class="small-badge" role="button" tabindex="0" title="عرض الهرم" onclick="event.stopPropagation(); showHierarchyPage('${id}')">هرم</div>
+        <div class="small-badge" role="button" tabindex="0" title="صلة القرابة" onclick="event.stopPropagation(); openQuickRelationFrom('${id}')">صلة</div>
+        <div class="small-badge" role="button" tabindex="0" title="تسلسل النسب" onclick="event.stopPropagation(); openLineageModal('${id}')">نسب</div>
+        <div class="small-badge" role="button" tabindex="0" title="طلب إضافة اسم" onclick="event.stopPropagation(); openAddRequestModal('${id}')">إضافة</div>
+      </div>`;
+}
+
 function renderInfoBar(id) {
   const node = people[id];
-  const gStats = getGenerationStats();
-  const totalGenerations = Object.keys(gStats).length;
+  const totalGenerations = Object.keys(getGenerationStats()).length;
 
   let html = "";
-  html += "عدد الأبناء المباشرين: <strong>" + getChildrenCount(id) + "</strong><br>";
-  html += "إجمالي الأشخاص تحت هذا الفرع: <strong>" + getDescendantsCount(id) + "</strong><br>";
-  html += "التسلسل: <strong>" + escapeHtml(getLineageText(id)) + "</strong><br>";
-  html += "عدد الأجيال في الشجرة: <strong>" + totalGenerations + "</strong><br>";
-  if (node.note) html += "ملاحظة: <strong>" + escapeHtml(node.note) + "</strong><br>";
+  html += factRow("عدد الأبناء المباشرين", getChildrenCount(id));
+  html += factRow("إجمالي الأشخاص تحت هذا الفرع", getDescendantsCount(id));
+  html += factRow("عدد الأجيال في الشجرة", totalGenerations);
+  if (id !== rootId) html += factRow("التسلسل", escapeHtml(getLineageText(id)), true);
+  if (node.note) html += factRow("ملاحظة", escapeHtml(node.note), true);
   document.getElementById("infoBar").innerHTML = html;
 }
 
 function renderCard(id) {
   const child = people[id];
-  const isParent = hasChildren(id);
-  const directChildren = getChildrenCount(id);
-  const totalDesc = getDescendantsCount(id);
-  let grandChildren = 0;
-  (child.children || []).forEach(cid => {
-    grandChildren += getChildrenCount(cid);
-  });
   return `
-    <div class="card ${isParent ? "" : "no-children"}" onclick="handleClick('${id}')">
-      <div class="name-row">
-        <div class="name">${escapeHtml(child.name)}${appState.settings.showCounts ? ` (${directChildren})` : ""}</div>
-        <div class="badges">
-          ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(id))}</div>` : ""}
-          <div class="small-badge who-badge" onclick="event.stopPropagation(); openWhoAmIForPerson('${id}')">من؟</div>
-          <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${id}')">هرم</div>
-          <div class="small-badge" onclick="event.stopPropagation(); openQuickRelationFrom('${id}')">صلة</div>
-          <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${id}')">نسب</div>
-          <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${id}')">إضافة</div>
-        </div>
-      </div>
-      <div class="meta">
-        عدد الأبناء: ${directChildren}<br>
-        عدد الأحفاد: ${grandChildren}<br>
-        إجمالي الذرية: ${totalDesc}<br>
-        ${child.note ? `ملاحظة: ${escapeHtml(child.note)}<br>` : ""}
-      </div>
+    <div class="card ${hasChildren(id) ? "" : "no-children"}" onclick="handleClick('${id}')">
+      ${renderCardHead(id)}
+      ${renderCardStats(id)}
+      ${child.note ? `<div class="meta">ملاحظة: ${escapeHtml(child.note)}</div>` : ""}
       ${appState.settings.showStatuses && getStatus(id) ? `<div class="status-badge">${escapeHtml(getStatus(id))}</div>` : ""}
+      ${renderCardActions(id)}
     </div>
   `;
 }
@@ -4447,17 +4446,14 @@ function render(id) {
 
   const content = document.getElementById("content");
   const children = people[id].children || [];
+  content.className = "cards";
+  document.getElementById("mainPage").classList.toggle("is-root", id === rootId);
 
   if (id === rootId) {
-    content.className = "cards";
     content.innerHTML = `
-      <div class="card no-children" style="text-align:center;" onclick="showPersonPage('${rootId}')">
-        <div class="name-row" style="justify-content:center;">
-          <div class="name">محمد بن حميد المجيني</div>
-        </div>
-        <div class="meta">
-          اضغط على البطاقة للدخول إلى الأبناء مباشرة.
-        </div>
+      <div class="card root-card" onclick="showPersonPage('${rootId}')">
+        <div class="name">${escapeHtml(people[rootId].name)}</div>
+        <div class="meta">اضغط على البطاقة للدخول إلى الأبناء مباشرة.</div>
         <div class="tag">دخول إلى الأبناء</div>
       </div>
     `;
@@ -4466,26 +4462,15 @@ function render(id) {
 
   if (!children.length) {
     content.innerHTML = `
-      <div class="card no-children">
-        <div class="name-row">
-          <div class="name">${escapeHtml(people[id].name)}</div>
-          <div class="badges">
-            <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${id}')">طلب إضافة</div>
-            <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${id}')">نسب</div>
-            <div class="small-badge who-badge" onclick="event.stopPropagation(); openWhoAmIForPerson('${id}')">من؟</div>
-            ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(id))}</div>` : ""}
-          </div>
-        </div>
+      <div class="card no-children" style="cursor:default;">
+        ${renderCardHead(id)}
         <div class="meta">لا توجد أسماء أبناء مسجلة حاليًا لهذا الفرع.</div>
-        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
-          <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${id}')">هرم</div>
-        </div>
+        ${renderCardActions(id)}
       </div>
     `;
     return;
   }
 
-  content.className = "cards";
   content.innerHTML = children.map(childId => renderCard(childId)).join("");
 }
 
@@ -4501,39 +4486,30 @@ function renderSearchResults(keyword) {
   results.sort((a, b) => b.score - a.score);
 
   showTreePage();
+  document.getElementById("mainPage").classList.remove("is-root");
   document.getElementById("title").textContent = "نتائج البحث";
   document.getElementById("breadcrumb").innerHTML = "";
   document.getElementById("quickBranches").innerHTML = "";
   document.getElementById("quickBranches").style.display = "none";
 
-  let top = `عدد النتائج: <strong>${results.length}</strong>`;
-  if (results.length > 0) top += `<br>أقرب نتيجة: <strong>${escapeHtml(people[results[0].id].name)}</strong>`;
+  let top = factRow("عدد النتائج", results.length);
+  if (results.length > 0) top += factRow("أقرب نتيجة", escapeHtml(buildSimpleLineageFromPerson(results[0].id)), true);
   document.getElementById("infoBar").innerHTML = top;
 
+  // سطر النسب تحت كل نتيجة يفرّق بين الأسماء المتشابهة
   const html = results.length
     ? results.map((r, idx) => `
       <div class="card ${hasChildren(r.id) ? "" : "no-children"}" onclick="${hasChildren(r.id) ? `handleClick('${r.id}')` : `showConfirmModal('${r.id}')`}">
-        <div class="name-row">
-          <div class="name">${escapeHtml(people[r.id].name)}${idx === 0 ? ' <span style="font-size:12px;color:var(--gold);">• الأقرب</span>' : ''}</div>
-          <div class="badges">
-            <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${r.id}')">طلب إضافة</div>
-            <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${r.id}')">نسب</div>
-            <div class="small-badge who-badge" onclick="event.stopPropagation(); openWhoAmIForPerson('${r.id}')">من؟</div>
-            ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(r.id))}</div>` : ""}
-          </div>
-        </div>
-        <div class="meta">
-          عدد الأبناء المباشرين: ${getChildrenCount(r.id)}<br>
-          الجيل: ${generationLabelShort(getGeneration(r.id))}
-        </div>
-        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
-          
-        </div>
+        ${renderCardHead(r.id, idx === 0 ? ' <span class="nearest">الأقرب</span>' : '')}
+        <div class="meta">${escapeHtml(buildSimpleLineageFromPerson(r.id))}</div>
+        ${renderCardActions(r.id)}
       </div>
     `).join("")
-    : `<div class="card"><div class="meta">لا توجد نتائج مطابقة.</div></div>`;
+    : `<div class="card no-children" style="cursor:default;"><div class="meta">لا توجد نتائج مطابقة.</div></div>`;
 
-  document.getElementById("content").innerHTML = html;
+  const content = document.getElementById("content");
+  content.className = "cards no-anim";
+  content.innerHTML = html;
 }
 
 
@@ -4581,14 +4557,6 @@ function renderSearchResults(keyword) {
 
     function ensureTreePickerUI() {
       if (document.getElementById("treePickerModal")) return;
-      const style = document.createElement("style");
-      style.id = "treePickerStyle";
-      style.textContent = `
-        .picker-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:8px}
-        .picker-actions{display:flex;gap:8px;flex-wrap:wrap}
-        .picker-path{background:var(--tint);border:1px dashed var(--line);padding:10px;border-radius:12px;line-height:1.9}
-      `;
-      document.head.appendChild(style);
       const modal = document.createElement("div");
       modal.className = "modal";
       modal.id = "treePickerModal";
@@ -5704,6 +5672,19 @@ function rejectPendingDelete(id){
   bindings.forEach(([id, handler]) => {
     const el = document.getElementById(id);
     if (el) el.addEventListener("click", handler);
+  });
+
+  // Enter في حقل كلمة المرور = زر دخول
+  document.getElementById("adminPasswordInput").addEventListener("keydown", function(e){
+    if (e.key === "Enter") { e.preventDefault(); enterAdmin(); }
+  });
+
+  // أزرار البطاقات الصغيرة تعمل من لوحة المفاتيح أيضًا
+  document.addEventListener("keydown", function(e){
+    if ((e.key === "Enter" || e.key === " ") && e.target.matches && e.target.matches('[role="button"]')) {
+      e.preventDefault();
+      e.target.click();
+    }
   });
 
   // زر "خروج من الإدارة" يُنشأ لاحقًا مع صفحة الإدارة، فيُربط بالتفويض (كان لا يعمل)
