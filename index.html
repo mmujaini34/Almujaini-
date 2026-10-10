@@ -4,782 +4,755 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b1c31" />
   <title>شجرة عائلة محمد بن حميد المجيني</title>
+  <meta name="description" content="شجرة عائلة محمد بن حميد المجيني: ابحث عن اسمك، تتبّع نسبك، واعرف صلة القرابة بين أفراد العائلة." />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ar_OM" />
+  <meta property="og:title" content="شجرة عائلة محمد بن حميد المجيني" />
+  <meta property="og:description" content="ابحث عن اسمك، تتبّع نسبك، واعرف صلة القرابة بين أفراد العائلة." />
+  <link rel="icon" href="emblem.webp" type="image/webp" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- الخطوط تُحمَّل بدون تعطيل ظهور الصفحة، وإن تعذّر تحميلها يُستخدم خط الجهاز -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700&display=swap" media="print" onload="this.media='all'" />
   <style>
+  /* ============================================================
+     شجرة عائلة المجيني — ورقة التنسيق
+     الهوية مأخوذة من شعار القبيلة: كحلي البحر، ذهب عتيق، عاجي الشراع.
+
+     1) المتغيرات          6) بطاقات الأسماء        11) النوافذ والتنبيهات
+     2) الأساس             7) صفحة الشخص والنسب     12) الحركة
+     3) الشريط العلوي      8) نبذة / من أكون        13) الشاشات الصغيرة
+     4) الأزرار            9) الهرم
+     5) الواجهة والصناديق  10) الإدارة
+     ============================================================ */
+
+  /* ---------- 1) المتغيرات: لتغيير ألوان الموقع كله عدّل هذه القيم فقط ---------- */
   :root{
-    --main:#8f6b4c;
-    --main2:#a17d5d;
-    --gold:#7d5c3d;
-    --bg:#e1d2c3;
-    --card:#f6ede4;
-    --text:#342922;
-    --muted:#59493d;
-    --line:#b8a18d;
-    --danger:#7d3737;
-    --ok:#465d47;
-    --shadow:0 8px 24px rgba(0,0,0,.12);
-   }
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    body{
-      margin:0;
-      background:var(--bg);
-      color:var(--text);
-      font-family:Tahoma, Arial, sans-serif;
-      overflow-x:hidden;
+    --bg:#0b1c31;            /* خلفية الصفحة: بحر الليل */
+    --main:#17375c;          /* الكحلي الأساسي: الأزرار والعناوين */
+    --main2:#24507f;         /* درجة أفتح للتدرج */
+    --gold:#7a5a16;          /* ذهبي داكن للنص فوق العاجي */
+    --gold-bright:#c6a45c;   /* ذهب الشعار: الخطوط والإطارات */
+    --gold-light:#ecd9a4;    /* ذهبي فاتح للنص فوق الكحلي */
+    --card:#fbf7ee;          /* عاجي الشراع: الصناديق والبطاقات */
+    --surface:#fffdf8;       /* الحقول والعناصر الداخلية */
+    --tint:#f6f0e1;          /* خلفية خفيفة داخل البطاقات */
+    --soft:#efe6d2;          /* الأزرار الثانوية */
+    --soft-hover:#e3d7bb;
+    --accent-soft:#f3e7c6;
+    --accent-line:#d9c48f;
+    --text:#18212d;
+    --muted:#56606c;
+    --line:#dccfae;
+    --on-dark:#dfe7ef;       /* النص فوق الخلفية الكحلية */
+    --danger:#8f2f2f;
+    --ok:#2f6b4a;
+    --main-rgb:23,55,92;
+    --gold-rgb:198,164,92;
+    --font-display:"Amiri","Traditional Arabic","Times New Roman",serif;
+    --font-ui:"Tajawal",Tahoma,Arial,sans-serif;
+    --shadow:0 14px 34px rgba(3,10,22,.38), 0 2px 6px rgba(3,10,22,.22);
+    --shadow-soft:0 8px 20px rgba(3,10,22,.26);
+    --radius:18px;
+    --ease:cubic-bezier(.2,.7,.2,1);
+  }
+
+  /* ---------- 2) الأساس ---------- */
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-ui);
+    font-size:16px;
+    line-height:1.7;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* عمق الخلفية: وهج ذهبي من الأعلى وزرقة البحر من الجانب */
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:-1;
+    pointer-events:none;
+    background:
+      radial-gradient(900px 520px at 85% -8%, rgba(var(--gold-rgb),.16), transparent 62%),
+      radial-gradient(760px 620px at -10% 38%, rgba(64,120,170,.20), transparent 60%),
+      linear-gradient(180deg, #0f2744 0%, #0b1c31 46%, #07131f 100%);
+  }
+  .hidden{display:none !important}
+  .page{max-width:1200px;margin:auto;padding:16px 12px 28px}
+  .small{font-size:12.5px;color:var(--muted)}
+  .top-note{font-size:13px;color:var(--muted);margin-bottom:10px;line-height:1.8}
+  :focus-visible{outline:2px solid var(--gold-bright);outline-offset:2px}
+
+  /* ---------- 3) الشريط العلوي ---------- */
+  .topbar{
+    position:sticky;
+    top:0;
+    z-index:1000;
+    background:rgba(9,24,43,.84);
+    -webkit-backdrop-filter:blur(14px) saturate(140%);
+    backdrop-filter:blur(14px) saturate(140%);
+    border-bottom:1px solid rgba(var(--gold-rgb),.34);
+    transition:transform .38s var(--ease), opacity .26s ease;
+    will-change:transform, opacity;
+  }
+  .topbar.is-hidden{transform:translateY(-110%);opacity:0}
+  .topbar-inner{
+    max-width:1200px;
+    margin:auto;
+    padding:9px 14px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:21px;
+    line-height:1.4;
+    color:var(--gold-light);
+    white-space:nowrap;
+  }
+  .brand::before{
+    content:"";
+    flex:none;
+    width:36px;
+    height:36px;
+    border-radius:50%;
+    background:url("emblem.webp") center / cover no-repeat;
+    box-shadow:0 0 0 1px var(--gold-bright);
+  }
+  .top-actions{display:flex;gap:2px;align-items:center}
+  .top-actions button{
+    background:transparent;
+    color:#e8edf3;
+    padding:10px 12px 7px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+  .top-actions button:hover{background:rgba(255,255,255,.09);color:var(--gold-light)}
+  .top-actions .icon-btn{border-color:rgba(var(--gold-rgb),.5);margin-inline-start:6px}
+
+  /* ---------- 4) الأزرار ---------- */
+  button,.btn{
+    border:1px solid transparent;
+    border-radius:12px;
+    padding:11px 14px 8px;
+    cursor:pointer;
+    font-family:inherit;
+    font-size:14.5px;
+    font-weight:500;
+    line-height:1.5;
+    transition:transform .16s var(--ease), background-color .18s ease, box-shadow .18s ease, border-color .18s ease, color .18s ease;
+  }
+  button:active{transform:scale(.97)}
+  .btn-main{
+    background:linear-gradient(180deg, var(--main2), var(--main));
+    color:#fff;
+    border-color:rgba(var(--gold-rgb),.55);
+    box-shadow:0 4px 12px rgba(3,10,22,.28), inset 0 1px 0 rgba(255,255,255,.14);
+  }
+  .btn-main:hover{
+    border-color:var(--gold-bright);
+    box-shadow:0 6px 18px rgba(3,10,22,.36), inset 0 1px 0 rgba(255,255,255,.22);
+  }
+  .btn-soft{background:var(--soft);color:var(--text);border-color:var(--line)}
+  .btn-soft:hover{background:var(--soft-hover)}
+  .btn-danger{background:var(--danger);color:#fff}
+  .btn-danger:hover{background:#7b2626}
+  .btn-ok{background:var(--ok);color:#fff}
+  .btn-ok:hover{background:#275a3e}
+  .icon-btn{
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    font-size:17px;
+    padding:0;
+  }
+
+  /* ---------- 5) الواجهة والصناديق ---------- */
+  .hero{
+    position:relative;
+    overflow:hidden;
+    text-align:center;
+    color:#fff;
+    border-radius:26px;
+    padding:30px 18px 66px;
+    margin-bottom:16px;
+    background:
+      radial-gradient(520px 300px at 50% 0%, rgba(var(--gold-rgb),.24), transparent 70%),
+      linear-gradient(180deg, #1c4472 0%, #133456 55%, #0d2540 100%);
+    border:1px solid rgba(var(--gold-rgb),.55);
+    box-shadow:var(--shadow), inset 0 0 0 6px rgba(8,22,39,.36), inset 0 0 0 7px rgba(var(--gold-rgb),.30);
+  }
+  .hero-emblem{
+    position:relative;
+    width:148px;
+    height:148px;
+    margin:0 auto 16px;
+    border-radius:50%;
+    box-shadow:0 0 0 2px var(--gold-bright), 0 0 0 7px rgba(8,22,39,.62), 0 0 0 8px rgba(var(--gold-rgb),.45), 0 18px 40px rgba(0,0,0,.45);
+    animation:emblemIn .7s var(--ease) backwards;
+  }
+  .hero-emblem img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
+  /* لمعة تمر على الشعار مرة واحدة عند فتح الصفحة */
+  .hero-emblem::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    border-radius:50%;
+    background:linear-gradient(115deg, transparent 38%, rgba(255,255,255,.6) 50%, transparent 62%);
+    background-size:260% 100%;
+    background-position:130% 0;
+    animation:emblemSheen 1.5s .55s var(--ease) forwards;
+    pointer-events:none;
+  }
+  .hero h1{
+    margin:0 0 6px;
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:36px;
+    line-height:1.5;
+    color:var(--gold-light);
+    text-shadow:0 2px 14px rgba(0,0,0,.4);
+    animation:riseIn .6s .18s var(--ease) backwards;
+  }
+  .hero p{
+    margin:0 auto;
+    max-width:58ch;
+    font-size:15px;
+    line-height:1.9;
+    color:var(--on-dark);
+    animation:riseIn .6s .3s var(--ease) backwards;
+  }
+  /* موج هادئ أسفل الواجهة: القبيلة أهل بحر */
+  .hero-sea{position:absolute;right:0;left:0;bottom:0;width:100%;height:48px;display:block;pointer-events:none}
+  .hero-sea .w1{fill:rgba(127,176,209,.22);animation:seaDrift 18s linear infinite}
+  .hero-sea .w2{fill:rgba(127,176,209,.13);animation:seaDrift 27s linear infinite reverse}
+
+  .panel,
+  .title,
+  .search-box,
+  .stats-strip,
+  .about-box,
+  .admin-page,
+  .messages-box,
+  .hierarchy-box{
+    background:var(--card);
+    border:1px solid var(--accent-line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+  }
+  .search-box{padding:10px;margin-bottom:12px}
+  .search-box input,
+  .search-box select,
+  .field,
+  .textarea{
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:13px 14px;
+    font-family:inherit;
+    font-size:16px;
+    color:var(--text);
+    background:var(--surface);
+    outline:none;
+    transition:border-color .18s ease, box-shadow .18s ease;
+  }
+  .search-box input:focus,
+  .field:focus,
+  .textarea:focus{
+    border-color:var(--gold-bright);
+    box-shadow:0 0 0 3px rgba(var(--gold-rgb),.22);
+  }
+  .textarea{min-height:120px;resize:vertical}
+  .note-form{display:grid;gap:10px}
+
+  .toolbar{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(104px, 1fr));
+    gap:8px;
+    margin-bottom:12px;
+  }
+  .title{
+    padding:14px 16px 12px;
+    margin-bottom:12px;
+    text-align:center;
+    color:var(--main);
+    font-family:var(--font-display);
+    font-size:27px;
+    font-weight:700;
+    line-height:1.5;
+  }
+  .title::after{
+    content:"";
+    display:block;
+    width:72px;
+    height:2px;
+    margin:6px auto 0;
+    background:linear-gradient(90deg, transparent, var(--gold-bright), transparent);
+  }
+  .breadcrumb{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-bottom:12px}
+  .is-root #title,
+  .is-root #breadcrumb{display:none}
+  .breadcrumb button,
+  .quick-branches button{
+    background:rgba(255,255,255,.07);
+    color:var(--on-dark);
+    border-color:rgba(var(--gold-rgb),.38);
+    border-radius:999px;
+    padding:8px 13px 5px;
+    font-size:13.5px;
+  }
+  .breadcrumb button:hover,
+  .quick-branches button:hover{background:rgba(255,255,255,.14);color:var(--gold-light)}
+  .breadcrumb button:last-child{background:var(--accent-soft);color:var(--gold);border-color:var(--gold-bright);font-weight:700}
+  .quick-branches{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+
+  /* شريط المعلومات: سطور بنقاط موصِّلة مثل فهرس الكتاب */
+  .stats-strip{
+    padding:12px 16px;
+    margin-bottom:14px;
+    line-height:2;
+    border-inline-start:4px solid var(--gold-bright);
+  }
+  .fact{display:flex;align-items:baseline;gap:10px;padding:3px 0}
+  .fact > span{color:var(--muted)}
+  .fact > i{flex:1;min-width:18px;border-bottom:1px dotted var(--accent-line);transform:translateY(-5px)}
+  .fact > strong{color:var(--main);font-weight:700}
+  .fact.wide{display:block}
+  .fact.wide > strong{display:block;font-family:var(--font-display);font-size:19px;line-height:1.7}
+
+  .subbox{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:14px;
+  }
+  .subbox h3,
+  .subbox h4{margin:0 0 10px;color:var(--main);font-family:var(--font-display);font-size:21px;line-height:1.5}
+  .messages-box h3{font-family:var(--font-display);font-size:22px}
+  .list-box{display:grid;gap:10px}
+  .list-item{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px}
+  .children-list{display:grid;gap:8px}
+  .children-item{background:var(--tint);border:1px solid var(--line);border-radius:12px;padding:10px;cursor:pointer}
+
+  .footer{
+    margin-top:26px;
+    padding:22px 16px 8px;
+    text-align:center;
+    line-height:2;
+    color:var(--on-dark);
+    border-top:1px solid rgba(var(--gold-rgb),.3);
+  }
+  .footer .line0{font-size:13px;color:#a9b8c8}
+  .footer .line1{font-family:var(--font-display);font-size:23px;font-weight:700;color:var(--gold-light)}
+  .footer .line2{font-family:var(--font-display);font-size:17px;color:var(--on-dark)}
+
+  /* ---------- 6) بطاقات الأسماء ---------- */
+  .cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(270px, 1fr));
+    gap:14px;
+  }
+  .card,
+  .hier-card{
+    position:relative;
+    overflow:hidden;
+    background:var(--card);
+    border:1px solid var(--accent-line);
+    border-radius:var(--radius);
+    padding:17px 16px 12px;
+    cursor:pointer;
+    box-shadow:var(--shadow-soft);
+    display:flex;
+    flex-direction:column;
+    transition:transform .22s var(--ease), box-shadow .22s ease, border-color .22s ease;
+  }
+  /* خيط ذهبي أعلى البطاقة لمن له ذرية، وخط عادي لمن لا أبناء له */
+  .card::before,
+  .hier-card::before{
+    content:"";
+    position:absolute;
+    top:0;
+    right:0;
+    left:0;
+    height:3px;
+    background:linear-gradient(90deg, transparent, var(--gold-bright) 18%, var(--gold-light) 50%, var(--gold-bright) 82%, transparent);
+  }
+  .card.no-children::before{background:var(--line)}
+  .card:hover,
+  .hier-card:hover{
+    transform:translateY(-3px);
+    box-shadow:0 18px 38px rgba(3,10,22,.46);
+    border-color:var(--gold-bright);
+  }
+  .card.root-card{grid-column:1 / -1;align-items:center;text-align:center;padding:26px 16px 22px}
+  .name-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .name{
+    flex:1;
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:22px;
+    line-height:1.5;
+    color:var(--text);
+  }
+  .name .nearest{font-family:var(--font-ui);font-size:12px;font-weight:500;color:var(--gold)}
+  .gen-badge{
+    flex-shrink:0;
+    margin-top:5px;
+    padding:4px 11px 2px;
+    border-radius:999px;
+    font-size:12px;
+    white-space:nowrap;
+    background:var(--main);
+    color:var(--gold-light);
+  }
+  .stats{display:grid;grid-template-columns:repeat(3, 1fr);gap:8px;margin-top:10px;text-align:center}
+  .stats > div{background:var(--tint);border-radius:12px;padding:6px 4px 5px}
+  .stats b{display:block;font-size:17px;font-weight:700;line-height:1.35;color:var(--main)}
+  .stats span{display:block;font-size:12px;color:var(--muted)}
+  .meta{color:var(--muted);font-size:13.5px;line-height:1.9;margin-top:8px}
+  /* صف الأزرار يلتصق بأسفل البطاقة حتى تتساوى البطاقات المتجاورة */
+  .badges{
+    display:flex;
+    flex-wrap:wrap;
+    gap:5px;
+    margin-top:auto;
+    padding-top:10px;
+    border-top:1px solid var(--line);
+  }
+  .card > :nth-last-child(2),
+  .hier-card > :nth-last-child(2){margin-bottom:12px}
+  .small-badge{
+    flex:1 1 auto;
+    text-align:center;
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:6px 8px 4px;
+    font-size:13px;
+    line-height:1.5;
+    white-space:nowrap;
+    background:var(--surface);
+    color:var(--main);
+    cursor:pointer;
+    transition:background-color .18s ease, border-color .18s ease;
+  }
+  .small-badge:hover{background:var(--soft);border-color:var(--gold-bright)}
+  .who-badge{background:var(--accent-soft);color:var(--gold);border-color:var(--accent-line);font-weight:700}
+  .tag{
+    display:inline-block;
+    margin-top:12px;
+    padding:8px 20px;
+    border-radius:999px;
+    font-size:14px;
+    font-weight:700;
+    background:linear-gradient(180deg, var(--main2), var(--main));
+    color:var(--gold-light);
+    border:1px solid var(--gold-bright);
+  }
+  .status-badge{
+    display:inline-block;
+    align-self:flex-start;
+    margin-top:10px;
+    padding:4px 12px;
+    border-radius:999px;
+    font-size:12.5px;
+    background:var(--accent-soft);
+    color:var(--gold);
+    border:1px solid var(--accent-line);
+  }
+
+  /* ---------- 7) صفحة الشخص والنسب ---------- */
+  .person-page{padding:0}
+  .admin-page{padding:18px}
+  .person-grid,
+  .admin-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}
+  /* سلسلة النسب: خيط ذهبي يربط الاسم بآبائه */
+  .lineage-chain{display:grid;gap:18px;justify-content:center;margin-top:10px}
+  .lineage-item{
+    position:relative;
+    min-width:210px;
+    padding:9px 18px;
+    text-align:center;
+    font-family:var(--font-display);
+    font-size:20px;
+    font-weight:700;
+    line-height:1.6;
+    background:var(--surface);
+    border:1px solid var(--accent-line);
+    border-radius:14px;
+  }
+  .lineage-item:first-child{background:var(--main);color:var(--gold-light);border-color:var(--gold-bright)}
+  .lineage-item:not(:last-child)::after{
+    content:"";
+    position:absolute;
+    left:50%;
+    bottom:-19px;
+    width:2px;
+    height:18px;
+    transform:translateX(-50%);
+    background:linear-gradient(var(--gold-bright), var(--accent-line));
+  }
+
+  /* ---------- 8) نبذة / من أكون ---------- */
+  .about-wrap{position:relative}
+  .about-wrap::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+      linear-gradient(rgba(251,247,238,.74), rgba(251,247,238,.74)),
+      url("bg-mujaini.jpg") center center / cover no-repeat;
+    border-radius:var(--radius);
+    pointer-events:none;
+    z-index:1;
+  }
+  .about-box{position:relative;padding:18px;overflow:hidden}
+  .about-box > *{position:relative;z-index:2}
+  .about-box h2{margin:0 0 12px;color:var(--main);font-family:var(--font-display);font-size:28px;line-height:1.5}
+  .about-box details{
+    background:rgba(255,253,248,.9);
+    border:1px solid var(--line);
+    border-radius:14px;
+    margin-bottom:10px;
+    overflow:hidden;
+  }
+  .about-box summary{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    cursor:pointer;
+    padding:13px 14px;
+    font-family:var(--font-display);
+    font-size:19px;
+    font-weight:700;
+    color:var(--main);
+    list-style:none;
+  }
+  .about-box summary::-webkit-details-marker{display:none}
+  .about-box summary::after{
+    content:"";
+    flex:none;
+    width:9px;
+    height:9px;
+    border-left:2px solid var(--gold-bright);
+    border-bottom:2px solid var(--gold-bright);
+    transform:rotate(-45deg);
+    transition:transform .25s var(--ease);
+  }
+  .about-box details[open] summary::after{transform:rotate(135deg)}
+  .about-content{padding:0 14px 14px;line-height:2.1;color:var(--text);font-size:15.5px}
+
+  .whoami-bg{position:relative;overflow:hidden;border-radius:22px;min-height:320px}
+  .whoami-bg::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+      linear-gradient(rgba(251,247,238,.84), rgba(251,247,238,.88)),
+      url("bg-mujaini.jpg") center center / cover no-repeat;
+    pointer-events:none;
+  }
+  .whoami-card{
+    position:relative;
+    z-index:1;
+    background:rgba(255,253,248,.9);
+    border:1px solid var(--accent-line);
+    border-radius:20px;
+    box-shadow:var(--shadow-soft);
+    padding:22px 18px;
+    font-family:var(--font-display);
+    font-size:19px;
+    line-height:1.95;
+  }
+  #whoAmITypedText{white-space:pre-wrap}
+  .whoami-card.special-person{
+    border-color:var(--gold-bright);
+    box-shadow:0 10px 28px rgba(var(--main-rgb),.2), inset 0 0 0 4px rgba(var(--gold-rgb),.18);
+  }
+  .special-mark{text-align:center;color:var(--gold);font-size:20px;margin-bottom:6px;letter-spacing:2px}
+  .whoami-results{display:grid;gap:8px;margin-top:12px}
+  .whoami-results button{
+    text-align:right;
+    background:var(--surface);
+    border-color:var(--line);
+    border-radius:14px;
+    padding:11px 14px;
+    font-family:var(--font-display);
+    font-size:19px;
+    font-weight:700;
+    color:var(--text);
+  }
+  .whoami-results button:hover{border-color:var(--gold-bright);background:var(--accent-soft)}
+
+  /* ---------- 9) الهرم ---------- */
+  .hierarchy-box{padding:18px}
+  .hierarchy-row{margin-bottom:22px;text-align:center}
+  .hierarchy-row-title{
+    color:var(--main);
+    font-family:var(--font-display);
+    font-size:20px;
+    font-weight:700;
+    margin-bottom:10px;
+  }
+  .hierarchy-cards{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+  .hier-card{flex:1 1 250px;max-width:330px;padding:14px 13px 10px;text-align:right;box-shadow:0 6px 16px rgba(3,10,22,.14)}
+  .hier-card .name{font-size:20px}
+  .hier-card.selected{background:var(--accent-soft);border-color:var(--gold-bright)}
+  .hier-card.hier-root{flex:0 1 auto;display:block;text-align:center;font-family:var(--font-display);font-size:21px;font-weight:700;padding:14px 26px}
+
+  /* ---------- 10) الإدارة ---------- */
+  .admin-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+  .admin-tabs button{background:var(--soft);color:var(--text);border-color:var(--line);border-radius:999px;padding:8px 13px 5px}
+  .admin-tabs button:hover{background:var(--soft-hover)}
+  .admin-tabs button.is-active{background:var(--main);color:var(--gold-light);border-color:var(--gold-bright)}
+  .admin-section{display:none}
+  .admin-section.active{display:block;animation:fadeIn .25s ease}
+  .picker-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:8px}
+  .picker-row > div:first-child{font-family:var(--font-display);font-size:19px;font-weight:700}
+  .picker-actions{display:flex;gap:8px;flex-wrap:wrap}
+  .picker-path{background:var(--tint);border:1px dashed var(--accent-line);padding:10px;border-radius:12px;line-height:1.9}
+
+  /* ---------- 11) النوافذ والتنبيهات ---------- */
+  .modal{
+    position:fixed;
+    inset:0;
+    z-index:2000;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:16px;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    background:rgba(5,14,26,.64);
+    -webkit-backdrop-filter:blur(6px);
+    backdrop-filter:blur(6px);
+  }
+  .modal.active{display:flex;animation:fadeIn .2s ease}
+  .modal-box{
+    width:100%;
+    max-width:760px;
+    max-height:85vh;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-y;
+    background:var(--card);
+    border:1px solid var(--accent-line);
+    border-top:3px solid var(--gold-bright);
+    border-radius:20px;
+    padding:20px;
+    box-shadow:0 30px 70px rgba(0,0,0,.5);
+  }
+  .modal.active .modal-box{animation:modalIn .28s var(--ease)}
+  .modal-title{color:var(--main);font-family:var(--font-display);font-weight:700;font-size:23px;line-height:1.5;margin-bottom:8px}
+  .modal-text{line-height:1.9;color:var(--text);font-size:14.5px;margin-bottom:14px}
+  .modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+  .toast-host{
+    position:fixed;
+    right:0;
+    left:0;
+    bottom:18px;
+    z-index:3000;
+    display:grid;
+    justify-items:center;
+    gap:8px;
+    padding:0 14px;
+    pointer-events:none;
+  }
+  .toast{
+    pointer-events:auto;
+    max-width:min(520px, 100%);
+    padding:12px 16px;
+    border-radius:14px;
+    font-size:15px;
+    line-height:1.7;
+    background:#10263f;
+    color:#f4f7fa;
+    border:1px solid rgba(var(--gold-rgb),.6);
+    border-inline-start:4px solid var(--gold-bright);
+    box-shadow:0 16px 40px rgba(0,0,0,.45);
+    overflow-wrap:anywhere;
+    animation:toastIn .3s var(--ease);
+  }
+  .toast.is-warn{border-inline-start-color:#e59a8b}
+  .toast.is-leaving{animation:toastOut .22s ease forwards}
+
+  /* ---------- 12) الحركة ---------- */
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes riseIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  @keyframes modalIn{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+  @keyframes emblemIn{from{opacity:0;transform:scale(.86)}to{opacity:1;transform:none}}
+  @keyframes emblemSheen{to{background-position:-40% 0}}
+  @keyframes seaDrift{to{transform:translateX(-600px)}}
+  @keyframes toastIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  @keyframes toastOut{to{opacity:0;transform:translateY(10px)}}
+
+  .page:not(.hidden){animation:fadeIn .3s ease}
+  /* البطاقات تظهر متتابعة عند فتح فرع */
+  .cards > .card,
+  .hierarchy-cards > .hier-card{animation:riseIn .36s var(--ease) backwards}
+  .cards > .card:nth-child(2), .hierarchy-cards > .hier-card:nth-child(2){animation-delay:.035s}
+  .cards > .card:nth-child(3), .hierarchy-cards > .hier-card:nth-child(3){animation-delay:.07s}
+  .cards > .card:nth-child(4), .hierarchy-cards > .hier-card:nth-child(4){animation-delay:.105s}
+  .cards > .card:nth-child(5), .hierarchy-cards > .hier-card:nth-child(5){animation-delay:.14s}
+  .cards > .card:nth-child(6), .hierarchy-cards > .hier-card:nth-child(6){animation-delay:.175s}
+  .cards > .card:nth-child(7), .hierarchy-cards > .hier-card:nth-child(7){animation-delay:.21s}
+  .cards > .card:nth-child(8), .hierarchy-cards > .hier-card:nth-child(8){animation-delay:.245s}
+  .cards > .card:nth-child(n+9), .hierarchy-cards > .hier-card:nth-child(n+9){animation-delay:.28s}
+  .cards.no-anim > .card,
+  .hierarchy-cards.no-anim > .hier-card{animation:none}
+
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    *, *::before, *::after{
+      animation-duration:.01ms !important;
+      animation-delay:0s !important;
+      animation-iteration-count:1 !important;
+      transition-duration:.01ms !important;
     }
+  }
 
-    .topbar{
-      position:sticky;
-      top:0;
-      z-index:1000;
-      background:rgba(244,237,228,.96);
-      backdrop-filter:blur(8px);
-      border-bottom:1px solid var(--line);
-      transition:transform .45s ease;
-    }
-
-    .topbar.is-hidden{
-      transform:translateY(-110%);
-    }
-
-    .topbar-inner{
-      max-width:1200px;
-      margin:auto;
-      padding:10px 12px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    .brand{
-      font-weight:700;
-      color:var(--main);
-      font-size:18px;
-      white-space:nowrap;
-    }
-
-    .top-actions{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      justify-content:center;
-    }
-
-    button,.btn{
-      border:none;
-      border-radius:12px;
-      padding:10px 12px;
-      cursor:pointer;
-      font-family:inherit;
-      font-size:14px;
-      transition:.18s ease;
-    }
-
-    .btn-main,
-    .top-actions button{
-      background:var(--main);
-      color:#fff;
-      box-shadow:0 4px 12px rgba(184,154,122,.20);
-    }
-
-    .btn-main:hover,
-    .top-actions button:hover{
-      background:var(--gold);
-    }
-
-    .btn-soft{
-      background:#efe4d5;
-      color:var(--text);
-    }
-
-    .btn-danger{
-      background:var(--danger);
-      color:#fff;
-    }
-
-    .btn-ok{
-      background:var(--ok);
-      color:#fff;
-    }
-
-    .icon-btn{
-      width:42px;
-      height:42px;
-      border-radius:50%;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      font-size:18px;
-      padding:0;
-    }
-
-    .page{
-      max-width:1200px;
-      margin:auto;
-      padding:14px 12px 28px;
-    }
-
-    .hero{
-      background:linear-gradient(135deg,var(--main),var(--main2));
-      color:#fff;
-      border-radius:22px;
-      padding:24px 18px;
-      box-shadow:var(--shadow);
-      margin-bottom:14px;
-    }
-
-    .hero h1{
-      margin:0 0 8px;
-      font-size:28px;
-    }
-
-    .hero p{
-      margin:0;
-      line-height:1.9;
-      font-size:14px;
-      opacity:.96;
-    }
-
-    .panel,
-    .title,
-    .search-box,
-    .stats-strip,
-    .about-box,
-    .admin-page,
-    .person-page,
-    .messages-box,
-    .hierarchy-box{
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:20px;
-      box-shadow:var(--shadow);
-    }
-
-    .search-box{
-      padding:12px;
-      margin-bottom:12px;
-    }
-
-    .search-box input,
-    .search-box select,
-    .field,
-    .textarea{
-      width:100%;
-      border:1px solid var(--line);
-      border-radius:12px;
-      padding:13px 12px;
-      font-family:inherit;
-      font-size:15px;
-      background:#fff;
-      outline:none;
-    }
-
-    .search-box input:focus,
-    .field:focus,
-    .textarea:focus{
-      border-color:var(--main);
-      box-shadow:0 0 0 3px rgba(184,154,122,.08);
-    }
-
-    .toolbar{
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:8px;
-      margin-bottom:12px;
-    }
-
-    .title{
-      padding:16px;
-      margin-bottom:10px;
-      text-align:center;
-      color:var(--main);
-      font-size:22px;
-      font-weight:700;
-    }
-
-    .breadcrumb{
-      text-align:center;
-      margin-bottom:10px;
-    }
-
-    .breadcrumb button{
-      background:#efe4d5;
-      color:var(--text);
-      margin:4px;
-      padding:8px 10px;
-      border-radius:999px;
-    }
-
-    .stats-strip{
-      padding:14px;
-      margin-bottom:12px;
-      line-height:2;
-      border-right:5px solid var(--gold);
-    }
-
-    .quick-branches{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin:0 0 12px;
-    }
-
-    .quick-branches button{
-      background:#efe4d5;
-      color:var(--text);
-      border-radius:999px;
-      padding:8px 12px;
-      font-size:13px;
-    }
-
-    .cards{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-      gap:12px;
-    }
-
-    .card{
-      position:relative;
-      background:#fffefb;
-      border:1px solid var(--line);
-      border-top:4px solid var(--main);
-      border-radius:18px;
-      padding:14px;
-      cursor:pointer;
-      box-shadow:var(--shadow);
-      transition:.18s ease;
-      overflow:hidden;
-      isolation:isolate;
-    }
-
-    .card::before{
-      content:"";
-      position:absolute;
-      inset:0;
-      pointer-events:none;
-      z-index:0;
-      border-radius:18px;
-      background:
-        linear-gradient(45deg, rgba(199,162,125,.10) 25%, transparent 25%, transparent 50%, rgba(199,162,125,.10) 50%, rgba(199,162,125,.10) 75%, transparent 75%, transparent),
-        linear-gradient(-45deg, rgba(199,162,125,.07) 25%, transparent 25%, transparent 50%, rgba(199,162,125,.07) 50%, rgba(199,162,125,.07) 75%, transparent 75%, transparent),
-        radial-gradient(circle at center, rgba(255,255,255,.58), rgba(255,255,255,.20) 24%, transparent 52%);
-      background-size:28px 28px, 28px 28px, 100% 100%;
-      opacity:.68;
-    }
-
-    .card::after{
-      content:"";
-      position:absolute;
-      inset:0;
-      pointer-events:none;
-      z-index:0;
-      border-radius:18px;
-      background:
-        radial-gradient(circle at top right, rgba(168,132,93,.18), transparent 28%),
-        radial-gradient(circle at top left, rgba(168,132,93,.14), transparent 26%),
-        radial-gradient(circle at bottom right, rgba(168,132,93,.14), transparent 26%),
-        radial-gradient(circle at bottom left, rgba(168,132,93,.18), transparent 28%);
-    }
-
-    .card > *{position:relative; z-index:1}
-
-    .card:hover{
-      transform:translateY(-2px);
-    }
-
-    .card.no-children{
-      border-top-color:var(--gold);
-      background:#fffdfa;
-    }
-
-    .name-row{
-      display:flex;
-      justify-content:space-between;
-      gap:8px;
-      align-items:flex-start;
-      margin-bottom:8px;
-    }
-
-    .name{
-      font-weight:700;
-      font-size:18px;
-      line-height:1.6;
-      flex:1;
-    }
-
-    .badges{
-      display:flex;
-      gap:6px;
-      align-items:center;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-    }
-
-    .gen-badge,
-    .small-badge{
-      flex-shrink:0;
-      border-radius:999px;
-      padding:5px 8px;
-      font-size:11px;
-      white-space:nowrap;
-      border:1px solid #eadab7;
-    }
-
-    .gen-badge{
-      background:#f4efdf;
-      color:#846830;
-    }
-
-    .small-badge{
-      background:#efe4d5;
-      color:var(--main);
-      cursor:pointer;
-      border-color:#dfcfbc;
-    }
-
-    .small-badge:hover{
-      background:#e6d8c8;
-    }
-
-    .meta{
-      color:var(--muted);
-      font-size:13px;
-      line-height:1.9;
-    }
-
-    .tag{
-      display:inline-block;
-      margin-top:8px;
-      padding:6px 10px;
-      border-radius:999px;
-      font-size:12px;
-      background:#f2ebe2;
-      color:var(--main);
-    }
-
-    .status-badge{
-      display:inline-block;
-      margin-top:8px;
-      padding:6px 10px;
-      border-radius:999px;
-      font-size:12px;
-      background:#f8f2e6;
-      color:#8d6f36;
-      border:1px solid #eadab7;
-    }
-
-    .person-page,
-    .admin-page{
-      padding:18px;
-    }
-
+  /* ---------- 13) الشاشات الصغيرة ---------- */
+  @media (max-width:900px){
     .person-grid,
-    .admin-grid{
-      display:grid;
-      grid-template-columns:1.2fr .8fr;
-      gap:14px;
-    }
-
-    .subbox{
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:14px;
-    }
-
-    .subbox h3,
-    .subbox h4{
-      margin:0 0 10px;
-      color:var(--main);
-    }
-
-    .children-list{
-      display:grid;
-      gap:8px;
-    }
-
-    .children-item{
-      background:#faf5ef;
-      border:1px solid var(--line);
-      border-radius:12px;
-      padding:10px;
-      cursor:pointer;
-    }
-
-    .about-wrap{
-      position:relative;
-    }
-
-    .about-wrap::before{
-      content:"";
-      position:absolute;
-      inset:0;
-      background:
-        linear-gradient(rgba(255,255,255,.68), rgba(255,255,255,.68)),
-        url("bg-mujaini.jpg") center center / cover no-repeat;
-      opacity:.90;
-      border-radius:20px;
-      pointer-events:none;
-    }
-
-    .about-box{
-      position:relative;
-      padding:18px;
-      overflow:hidden;
-    }
-
-    .about-box h2{
-      margin:0 0 12px;
-      color:var(--main);
-      font-size:24px;
-    }
-
-    .about-box details{
-      background:rgba(255,255,255,.84);
-      border:1px solid var(--line);
-      border-radius:14px;
-      margin-bottom:10px;
-      overflow:hidden;
-    }
-
-    .about-box summary{
-      cursor:pointer;
-      padding:14px;
-      font-weight:700;
-      color:var(--main);
-      list-style:none;
-    }
-
-    .about-box summary::-webkit-details-marker{display:none}
-    .about-content{
-      padding:0 14px 14px;
-      line-height:2;
-      color:var(--text);
-      font-size:15px;
-    }
-
-    .note-form{
-      display:grid;
-      gap:10px;
-    }
-
-    .textarea{
-      min-height:120px;
-      resize:vertical;
-    }
-
-    .footer{
-      margin-top:16px;
-      padding:16px;
-      text-align:center;
-      line-height:2;
-    }
-
-    .footer .line0,
-    .footer .line1,
-    .footer .line2{
-      color:var(--main);
-      font-weight:700;
-    }
-
-    .footer .line1{
-      font-size:18px;
-    }
-
-    .modal{
-      position:fixed;
-      inset:0;
-      background:rgba(0,0,0,.35);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      z-index:2000;
-      padding:20px;
-      overflow-y:auto;
-      -webkit-overflow-scrolling:touch;
-    }
-
-    .modal.active{display:flex}
-
-    .modal-box{
-      width:100%;
-      max-width:760px;
-      max-height:85vh;
-      overflow-y:auto;
-      -webkit-overflow-scrolling:touch;
-      background:#fff;
-      border-radius:18px;
-      padding:18px;
-      box-shadow:0 16px 40px rgba(0,0,0,.18);
-      touch-action:pan-y;
-    }
-
-    .modal-title{
-      color:var(--main);
-      font-weight:700;
-      font-size:18px;
-      margin-bottom:10px;
-    }
-
-    .modal-text{
-      line-height:1.9;
-      color:var(--text);
-      font-size:14px;
-      margin-bottom:14px;
-    }
-
-    .modal-actions{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
-    }
-
-    .hidden{display:none !important}
-
-    .admin-tabs{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin-bottom:14px;
-    }
-
-    .admin-tabs button{
-      background:#efe4d5;
-      color:var(--text);
-      border-radius:999px;
-      padding:8px 12px;
-    }
-
-    .admin-section{
-      display:none;
-    }
-
-    .admin-section.active{
-      display:block;
-    }
-
-    .list-box{
-      display:grid;
-      gap:10px;
-    }
-
-    .list-item{
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px;
-    }
-
-    .small{
-      font-size:12px;
-      color:var(--muted);
-    }
-
-    .top-note{
-      font-size:12px;
-      color:var(--muted);
-      margin-bottom:10px;
-      line-height:1.8;
-    }
-
-    .lineage-chain{
-      display:grid;
-      gap:10px;
-      justify-content:center;
-      margin-top:10px;
-    }
-
-    .lineage-item{
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:10px 14px;
-      text-align:center;
-      position:relative;
-      min-width:180px;
-    }
-
-    .lineage-item:not(:last-child)::after{
-      content:"";
-      position:absolute;
-      left:50%;
-      transform:translateX(-50%);
-      bottom:-10px;
-      width:2px;
-      height:10px;
-      background:var(--gold);
-    }
-
-    .hierarchy-box{
-      padding:18px;
-    }
-
-    .hierarchy-row{
-      margin-bottom:20px;
-      text-align:center;
-    }
-
-    .hierarchy-row-title{
-      color:var(--main);
-      font-weight:700;
-      margin-bottom:10px;
-    }
-
-    .hierarchy-cards{
-      display:flex;
-      flex-wrap:wrap;
-      justify-content:center;
-      gap:10px;
-      position:relative;
-    }
-
-    .hier-card{
-      background:#fff;
-      border:1px solid var(--line);
-      border-top:4px solid var(--main);
-      border-radius:16px;
-      padding:10px 12px;
-      min-width:180px;
-      cursor:pointer;
-      box-shadow:var(--shadow);
-      position:relative;
-      overflow:hidden;
-    }
-
-    .hier-card.selected{
-      border-top-color:var(--gold);
-      background:#fdf8f1;
-    }
-
-    .hier-card::before{
-      content:"";
-      position:absolute;
-      inset:0;
-      background:
-        linear-gradient(45deg, rgba(199,162,125,.06) 25%, transparent 25%, transparent 50%, rgba(199,162,125,.06) 50%, rgba(199,162,125,.06) 75%, transparent 75%, transparent),
-        linear-gradient(-45deg, rgba(199,162,125,.04) 25%, transparent 25%, transparent 50%, rgba(199,162,125,.04) 50%, rgba(199,162,125,.04) 75%, transparent 75%, transparent);
-      background-size:24px 24px;
-      opacity:.35;
-      pointer-events:none;
-    }
-
-
-    .topbar{
-      transition:transform .38s ease, opacity .26s ease;
-      will-change:transform, opacity;
-    }
-
-    .topbar.is-hidden{
-      transform:translateY(-110%);
-      opacity:0;
-    }
-
-    .whoami-bg{
-      position:relative;
-      overflow:hidden;
-      border-radius:22px;
-      min-height:320px;
-    }
-
-    .whoami-bg::before{
-      content:"";
-      position:absolute;
-      inset:0;
-      background:
-        linear-gradient(rgba(246,243,237,.86), rgba(246,243,237,.88)),
-        url("bg-mujaini.jpg") center center / cover no-repeat;
-      opacity:.96;
-      pointer-events:none;
-    }
-
-    .whoami-card{
-      position:relative;
-      z-index:1;
-      background:rgba(255,255,255,.88);
-      border:1px solid var(--line);
-      border-radius:22px;
-      box-shadow:var(--shadow);
-      padding:22px 18px;
-      line-height:2.1;
-      font-size:16px;
-      white-space:pre-wrap;
-    }
-
-    .whoami-card.special-person{
-      border:1px solid rgba(184,155,94,.55);
-      box-shadow:0 10px 28px rgba(125,92,61,.16);
-      background:rgba(255,252,246,.92);
-    }
-
-    .special-mark{
-      text-align:center;
-      color:var(--gold);
-      font-size:20px;
-      margin-bottom:6px;
-      letter-spacing:2px;
-    }
-
-    .whoami-results{
-      display:grid;
-      gap:8px;
-      margin-top:12px;
-    }
-
-    .whoami-results button{
-      text-align:right;
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px 14px;
-      font-family:inherit;
-      color:var(--text);
-    }
-
-    .who-badge{
-      background:#f6efe5;
-      color:var(--gold);
-      border-color:#e5d4b4;
-      font-weight:700;
-    }
-
-    @media (max-width:900px){
-      .person-grid,
-      .admin-grid{
-        grid-template-columns:1fr;
-      }
-    }
-
-    @media (max-width:760px){
-      .toolbar{grid-template-columns:1fr}
-      .topbar-inner{flex-direction:column; align-items:stretch}
-      .brand{text-align:center}
-      .top-actions{justify-content:center}
-      .hero h1{font-size:24px}
-      .title{font-size:20px}
-      .name{font-size:16px}
-      .hier-card{min-width:140px}
-      .lineage-item{min-width:140px}
-    }
-  </style>
-
-  <style id="relation-grid-fix">
-    .name-row{align-items:flex-start}
-    .badges{
-      display:grid !important;
-      grid-template-columns:repeat(3, max-content) !important;
-      gap:6px !important;
-      justify-content:end !important;
-      align-content:start !important;
-    }
-    .small-badge,.gen-badge{
-      min-width:42px;
-      text-align:center;
-      font-size:11px !important;
-      padding:5px 7px !important;
-    }
+    .admin-grid{grid-template-columns:1fr}
+  }
+  @media (max-width:760px){
+    /* صف للشعار والاسم مع زر الإعدادات، وتحته صف واحد للروابط */
+    .topbar-inner{position:relative;flex-direction:column;align-items:stretch;gap:2px;padding:8px 10px 5px}
+    .brand{justify-content:center;font-size:19px;padding:0 40px}
+    .brand::before{width:30px;height:30px}
+    .top-actions{justify-content:space-around}
+    .top-actions button{padding:8px 9px 5px;font-size:14px}
+    .top-actions .icon-btn{position:absolute;top:7px;left:10px;width:34px;height:34px;font-size:15px;margin:0;padding:0}
+    .long-label{display:none}
+    .hero{padding:24px 14px 58px;border-radius:22px}
+    .hero-emblem{width:124px;height:124px}
+    .hero h1{font-size:28px}
+    .title{font-size:23px}
+    .name{font-size:20px}
+    .toolbar button{padding:9px 6px;font-size:13.5px}
+    .hier-card{flex-basis:100%;max-width:none}
+    .lineage-item{min-width:170px}
+    .admin-page{padding:12px}
+    .modal-box{padding:16px}
+  }
   </style>
 
 </head>
@@ -789,7 +762,7 @@
       <div class="brand">شجرة عائلة محمد بن حميد المجيني</div>
       <div class="top-actions">
         <button id="btnTopRoot">الرئيسية</button>
-        <button id="btnTopAbout">📜 نبذة عن قبيلة المجيني</button>
+        <button id="btnTopAbout">📜 نبذة<span class="long-label"> عن قبيلة المجيني</span></button>
         <button id="btnTopShareInfo">📝 شاركنا بمعلومة</button>
         <button id="btnTopWho">من أكون؟</button>
         <button id="btnTopAdmin" class="icon-btn">⚙️</button>
@@ -799,8 +772,13 @@
 
   <div class="page" id="mainPage">
     <div class="hero">
+      <div class="hero-emblem"><img src="emblem.webp" alt="شعار قبيلة المجيني، آل جابر" width="148" height="148" /></div>
       <h1>شجرة عائلة محمد بن حميد المجيني</h1>
       <p>واجهة عائلية تفاعلية للبحث والتنقل بين الفروع، مع صفحة نبذة عن القبيلة، وملاحظات ومقترحات، ولوحة إدارة مستقلة.</p>
+      <svg class="hero-sea" viewBox="0 0 1200 48" preserveAspectRatio="none" aria-hidden="true">
+        <path class="w2" d="M-300 30 Q-150 14 0 30 T300 30 T600 30 T900 30 T1200 30 T1500 30 T1800 30 T2100 30 T2400 30 V48 H-300 Z" />
+        <path class="w1" d="M0 28 Q150 8 300 28 T600 28 T900 28 T1200 28 T1500 28 T1800 28 T2100 28 T2400 28 V48 H0 Z" />
+      </svg>
     </div>
 
     <div class="search-box">
@@ -971,7 +949,107 @@ const DEFAULT_PASSWORD = "Mmujaini34";
 
 const SUPABASE_URL = "https://fjjavswshxsjvocrkjox.supabase.co";
 const SUPABASE_KEY = "sb_publishable_RnfnO_UOIrny2cjCPvLoyg__pTvE9Ge";
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// بديل آمن إذا لم تُحمَّل مكتبة Supabase: الشجرة تعمل من البيانات المحلية بدل أن تتوقف الصفحة
+function createOfflineSupabaseStub() {
+  const result = { data: null, error: { message: "Supabase library not loaded" } };
+  const chain = new Proxy(function(){}, {
+    get(_target, prop) {
+      if (prop === "then") return (resolve) => resolve(result);
+      return () => chain;
+    },
+    apply() { return chain; }
+  });
+  return { from: () => chain };
+}
+
+// مهلة للطلبات حتى لا تبقى الصفحة معلّقة إذا تأخر الخادم
+function supabaseFetchWithTimeout(input, init) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 12000);
+  return fetch(input, { ...(init || {}), signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
+const supabaseClient = (window.supabase && typeof window.supabase.createClient === "function")
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { global: { fetch: supabaseFetchWithTimeout } })
+  : createOfflineSupabaseStub();
+
+// ---- أدوات حماية النصوص قبل إدخالها في الصفحة ----
+// ---- تنبيهات خفيفة أسفل الصفحة بدل نوافذ alert التي توقف التصفح ----
+function showToast(message) {
+  const text = String(message ?? "");
+  let host = document.getElementById("toastHost");
+  if (!host) {
+    host = document.createElement("div");
+    host.id = "toastHost";
+    host.className = "toast-host";
+    host.setAttribute("role", "status");
+    host.setAttribute("aria-live", "polite");
+    document.body.appendChild(host);
+  }
+  const el = document.createElement("div");
+  const isWarning = /تعذر|غير صحيحة|غير موجود|لا يمكن|لا توجد|غير متاح|غير معتمدة|ناقصة|اختر|اكتب|يرجى|الصق|اسمح|لم يتم|ليس JSON|لا يحتوي/.test(text);
+  el.className = "toast" + (isWarning ? " is-warn" : "");
+  el.textContent = text;
+  host.appendChild(el);
+  while (host.children.length > 3) host.firstElementChild.remove();
+  const close = () => {
+    if (!el.isConnected || el.classList.contains("is-leaving")) return;
+    el.classList.add("is-leaving");
+    setTimeout(() => el.remove(), 240);
+  };
+  el.addEventListener("click", close);
+  setTimeout(close, Math.min(8000, 2600 + text.length * 45));
+}
+window.alert = showToast;
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+function jsArg(value) {
+  return escapeHtml(JSON.stringify(value === undefined ? null : value));
+}
+function isSafeId(id) {
+  return /^[A-Za-z0-9_-]{1,64}$/.test(String(id ?? ""));
+}
+function safeDomId(value) {
+  return String(value ?? "").replace(/[^A-Za-z0-9_-]/g, "");
+}
+function cleanPersonText(value) {
+  return String(value ?? "").replace(/[<>]/g, "").replace(/\s+/g, " ").trim();
+}
+function formatArDateSafe(value) {
+  try {
+    const d = new Date(value);
+    return isNaN(d.getTime()) ? "" : d.toLocaleString("ar");
+  } catch (e) { return ""; }
+}
+function copyToClipboard(text) {
+  const value = String(text ?? "");
+  const fallback = () => new Promise((resolve, reject) => {
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = value;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      ok ? resolve() : reject(new Error("copy failed"));
+    } catch (e) { reject(e); }
+  });
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(value).catch(fallback);
+  }
+  return fallback();
+}
 
 async function saveMessageToSupabase(payload) {
   const { error } = await supabaseClient.from("messages").insert([payload]);
@@ -991,6 +1069,7 @@ function getApprovedPersonInfoStore() {
 }
 function saveApprovedPersonInfoStore(store) {
   localStorage.setItem(PERSON_INFO_STORAGE_KEY, JSON.stringify(store || {}));
+  if (typeof pushSharedState === "function") pushSharedState("approved_info");
 }
 function getApprovedInfoForPerson(personId) {
   const store = getApprovedPersonInfoStore();
@@ -1031,6 +1110,7 @@ function getAllApprovedInfoEntries() {
   const store = getApprovedPersonInfoStore();
   const result = [];
   Object.keys(store).forEach(personId => {
+    if (!isSafeId(personId) || !Array.isArray(store[personId])) return;
     (store[personId] || []).forEach((item, idx) => {
       result.push({
         personId,
@@ -1053,12 +1133,12 @@ function openApprovedInfoEntry(personId, index) {
   if (!body) return;
   body.innerHTML = `
     <div class="list-item" style="line-height:2;">
-      <div style="font-weight:700;color:var(--main);">${item.title || "بدون عنوان"}</div>
-      <div class="small">اسم الشخص: ${people[personId] ? people[personId].name : personId}</div>
-      ${item.source ? `<div class="small">المراجع / المصدر: ${item.source}</div>` : ""}
-      ${item.created_at ? `<div class="small">${new Date(item.created_at).toLocaleString("ar")}</div>` : ""}
-      <div id="approvedInfoModalBody_${personId}_${index}" style="margin-top:10px;white-space:pre-line;max-height:40vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;">${item.body || ""}</div>
-      ${((window.currentAdminRole === "master") || (window.currentAdminRole === "editor_admin")) ? `<div style="margin-top:10px;"><button class="btn-soft" onclick="copyApprovedInfoText('approvedInfoModalBody_${personId}_${index}')">نسخ الكلام</button></div>` : ""}
+      <div style="font-weight:700;color:var(--main);">${escapeHtml(item.title || "بدون عنوان")}</div>
+      <div class="small">اسم الشخص: ${escapeHtml(people[personId] ? people[personId].name : personId)}</div>
+      ${item.source ? `<div class="small">المراجع / المصدر: ${escapeHtml(item.source)}</div>` : ""}
+      ${item.created_at ? `<div class="small">${escapeHtml(formatArDateSafe(item.created_at))}</div>` : ""}
+      <div id="approvedInfoModalBody_${safeDomId(personId)}_${Number(index)}" style="margin-top:10px;white-space:pre-line;max-height:40vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;">${escapeHtml(item.body || "")}</div>
+      ${((window.currentAdminRole === "master") || (window.currentAdminRole === "editor_admin")) ? `<div style="margin-top:10px;"><button class="btn-soft" onclick="copyApprovedInfoText('approvedInfoModalBody_${safeDomId(personId)}_${Number(index)}')">نسخ الكلام</button></div>` : ""}
       <div style="margin-top:12px;"><button class="btn-soft" onclick="renderApprovedInfoLibrary()">العودة لقائمة المعلومات</button></div>
     </div>
   `;
@@ -1078,11 +1158,11 @@ function renderApprovedInfoLibrary() {
 
   list.innerHTML = entries.map((item) => `
     <div class="list-item" style="line-height:2;">
-      <div style="font-weight:700;color:var(--main);">${item.title || "بدون عنوان"}</div>
-      <div class="small">اسم الشخص: ${item.personName}</div>
-      ${item.source ? `<div class="small">المراجع / المصدر: ${item.source}</div>` : ""}
-      ${item.created_at ? `<div class="small">${new Date(item.created_at).toLocaleString("ar")}</div>` : ""}
-      <div style="margin-top:8px;"><button class="btn-soft" onclick="openApprovedInfoEntry('${item.personId}', ${item.idx})">فتح</button></div>
+      <div style="font-weight:700;color:var(--main);">${escapeHtml(item.title || "بدون عنوان")}</div>
+      <div class="small">اسم الشخص: ${escapeHtml(item.personName)}</div>
+      ${item.source ? `<div class="small">المراجع / المصدر: ${escapeHtml(item.source)}</div>` : ""}
+      ${item.created_at ? `<div class="small">${escapeHtml(formatArDateSafe(item.created_at))}</div>` : ""}
+      <div style="margin-top:8px;"><button class="btn-soft" onclick="openApprovedInfoEntry(${jsArg(item.personId)}, ${Number(item.idx)})">فتح</button></div>
     </div>
   `).join("");
 }
@@ -1102,13 +1182,13 @@ function renderAdminApprovedInfoList() {
   const canDelete = role === "master";
   return entries.map((item) => `
     <div class="list-item" style="line-height:2;">
-      <div style="font-weight:700;color:var(--main);">${item.title || "بدون عنوان"}</div>
-      <div class="small">اسم الشخص: ${item.personName}</div>
-      ${item.source ? `<div class="small">المراجع / المصدر: ${item.source}</div>` : ""}
-      ${item.created_at ? `<div class="small">${new Date(item.created_at).toLocaleString("ar")}</div>` : ""}
+      <div style="font-weight:700;color:var(--main);">${escapeHtml(item.title || "بدون عنوان")}</div>
+      <div class="small">اسم الشخص: ${escapeHtml(item.personName)}</div>
+      ${item.source ? `<div class="small">المراجع / المصدر: ${escapeHtml(item.source)}</div>` : ""}
+      ${item.created_at ? `<div class="small">${escapeHtml(formatArDateSafe(item.created_at))}</div>` : ""}
       <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
-        ${canEdit ? `<button class="btn-soft js-open-approved-info" data-person-id="${item.personId}" data-index="${item.idx}">فتح / تعديل</button>` : ``}
-        ${canDelete ? `<button class="btn-danger" onclick="confirmDeleteApprovedInfoDirect('${item.personId}', ${item.idx})">حذف</button>` : ``}
+        ${canEdit ? `<button class="btn-soft js-open-approved-info" data-person-id="${escapeHtml(item.personId)}" data-index="${Number(item.idx)}">فتح / تعديل</button>` : ``}
+        ${canDelete ? `<button class="btn-danger" onclick="confirmDeleteApprovedInfoDirect(${jsArg(item.personId)}, ${Number(item.idx)})">حذف</button>` : ``}
       </div>
     </div>
   `).join("");
@@ -1123,7 +1203,7 @@ function openAdminInfoEditModal(personId, index){
   }
   document.getElementById("adminInfoEditPersonId").value = personId;
   document.getElementById("adminInfoEditIndex").value = String(index);
-  document.getElementById("adminInfoEditPersonLabel").innerHTML = `<strong>اسم الشخص:</strong> ${people[personId] ? people[personId].name : personId}`;
+  document.getElementById("adminInfoEditPersonLabel").innerHTML = `<strong>اسم الشخص:</strong> ${escapeHtml(people[personId] ? people[personId].name : personId)}`;
   document.getElementById("adminInfoEditTitle").value = item.title || "";
   document.getElementById("adminInfoEditSource").value = item.source || "";
   document.getElementById("adminInfoEditBody").value = item.body || "";
@@ -1229,7 +1309,7 @@ function pickShareInfoBrowsePerson() {
     const input = document.getElementById("shareInfoBrowsePersonId");
     const label = document.getElementById("shareInfoBrowsePersonLabel");
     if (input) input.value = id;
-    if (label) label.innerHTML = `<strong>يعرض الآن معلومات:</strong> ${people[id].name}`;
+    if (label) label.innerHTML = `<strong>يعرض الآن معلومات:</strong> ${escapeHtml(people[id].name)}`;
     renderApprovedInfoLibrary();
   });
 }
@@ -1348,7 +1428,7 @@ function pickShareInfoPerson() {
     const input = document.getElementById("shareInfoPersonId");
     const label = document.getElementById("shareInfoPersonLabel");
     if (input) input.value = id;
-    if (label) label.innerHTML = `<strong>اسم الشخص:</strong> ${people[id].name}<br><span class="small">${(getLineage(id)||[]).map(x=>people[x]?.name||"").filter(Boolean).join(" ")}</span>`;
+    if (label) label.innerHTML = `<strong>اسم الشخص:</strong> ${escapeHtml(people[id].name)}<br><span class="small">${escapeHtml((getLineage(id)||[]).map(x=>people[x]?.name||"").filter(Boolean).join(" "))}</span>`;
   });
 }
 async function submitShareInfo() {
@@ -1757,7 +1837,18 @@ let people = {
       "p73": { name: "علي بن أحمد", note: "", children: ["p108","p109","p110","p111","p112","p113","p114","p115","p116","p42a"] },
       "p108": { name: "يونس", note: "", children: [] },
       "p109": { name: "عبدالله", note: "", children: ["p109a1","p109a2","p109a3","p109a4","p109a5","p109a6"] },
-      "p110": { name: "محمد", note: "", children: [] },
+      "p110": { name: "محمد", note: "", children: ["u1776201189708701","u1776201190107717","u1776201190415376","u1776201190721238","u1776201191028797","u1776201191336348","u1776201191642199","u1776201191950101","u1776201192259717","u1776201192515560","u1776201192873369"] },
+      "u1776201189708701": { name: "صالح", note: "", children: [] },
+      "u1776201190107717": { name: "يوسف", note: "", children: [] },
+      "u1776201190415376": { name: "وسام", note: "", children: [] },
+      "u1776201190721238": { name: "احمد", note: "", children: [] },
+      "u1776201191028797": { name: "جابر", note: "", children: [] },
+      "u1776201191336348": { name: "علي", note: "", children: [] },
+      "u1776201191642199": { name: "عاشه", note: "", children: [] },
+      "u1776201191950101": { name: "امنه", note: "", children: [] },
+      "u1776201192259717": { name: "صالحه", note: "", children: [] },
+      "u1776201192515560": { name: "خديجه", note: "", children: [] },
+      "u1776201192873369": { name: "حنان", note: "", children: [] },
   "p109a1": { name: "أحمد", note: "", children: ["p109a1_1","p109a1_2","p109a1_3"] },
 "p109a1_1": { name: "عبدالله", note: "", children: [] },
 "p109a1_2": { name: "عذاري", note: "", children: [] },
@@ -1970,6 +2061,14 @@ let people = {
     let peopleTableAvailable = false;
     let peopleSource = "local";
     let hierarchyTrail = [rootId];
+    let suppressAutoScroll = false;
+
+    // توحيد إملاء الأسماء (update19) يحتاج الوصول إلى الشجرة من window
+    Object.defineProperty(window, "people", {
+      get() { return people; },
+      set(value) { people = value; },
+      configurable: true
+    });
 
 
     function scrollToTopInstant() {
@@ -1981,6 +2080,7 @@ let people = {
     }
 
     function scrollToTopVerySlow() {
+      if (suppressAutoScroll) return;
       const startY = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
       if (startY <= 0) return;
       const duration = 2200;
@@ -2041,22 +2141,30 @@ async function syncPeopleToSupabase() {
 }
     function buildPeopleFromSupabaseRows(rows) {
       const map = {};
+      const order = {};
       rows.forEach(row => {
-        map[row.id] = { name: row.name || "", note: row.note || "", children: [] };
+        if (!row || !isSafeId(row.id)) return;
+        map[row.id] = { name: cleanPersonText(row.name), note: cleanPersonText(row.note), children: [] };
+        order[row.id] = Number(row.sort_order) || 0;
       });
       rows.forEach(row => {
-        if (row.parent_id && map[row.parent_id]) map[row.parent_id].children.push(row.id);
-      });
-      rows.forEach(row => {
-        if (row.parent_id && map[row.parent_id]) {
-          map[row.parent_id].children.sort((a, b) => {
-            const ra = rows.find(x => x.id === a)?.sort_order ?? 0;
-            const rb = rows.find(x => x.id === b)?.sort_order ?? 0;
-            return ra - rb;
-          });
+        if (row && map[row.id] && row.parent_id && row.parent_id !== row.id && map[row.parent_id]) {
+          map[row.parent_id].children.push(row.id);
         }
       });
+      Object.keys(map).forEach(id => {
+        map[id].children.sort((a, b) => order[a] - order[b]);
+      });
       return map;
+    }
+
+    // لا تُعتمد بيانات Supabase إلا إذا احتوت الجذر، حتى لا تتعطل الشجرة ببيانات ناقصة
+    function adoptPeopleFromSupabaseRows(rows) {
+      const built = buildPeopleFromSupabaseRows(rows || []);
+      if (!built[rootId]) return false;
+      people = built;
+      peopleSource = "supabase";
+      return true;
     }
 
     async function tryInitPeopleFromSupabase() {
@@ -2085,35 +2193,37 @@ async function syncPeopleToSupabase() {
             .select("id,name,note,parent_id,sort_order")
             .order("sort_order", { ascending: true });
           if (reload.error || !reload.data || !reload.data.length) return false;
-          people = buildPeopleFromSupabaseRows(reload.data);
-          peopleSource = "supabase";
-          return true;
+          return adoptPeopleFromSupabaseRows(reload.data);
         }
 
-        people = buildPeopleFromSupabaseRows(data);
-        peopleSource = "supabase";
-        return true;
+        return adoptPeopleFromSupabaseRows(data);
       } catch (e) {
         console.warn("Supabase people init failed, fallback to local data.", e);
         return false;
       }
     }
 
+    let lastPersonPersistFailed = false;
+
     async function addPersonPersist(parentId, name, note = "") {
       const newId = "u" + Date.now() + Math.floor(Math.random() * 1000);
-      people[newId] = { name: name.trim(), note: note.trim(), children: [] };
+      const cleanName = cleanPersonText(name);
+      const cleanNote = cleanPersonText(note);
+      people[newId] = { name: cleanName, note: cleanNote, children: [] };
       if (!people[parentId].children.includes(newId)) people[parentId].children.push(newId);
+      lastPersonPersistFailed = false;
 
       if (peopleTableAvailable) {
         const sortOrder = Math.max((people[parentId].children || []).length - 1, 0);
         const { error } = await supabaseClient.from("people").insert([{
           id: newId,
-          name: name.trim(),
-          note: note.trim(),
+          name: cleanName,
+          note: cleanNote,
           parent_id: parentId,
           sort_order: sortOrder
         }]);
         if (error) {
+          lastPersonPersistFailed = true;
           console.warn("Supabase insert failed; retained locally.", error);
         }
       }
@@ -2121,37 +2231,332 @@ async function syncPeopleToSupabase() {
       return newId;
     }
 
+    // صفوف جاهزة للحفظ في جدول people لمجموعة معرّفات موجودة في الشجرة
+    function peopleRowsForIds(ids) {
+      const rows = [];
+      (ids || []).forEach(id => {
+        const node = people[id];
+        if (!node) return;
+        const parentId = getParentId(id);
+        rows.push({
+          id,
+          name: node.name || "",
+          note: node.note || "",
+          parent_id: parentId,
+          sort_order: parentId ? Math.max((people[parentId].children || []).indexOf(id), 0) : 0
+        });
+      });
+      return rows;
+    }
+
+    async function persistPeopleIdsToSupabase(ids) {
+      if (!peopleTableAvailable) return true;
+      const rows = peopleRowsForIds(ids);
+      if (!rows.length) return true;
+      const { error } = await supabaseClient.from("people").upsert(rows, { onConflict: "id" });
+      if (error) { console.warn("Supabase people upsert failed.", error); return false; }
+      return true;
+    }
+
+    async function deletePeopleIdsFromSupabase(ids) {
+      if (!peopleTableAvailable || !ids || !ids.length) return true;
+      const { error } = await supabaseClient.from("people").delete().in("id", ids);
+      if (error) { console.warn("Supabase people delete failed.", error); return false; }
+      return true;
+    }
+
+    // ---- الحالة المشتركة في جدول app_state (مع بقاء نسخة محلية احتياطية) ----
+    // approved_info : المعلومات المعتمدة، يقرؤها كل الزوار
+    // public_state  : حالات الفروع + إعدادات العرض + الفروع المخفية بطلب حذف، يقرؤها كل الزوار
+    // admin_state   : الأرشيف وطلبات الحذف بتفاصيلها، تُقرأ عند دخول الإدارة فقط
+    const SHARED_STATE_TABLE = "app_state";
+    const SHARED_MIGRATION_FLAG = "mujaini_shared_state_migrated_v1";
+    const SHARED_ALL_KEYS = ["approved_info", "public_state", "admin_state"];
+    let sharedStateAvailable = false;
+    let sharedHiddenIds = null; // null = استخدم طلبات الحذف المحفوظة على هذا الجهاز
+    let sharedPushTimer = null;
+    let sharedFlushPromise = Promise.resolve();
+    const sharedDirtyKeys = new Set();
+    const sharedUnsyncedKeys = new Set();
+
+    function isAdminSession() {
+      return window.currentAdminRole === "master" || window.currentAdminRole === "editor_admin";
+    }
+
+    function buildSharedValue(key) {
+      if (key === "approved_info") return getApprovedPersonInfoStore();
+      if (key === "public_state") {
+        return {
+          statuses: appState.statuses || {},
+          settings: appState.settings || {},
+          pendingDeleteIds: (appState.pendingDeleteRequests || []).map(x => x && x.personId).filter(isSafeId)
+        };
+      }
+      return {
+        changeLog: appState.changeLog || [],
+        masterArchive: appState.masterArchive || [],
+        pendingDeleteRequests: appState.pendingDeleteRequests || []
+      };
+    }
+
+    function mergeListsById(serverList, localList) {
+      const seen = new Set();
+      const out = [];
+      [...(Array.isArray(serverList) ? serverList : []), ...(Array.isArray(localList) ? localList : [])].forEach(item => {
+        if (!item || seen.has(item.id)) return;
+        seen.add(item.id);
+        out.push(item);
+      });
+      return out.sort((x, y) => (Number(y.id) || 0) - (Number(x.id) || 0));
+    }
+
+    function mergeApprovedInfoStores(serverStore, localStore) {
+      const out = {};
+      [serverStore, localStore].forEach(store => {
+        Object.keys(store || {}).forEach(pid => {
+          if (!isSafeId(pid) || !Array.isArray(store[pid])) return;
+          if (!out[pid]) out[pid] = [];
+          store[pid].forEach(entry => {
+            const sig = JSON.stringify([entry?.title, entry?.source, entry?.body]);
+            if (!out[pid].some(x => JSON.stringify([x?.title, x?.source, x?.body]) === sig)) out[pid].push(entry);
+          });
+        });
+      });
+      return out;
+    }
+
+    function hasLocalAdminData() {
+      return Object.keys(getApprovedPersonInfoStore()).length > 0
+        || Object.keys(appState.statuses || {}).length > 0
+        || (appState.changeLog || []).length > 0
+        || (appState.masterArchive || []).length > 0
+        || (appState.pendingDeleteRequests || []).length > 0;
+    }
+
+    function sharedVisibleSignature() {
+      return JSON.stringify([
+        appState.statuses,
+        appState.settings,
+        sharedHiddenIds,
+        (appState.pendingDeleteRequests || []).map(x => x && x.personId),
+        localStorage.getItem(PERSON_INFO_STORAGE_KEY) || "{}"
+      ]);
+    }
+
+    // يقرأ الحالة المشتركة ويعيد true إذا تغيّر شيء معروض للزائر
+    async function loadSharedStateFromSupabase(includeAdmin = false) {
+      try {
+        await flushSharedState();
+        const keys = includeAdmin ? SHARED_ALL_KEYS : ["approved_info", "public_state"];
+        const { data, error } = await supabaseClient.from(SHARED_STATE_TABLE).select("key,value").in("key", keys);
+        if (error || !Array.isArray(data)) return false;
+        sharedStateAvailable = true;
+
+        // جهاز إدارة قديم فيه بيانات محلية لم تُرفع بعد: تُدمج مع الخادم ولا تُستبدل
+        const needsMigration = !localStorage.getItem(SHARED_MIGRATION_FLAG) && hasLocalAdminData();
+        const before = sharedVisibleSignature();
+        const byKey = {};
+        data.forEach(row => {
+          if (row && row.value && typeof row.value === "object" && !Array.isArray(row.value) && !sharedUnsyncedKeys.has(row.key)) {
+            byKey[row.key] = row.value;
+          }
+        });
+
+        if (byKey.approved_info) {
+          const next = needsMigration
+            ? mergeApprovedInfoStores(byKey.approved_info, getApprovedPersonInfoStore())
+            : byKey.approved_info;
+          localStorage.setItem(PERSON_INFO_STORAGE_KEY, JSON.stringify(next));
+        }
+
+        if (byKey.public_state) {
+          const v = byKey.public_state;
+          if (v.statuses && typeof v.statuses === "object" && !Array.isArray(v.statuses)) {
+            appState.statuses = needsMigration ? { ...(appState.statuses || {}), ...v.statuses } : v.statuses;
+          }
+          if (v.settings && typeof v.settings === "object") {
+            appState.settings = { ...defaultState().settings, ...v.settings };
+          }
+          if (!needsMigration && !includeAdmin) {
+            sharedHiddenIds = Array.isArray(v.pendingDeleteIds) ? v.pendingDeleteIds.filter(isSafeId) : [];
+          }
+        }
+
+        if (includeAdmin) {
+          const v = byKey.admin_state;
+          if (v && needsMigration) {
+            appState.changeLog = mergeListsById(v.changeLog, appState.changeLog).slice(0, 100);
+            appState.masterArchive = mergeListsById(v.masterArchive, appState.masterArchive);
+            appState.pendingDeleteRequests = mergeListsById(v.pendingDeleteRequests, appState.pendingDeleteRequests);
+          } else if (v) {
+            if (Array.isArray(v.changeLog)) appState.changeLog = v.changeLog;
+            if (Array.isArray(v.masterArchive)) appState.masterArchive = v.masterArchive;
+            if (Array.isArray(v.pendingDeleteRequests)) appState.pendingDeleteRequests = v.pendingDeleteRequests;
+          }
+          sharedHiddenIds = null; // داخل الإدارة: طلبات الحذف الكاملة هي المرجع
+        }
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+        if (!needsMigration && !localStorage.getItem(SHARED_MIGRATION_FLAG)) {
+          localStorage.setItem(SHARED_MIGRATION_FLAG, "1");
+        }
+        return sharedVisibleSignature() !== before;
+      } catch (e) {
+        console.warn("Shared state load failed; using local copy.", e);
+        return false;
+      }
+    }
+
+    async function pushSharedStateNow(key) {
+      if (!sharedStateAvailable) return false;
+      try {
+        const { error } = await supabaseClient
+          .from(SHARED_STATE_TABLE)
+          .upsert([{ key, value: buildSharedValue(key), updated_at: new Date().toISOString() }], { onConflict: "key" });
+        if (error) {
+          sharedUnsyncedKeys.add(key);
+          console.warn("Shared state save failed.", error);
+          return false;
+        }
+        sharedUnsyncedKeys.delete(key);
+        return true;
+      } catch (e) {
+        sharedUnsyncedKeys.add(key);
+        console.warn("Shared state save failed.", e);
+        return false;
+      }
+    }
+
+    // يرفع كل ما ينتظر الحفظ، ويُستدعى قبل أي قراءة حتى لا تُستبدل تعديلات لم تُرفع بعد
+    function flushSharedState() {
+      clearTimeout(sharedPushTimer);
+      const keys = Array.from(sharedDirtyKeys);
+      sharedDirtyKeys.clear();
+      if (keys.length) {
+        sharedFlushPromise = sharedFlushPromise
+          .then(() => Promise.all(keys.map(pushSharedStateNow)))
+          .catch(() => {});
+      }
+      return sharedFlushPromise;
+    }
+
+    function pushSharedState(key) {
+      if (!sharedStateAvailable || !isAdminSession()) return;
+      (key === "admin_state" ? ["public_state", "admin_state"] : [key]).forEach(k => sharedDirtyKeys.add(k));
+      clearTimeout(sharedPushTimer);
+      sharedPushTimer = setTimeout(flushSharedState, 300);
+    }
+
+    // عند دخول الإدارة: حدّث من الخادم، ثم ارفع ما كان محفوظًا على هذا الجهاز فقط (مرة واحدة)
+    async function syncSharedStateOnAdminEntry() {
+      await Promise.all([
+        peopleTableAvailable ? tryInitPeopleFromSupabase() : Promise.resolve(false),
+        loadSharedStateFromSupabase(true)
+      ]);
+      prepareLoadedPeople();
+      if (!sharedStateAvailable || !isAdminSession()) return;
+      if (!localStorage.getItem(SHARED_MIGRATION_FLAG)) {
+        const results = await Promise.all(SHARED_ALL_KEYS.map(pushSharedStateNow));
+        if (results.every(Boolean)) localStorage.setItem(SHARED_MIGRATION_FLAG, "1");
+      }
+      applyPendingDeletesToTree();
+    }
+
+    // الفروع التي عليها طلب حذف تبقى مخفية إلى أن يؤكد الماستر الحذف أو يرجعها
+    function applyPendingDeletesToTree() {
+      const ids = Array.isArray(sharedHiddenIds)
+        ? sharedHiddenIds
+        : (appState.pendingDeleteRequests || []).map(x => x && x.personId);
+      ids.forEach(personId => {
+        if (!personId || personId === rootId || !people[personId]) return;
+        const parentId = getParentId(personId);
+        if (parentId && people[parentId]) {
+          people[parentId].children = (people[parentId].children || []).filter(cid => cid !== personId);
+        }
+        (function walk(id) {
+          if (!people[id]) return;
+          [...(people[id].children || [])].forEach(walk);
+          delete people[id];
+        })(personId);
+      });
+    }
+
     function renderHierarchyCard(cid, selectedChild, levelIndex) {
       const child = people[cid];
-      const status = getStatus(cid);
       return `
         <div class="hier-card ${selectedChild === cid ? "selected" : ""}" onclick="showPersonPage('${cid}')">
-          <div class="name-row">
-            <div class="name">${child.name}${appState.settings.showCounts ? ` (${getChildrenCount(cid)})` : ""}</div>
-            <div class="badges">
-              <div class="gen-badge">${generationLabelShort(getGeneration(cid))}</div>
-              <div class="small-badge who-badge" onclick="event.stopPropagation(); openWhoAmIForPerson('${cid}')">من؟</div>
-              <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${cid}')">هرم</div>
-              <div class="small-badge" onclick="event.stopPropagation(); openQuickRelationFrom('${cid}')">صلة</div>
-              <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${cid}')">نسب</div>
-              <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${cid}')">إضافة</div>
-              ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(cid))}</div>` : ""}
-            </div>
-          </div>
-          <div class="meta">
-            عدد الأبناء: ${getChildrenCount(cid)}<br>
-            عدد الأحفاد: ${getGrandchildren(cid).length}<br>
-            إجمالي الذرية: ${getDescendantsCount(cid)}<br>
-            ${child.note ? `ملاحظة: ${child.note}<br>` : ""}
-          </div>
-                  </div>
+          ${renderCardHead(cid)}
+          ${renderCardStats(cid)}
+          ${child.note ? `<div class="meta">ملاحظة: ${escapeHtml(child.note)}</div>` : ""}
+          ${appState.settings.showStatuses && getStatus(cid) ? `<div class="status-badge">${escapeHtml(getStatus(cid))}</div>` : ""}
+          ${renderCardActions(cid)}
+        </div>
       `;
     }
 
+    function peopleSignature() {
+      try { return JSON.stringify(people); } catch (e) { return ""; }
+    }
+
+    function prepareLoadedPeople() {
+      applyPendingDeletesToTree();
+      if (typeof window.normalizeMujainiExistingNames === "function") window.normalizeMujainiExistingNames();
+    }
+
+    function getUrlTargetId() {
+      const params = new URLSearchParams(location.search);
+      const q = params.get("person") || params.get("hierarchy");
+      if (q) return q;
+      const h = location.hash.replace("#", "");
+      if (h.includes("=")) return h.split("=")[1];
+      return h;
+    }
+
+    // إعادة رسم الصفحة المفتوحة بعد وصول بيانات أحدث، بدون تحريك الصفحة أو مسح ما يكتبه الزائر
+    function refreshCurrentViewAfterDataLoad() {
+      suppressAutoScroll = true;
+      try {
+        if (!people[currentPerson]) currentPerson = rootId;
+        historyStack = historyStack.filter(id => people[id]);
+        if (!historyStack.length) historyStack = [rootId];
+        if (currentView === "tree") {
+          const keyword = (document.getElementById("searchInput")?.value || "").trim();
+          if (keyword) renderSearchResults(keyword);
+          else render(currentPerson);
+        } else if (currentView === "person") {
+          showPersonPage(currentPerson, false);
+        } else if (currentView === "hierarchy") {
+          hierarchyTrail = hierarchyTrail.filter(id => people[id]);
+          if (!hierarchyTrail.length) hierarchyTrail = [rootId];
+          renderHierarchyPage();
+        }
+        document.querySelectorAll(".cards, .hierarchy-cards").forEach(el => el.classList.add("no-anim"));
+      } finally {
+        suppressAutoScroll = false;
+      }
+    }
+
     async function initApp() {
-      await tryInitPeopleFromSupabase();
+      // 1) عرض فوري من البيانات المحلية حتى لا تبقى الصفحة فارغة بانتظار الخادم
+      prepareLoadedPeople();
+      const beforeSignature = peopleSignature();
+      const targetId = getUrlTargetId();
+      const targetMissing = !!targetId && isSafeId(targetId) && !people[targetId];
       renderQuickBranches();
       routeToHash();
+
+      // 2) تحديث من Supabase ثم إعادة الرسم فقط إذا تغيّر شيء
+      const [, sharedChanged] = await Promise.all([
+        tryInitPeopleFromSupabase(),
+        loadSharedStateFromSupabase(false)
+      ]);
+      prepareLoadedPeople();
+      if (currentView === "admin") return;
+      if (targetMissing && people[targetId]) {
+        routeToHash();
+      } else if (sharedChanged || peopleSignature() !== beforeSignature) {
+        refreshCurrentViewAfterDataLoad();
+      }
     }
 
     function defaultState() {
@@ -2181,6 +2586,7 @@ async function syncPeopleToSupabase() {
 
     function saveState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      pushSharedState("admin_state");
     }
 
     function logChange(text, meta = {}) {
@@ -2262,7 +2668,7 @@ async function syncPeopleToSupabase() {
     }
 
     function generationLabelShort(n) {
-      return "G" + n;
+      return "الجيل " + n;
     }
 
     function getLineage(id) {
@@ -2424,6 +2830,9 @@ async function syncPeopleToSupabase() {
       document.getElementById("mainPage").classList.remove("hidden");
       const pwd = document.getElementById("adminPasswordInput");
       if (pwd) pwd.value = "";
+      const exitKeyword = (document.getElementById("searchInput")?.value || "").trim();
+      if (exitKeyword) renderSearchResults(exitKeyword);
+      else render(currentPerson);
     }
 
     function routeToHash() {
@@ -2469,20 +2878,23 @@ if (!h) {
     }
 
     function copyText(text) {
-      navigator.clipboard.writeText(text);
-      alert("تم النسخ");
+      copyToClipboard(text)
+        .then(() => alert("تم النسخ"))
+        .catch(() => alert("تعذر النسخ"));
     }
 
     function shareCurrent() {
-      const base = "https://almujaini.vercel.app";
+      const base = location.origin + location.pathname;
       let url = base;
       if (currentView === "tree") url = base + "#" + currentPerson;
-      if (currentView === "person") url = base + "#person=" + currentPerson;
+      if (currentView === "person") url = base + "?person=" + currentPerson;
       if (currentView === "about") url = base + "#about";
       if (currentView === "whoami") url = base + "#whoami";
+      if (currentView === "whoami-profile") url = base + "#whoami-person=" + currentPerson;
       if (currentView === "hierarchy") url = base + "#hierarchy=" + hierarchyTrail[hierarchyTrail.length - 1];
-      navigator.clipboard.writeText(url);
-      alert("تم نسخ الرابط");
+      copyToClipboard(url)
+        .then(() => alert("تم نسخ الرابط"))
+        .catch(() => alert("تعذر النسخ. الرابط: " + url));
     }
 
     function openWhatsApp(id) {
@@ -2695,7 +3107,7 @@ if (!h) {
   const path = getLineage(id).reverse();
   document.getElementById("lineageModalBody").innerHTML = `
     <div class="lineage-chain">
-      ${path.map(pid => `<div class="lineage-item">${people[pid].name}</div>`).join("")}
+      ${path.map(pid => `<div class="lineage-item">${escapeHtml(people[pid].name)}</div>`).join("")}
     </div>
   `;
   document.getElementById("lineageModal").classList.add("active");
@@ -2728,11 +3140,17 @@ if (!h) {
     const SPECIAL_PERSON_PATH = ["محمد بن حميد المجيني", "جابر بن محمد", "أحمد بن جابر", "حسن بن أحمد", "علي", "محمد"];
     const FEMALE_FIRST_NAMES = new Set(["عائشة","عائشه","فاطمة","فاطمه","صالحة","صالحه","شمسة","شمسه","شيخة","شيخه","خديجة","خديجه","آمنة","امنه","مريم","نعيمة","نعيمه","أمينة","امينه","زينب","عليا","علياء","بلقيس","كوثر","مهره","ميره","شريفة","شريفه","منى","ناعمه","هند","شما","فجر","هاجر","وصايف","ميثه","عذبه","خديجه","قصايد","عالية","عاليه","عائشه","ايمان","صفيه","ملاذ","سجى","شذى","ريماس","اروى","لولوه","دانة","بشاير","نوف","سندس","روح","حليمه","هبه","مروى","حوراء","رؤى","اسماء","سعيدة","سعيده","شموخ","حور","حلا","حصه","زمزم","روح","ليان","رتان","ساره","نوف","عذاري"]);
 
+    const EXTRA_FEMALE_FIRST_NAMES = ["ريم","ريما","لمى","سماء","شيم","شهد","حنين","خلود","جمان","عاشه","خديه","أمل","حمده","حنان","نورة","سارة","ليلى","سلمى","موزة","جوخة","ثريا","رقية","ميمونة","زوينة","عزة","وفاء","هدى","آمال","إلهام","أشواق","أميرة","حليمة","لطيفة","بدرية","رحمة","سميرة","نجلاء"];
+    // المقارنة بعد توحيد الإملاء حتى لا يتأثر الجنس بكتابة الهمزة أو التاء المربوطة
+    const FEMALE_FIRST_NAMES_NORMALIZED = new Set(
+      [...FEMALE_FIRST_NAMES, ...EXTRA_FEMALE_FIRST_NAMES].map(n => normalizeArabic(n))
+    );
+
     function inferGender(id) {
       const name = (people[id]?.name || "").trim();
       if (name.includes("بنت")) return "f";
-      const first = name.split(" ")[0];
-      return FEMALE_FIRST_NAMES.has(first) ? "f" : "m";
+      const first = normalizeArabic(name.split(" ")[0]);
+      return FEMALE_FIRST_NAMES_NORMALIZED.has(first) ? "f" : "m";
     }
 
     function getSiblings(id) {
@@ -2779,15 +3197,11 @@ function buildSimpleLineageFromPerson(id) {
 
   if (!names.length) return "";
 
-  const gender = inferGender(id);
   let result = names[0];
 
-  if (names.length >= 2) {
-    result += gender === "f" ? " بنت " + names[1] : " بن " + names[1];
-  }
-
-  for (let i = 2; i < names.length; i++) {
-    result += " بن " + names[i];
+  // "بن" أو "بنت" تتبع جنس صاحب الاسم الذي قبلها في السلسلة
+  for (let i = 1; i < names.length; i++) {
+    result += (inferGender(path[i - 1]) === "f" ? " بنت " : " بن ") + names[i];
   }
 
   return result;
@@ -2808,7 +3222,7 @@ function buildSimpleLineageFromPerson(id) {
         lines.push(`${person.name}`);
         lines.push(`مرحبًا بكم في صفحة ${person.name}، أحد أبناء هذا الفرع المبارك، ومن الأسماء المرتبطة بإعداد هذا العمل والعناية بتفاصيله.`);
         lines.push(`ويمتد نسبه في الشجرة إلى محمد بن حميد المجيني، ويقع ضمن الجيل ${generation} من هذا التسلسل المبارك.`);
-        if (parentId) lines.push(`والده هو: ${people[parentId].name}.`);
+        if (parentId) lines.push(`${inferGender(parentId) === "f" ? "والدته هي" : "والده هو"}: ${people[parentId].name}.`);
         if (siblings.length) lines.push(`وإخوته المسجلون في الشجرة هم: ${siblings.join("، ")}.`);
         if (children.length) lines.push(`وأبناؤه المسجلون في الشجرة هم: ${children.join("، ")}, ما شاء الله.`);
         if (grandchildren.length) lines.push(`وإذا كان له أحفاد مسجلون في الشجرة، فيظهر هنا: لديه أحفاد، ما شاء الله، ربي يحفظهم ويجعلهم قرة عين له.`);
@@ -2822,7 +3236,7 @@ function buildSimpleLineageFromPerson(id) {
       const lines = [];
       lines.push(`${pronoun} ${lineageText},`);
       lines.push(`ويمتد نسبك في الشجرة إلى محمد بن حميد المجيني، ${gender === "f" ? "وتقعين" : "وتقع"} ضمن الجيل ${generation} من هذا التسلسل المبارك.`);
-      if (parentId) lines.push(`والدك هو: ${people[parentId].name}.`);
+      if (parentId) lines.push(`${inferGender(parentId) === "f" ? "والدتك هي" : "والدك هو"}: ${people[parentId].name}.`);
       if (siblings.length) lines.push(`وإخوتك المسجلون في الشجرة هم: ${siblings.join("، ")}.`);
       if (children.length) lines.push(`وأبناؤك المسجلون هم: ${children.join("، ")}, ما شاء الله.`);
       else lines.push(`ولا يظهر في الشجرة الحالية أبناء مسجلون لك.`);
@@ -2861,7 +3275,7 @@ function buildSimpleLineageFromPerson(id) {
         </div>
       `;
       typeWriterText(document.getElementById("whoAmITypedText"), buildWhoAmIText(id), 14);
-      if (pushHash) history.pushState({ whoamiPerson:id }, "", `#whoami-person=${id}`);
+      if (pushHash) history.pushState({ whoamiPerson:id }, "", location.pathname + `#whoami-person=${id}`);
     }
 
 
@@ -3008,7 +3422,7 @@ function buildSimpleLineageFromPerson(id) {
           </div>
         </div>
       `;
-      if (pushHash) history.pushState({ about: true }, "", "#about");
+      if (pushHash) history.pushState({ about: true }, "", location.pathname + "#about");
     }
 
     function showWhoAmI(pushHash = true) {
@@ -3032,7 +3446,7 @@ function buildSimpleLineageFromPerson(id) {
       `;
       const input = document.getElementById("whoInput");
       input.addEventListener("input", runWhoAmI);
-      if (pushHash) history.pushState({ whoami:true }, "", "#whoami");
+      if (pushHash) history.pushState({ whoami:true }, "", location.pathname + "#whoami");
     }
 
     function runWhoAmI() {
@@ -3049,7 +3463,7 @@ function buildSimpleLineageFromPerson(id) {
       }
       results.sort((a,b)=>b.score-a.score);
       out.innerHTML = results.length
-        ? results.slice(0, 20).map(r => `<button onclick="showWhoAmIProfile('${r.id}')">${people[r.id].name}</button>`).join("")
+        ? results.slice(0, 20).map(r => `<button onclick="showWhoAmIProfile('${r.id}')">${escapeHtml(people[r.id].name)}</button>`).join("")
         : `<div class="list-item">لا توجد نتائج مطابقة.</div>`;
     }
 
@@ -3067,7 +3481,7 @@ function buildSimpleLineageFromPerson(id) {
       page.innerHTML = `
         ${renderPageNavControls()}
         <div class="person-page">
-          <div class="title">${person.name}</div>
+          <div class="title">${escapeHtml(person.name)}</div>
           ${renderApprovedInfoBox(id)}
           ${
             children.length
@@ -3094,7 +3508,7 @@ function buildSimpleLineageFromPerson(id) {
       hierarchyTrail = buildTrailForHierarchy(startId);
       renderHierarchyPage();
 
-      if (pushHash) history.pushState({ hierarchy:startId }, "", "#hierarchy=" + startId);
+      if (pushHash) history.pushState({ hierarchy:startId }, "", location.pathname + "#hierarchy=" + startId);
     }
 
     function buildTrailForHierarchy(id) {
@@ -3128,7 +3542,7 @@ function buildSimpleLineageFromPerson(id) {
         <div class="hierarchy-row">
           <div class="hierarchy-row-title">الأصل</div>
           <div class="hierarchy-cards">
-            <div class="hier-card selected" onclick="showHierarchyPage('${rootId}')">${people[rootId].name}</div>
+            <div class="hier-card hier-root selected" onclick="showHierarchyPage('${rootId}')">${escapeHtml(people[rootId].name)}</div>
           </div>
         </div>
       `;
@@ -3141,7 +3555,7 @@ function buildSimpleLineageFromPerson(id) {
         const selectedChild = hierarchyTrail[i + 1] || null;
         rows += `
           <div class="hierarchy-row">
-            <div class="hierarchy-row-title">أبناء ${people[parentId].name}</div>
+            <div class="hierarchy-row-title">أبناء ${escapeHtml(people[parentId].name)}</div>
             <div class="hierarchy-cards">
               ${children.map(cid => renderHierarchyCard(cid, selectedChild, i)).join("")}
             </div>
@@ -3182,6 +3596,7 @@ function buildSimpleLineageFromPerson(id) {
     function openAdminPassword() {
       document.getElementById("adminPasswordInput").value = "";
       document.getElementById("adminPasswordModal").classList.add("active");
+      setTimeout(() => document.getElementById("adminPasswordInput").focus(), 60);
     }
 
     function closeAdminPassword() {
@@ -3204,6 +3619,8 @@ function buildSimpleLineageFromPerson(id) {
       hideAllPages();
       const page = document.getElementById("adminPage");
       page.classList.remove("hidden");
+
+      await syncSharedStateOnAdminEntry();
 
       const { data: requestsData } = await supabaseClient
         .from("requests")
@@ -3284,12 +3701,12 @@ function buildSimpleLineageFromPerson(id) {
                 messagesData.length
                   ? messagesData.map((m)=>`
                     <div class="list-item">
-                      <strong>${m.msg_type || ""}</strong> — ${m.sender_name || "بدون اسم"}<br>
-                      <span class="small">${m.created_at ? new Date(m.created_at).toLocaleString("ar") : ""}</span>
-                      <div style="margin-top:8px;line-height:1.9;">${m.body || ""}</div>
+                      <strong>${escapeHtml(m.msg_type || "")}</strong> — ${escapeHtml(m.sender_name || "بدون اسم")}<br>
+                      <span class="small">${m.created_at ? escapeHtml(formatArDateSafe(m.created_at)) : ""}</span>
+                      <div style="margin-top:8px;line-height:1.9;white-space:pre-line;">${escapeHtml(m.body || "")}</div>
                       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
-                        <button class="btn-soft" onclick="copyText(${JSON.stringify(m.body || "")})">نسخ</button>
-                        <button class="btn-danger" onclick="deleteSupabaseMessage(${m.id})">حذف</button>
+                        <button class="btn-soft" onclick="copyText(${jsArg(m.body || "")})">نسخ</button>
+                        <button class="btn-danger" onclick="deleteSupabaseMessage(${jsArg(m.id)})">حذف</button>
                       </div>
                     </div>
                   `).join("")
@@ -3307,16 +3724,16 @@ function buildSimpleLineageFromPerson(id) {
                 requestsData.length
                   ? requestsData.map((r)=>`
                     <div class="list-item" style="cursor:pointer;">
-                      <strong>${r.children_text === "INFO_SHARE" ? "قصة/معلومة" : "إضافة"}</strong> — ${(people[r.parent_id] ? people[r.parent_id].name : r.parent_id) || "غير معروف"}<br>
-                      <span class="small">${r.created_at ? new Date(r.created_at).toLocaleString("ar") : ""}</span><br>
-                      ${r.sender_name ? `<span class="small">المرسل: ${r.sender_name}</span><br>` : ""}
-                      ${r.child_name ? `<span class="small">الاسم المستهدف: ${r.child_name}</span><br>` : ""}
-                      ${r.children_text && r.children_text !== "INFO_SHARE" ? `<span class="small">الأبناء المقترحون: ${r.children_text}</span><br>` : ""}
-                      ${(() => { const raw = String(r.details||""); let src=""; let body=raw; if(raw.startsWith("[[SOURCE]]")){ const rest=raw.slice(10); const parts=rest.split(/\n\n/); src=(parts.shift()||"").trim(); body=parts.join("\n\n").trim(); } return `${src ? `<span class="small">المصدر: ${src}</span><br>` : ""}${body ? `<div style="margin-top:8px;line-height:1.9;white-space:pre-line;max-height:240px;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;">${body}</div>` : ""}`; })()}
+                      <strong>${r.children_text === "INFO_SHARE" ? "قصة/معلومة" : "إضافة"}</strong> — ${escapeHtml((people[r.parent_id] ? people[r.parent_id].name : r.parent_id) || "غير معروف")}<br>
+                      <span class="small">${r.created_at ? escapeHtml(formatArDateSafe(r.created_at)) : ""}</span><br>
+                      ${r.sender_name ? `<span class="small">المرسل: ${escapeHtml(r.sender_name)}</span><br>` : ""}
+                      ${r.child_name ? `<span class="small">الاسم المستهدف: ${escapeHtml(r.child_name)}</span><br>` : ""}
+                      ${r.children_text && r.children_text !== "INFO_SHARE" ? `<span class="small">الأبناء المقترحون: ${escapeHtml(r.children_text)}</span><br>` : ""}
+                      ${(() => { const raw = String(r.details||""); let src=""; let body=raw; if(raw.startsWith("[[SOURCE]]")){ const rest=raw.slice(10); const parts=rest.split(/\n\n/); src=(parts.shift()||"").trim(); body=parts.join("\n\n").trim(); } return `${src ? `<span class="small">المصدر: ${escapeHtml(src)}</span><br>` : ""}${body ? `<div style="margin-top:8px;line-height:1.9;white-space:pre-line;max-height:240px;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;">${escapeHtml(body)}</div>` : ""}`; })()}
                       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
-                        <button class="btn-soft" onclick="event.stopPropagation(); openRequestReadModal(${r.id})">فتح</button>
-                        <button class="btn-ok" onclick="event.stopPropagation(); markSupabaseRequestDone(${r.id})">${r.children_text === "INFO_SHARE" ? "اعتماد القصة/المعلومة" : "اعتماد"}</button>
-                        <button class="btn-danger" onclick="event.stopPropagation(); deleteSupabaseRequest(${r.id})">حذف</button>
+                        <button class="btn-soft" onclick="event.stopPropagation(); openRequestReadModal(${jsArg(r.id)})">فتح</button>
+                        <button class="btn-ok" onclick="event.stopPropagation(); markSupabaseRequestDone(${jsArg(r.id)})">${r.children_text === "INFO_SHARE" ? "اعتماد القصة/المعلومة" : "اعتماد"}</button>
+                        <button class="btn-danger" onclick="event.stopPropagation(); deleteSupabaseRequest(${jsArg(r.id)})">حذف</button>
                       </div>
                     </div>
                   `).join("")
@@ -3423,7 +3840,7 @@ function buildSimpleLineageFromPerson(id) {
                   duplicateList.length
                     ? duplicateList.slice(0,60).map(item => `
                       <div class="list-item">
-                        ${item.name} — تكرار: ${item.count}
+                        ${escapeHtml(item.name)} — تكرار: ${item.count}
                       </div>
                     `).join("")
                     : `<div class="list-item">لا توجد تكرارات.</div>`
@@ -3438,7 +3855,7 @@ function buildSimpleLineageFromPerson(id) {
                   Object.keys(people)
                     .filter(id => !hasChildren(id))
                     .slice(0,60)
-                    .map(id => `<div class="list-item">${people[id].name}</div>`)
+                    .map(id => `<div class="list-item">${escapeHtml(people[id].name)}</div>`)
                     .join("") || `<div class="list-item">لا توجد نتائج.</div>`
                 }
               </div>
@@ -3480,9 +3897,9 @@ function buildSimpleLineageFromPerson(id) {
                       (appState.masterArchive || []).length
                         ? (appState.masterArchive || []).map(item => `
                           <div class="list-item">
-                            ${item.text}<br>
-                            <span class="small">${item.time} — ${item.by || ""}</span>
-                            ${item.undoable ? `<div style="margin-top:8px;"><button class="btn-soft" onclick="undoArchiveAction(${item.id})">تراجع</button></div>` : ``}
+                            ${escapeHtml(item.text)}<br>
+                            <span class="small">${escapeHtml(item.time)} — ${escapeHtml(item.by || "")}</span>
+                            ${item.undoable ? `<div style="margin-top:8px;"><button class="btn-soft" onclick="undoArchiveAction(${Number(item.id)})">تراجع</button></div>` : ``}
                           </div>
                         `).join("")
                         : `<div class="list-item">لا توجد عمليات مسجلة بعد.</div>`
@@ -3538,14 +3955,16 @@ function buildSimpleLineageFromPerson(id) {
       document.querySelectorAll(".admin-section").forEach(s => s.classList.remove("active"));
       const el = document.getElementById("admin-" + name);
       if (el) el.classList.add("active");
+      document.querySelectorAll(".admin-tabs button").forEach(btn => {
+        btn.classList.toggle("is-active", (btn.getAttribute("onclick") || "").includes("'" + name + "'"));
+      });
     }
 
     function deleteMessage(idx) {
       appState.messages.splice(idx,1);
       saveState();
       logChange("حذف رسالة من الإدارة");
-      showAdminPage();
-      switchAdminTab("messages");
+      refreshAdminAfterAction("messages");
     }
 
     async function deleteSupabaseMessage(id) {
@@ -3557,8 +3976,7 @@ function buildSimpleLineageFromPerson(id) {
       }
       logChange("حذف رسالة");
       alert("تم حذف الرسالة");
-      showAdminPage();
-      switchAdminTab("messages");
+      refreshAdminAfterAction("messages");
     }
 
     async function deleteSupabaseRequest(id) {
@@ -3570,15 +3988,15 @@ function buildSimpleLineageFromPerson(id) {
       }
       logChange("رفض/حذف طلب");
       alert("تم حذف الطلب");
-      showAdminPage();
-      switchAdminTab("requests");
+      refreshAdminAfterAction("requests");
     }
 
     function createPersonNode(name, note = "") {
-      const newId = "u" + Date.now() + Math.floor(Math.random() * 1000);
+      let newId = "u" + Date.now() + Math.floor(Math.random() * 1000);
+      while (people[newId]) newId = "u" + Date.now() + Math.floor(Math.random() * 1000000);
       people[newId] = {
-        name: name.trim(),
-        note: note.trim(),
+        name: cleanPersonText(name),
+        note: cleanPersonText(note),
         children: []
       };
       return newId;
@@ -3589,18 +4007,19 @@ function buildSimpleLineageFromPerson(id) {
       const newName = document.getElementById("adminNewName").value.trim();
       const newNote = document.getElementById("adminNewNote").value.trim();
       if (!newName) return alert("اكتب الاسم الجديد");
+      if (!parentId || !people[parentId]) return alert("اختر الأب من الشجرة أولًا");
 
       await addPersonPersist(parentId, newName, newNote);
 
       logChange("إضافة اسم جديد: " + newName + " تحت " + people[parentId].name);
-      alert(peopleTableAvailable ? "تمت الإضافة عالميًا" : "تمت الإضافة محليًا داخل هذه النسخة");
-      showAdminPage();
-      switchAdminTab("add");
-      render(currentPerson);
+      alert(peopleTableAvailable && !lastPersonPersistFailed
+        ? "تمت الإضافة عالميًا"
+        : "تمت الإضافة على هذا الجهاز فقط، وتعذر حفظها في قاعدة البيانات. ستختفي بعد تحديث الصفحة.");
+      refreshAdminAfterAction("add");
     }
     async function adminRenamePerson() {
   const personId = document.getElementById("adminEditPersonSelect").value;
-  const newName = document.getElementById("adminEditPersonName").value.trim();
+  const newName = cleanPersonText(document.getElementById("adminEditPersonName").value);
 
   if (!personId || !newName) {
     alert("اختر الاسم واكتب الاسم الجديد");
@@ -3636,9 +4055,7 @@ function buildSimpleLineageFromPerson(id) {
     newName
   });
   alert("تم تعديل الاسم");
-  showAdminPage();
-  switchAdminTab("add");
-  render(currentPerson);
+  refreshAdminAfterAction("add");
     }
     
     async function adminDeletePerson() {
@@ -3718,20 +4135,17 @@ function buildSimpleLineageFromPerson(id) {
   });
   saveState();
   alert("تم الحذف وهو الآن قيد المراجعة من قبل الماستر");
-  showAdminPage();
-  switchAdminTab("requests");
-  render(currentPerson);
+  refreshAdminAfterAction("requests");
     }
 
     function adminSetStatus() {
       const id = document.getElementById("statusPersonSelect").value;
       const value = document.getElementById("statusValueSelect").value;
+      if (!id || !people[id]) return alert("اختر الاسم من الشجرة أولًا");
       setStatus(id, value);
       logChange("تحديث حالة فرع");
       alert("تم حفظ الحالة");
-      showAdminPage();
-      switchAdminTab("add");
-      render(currentPerson);
+      refreshAdminAfterAction("add");
     }
 
     function runSuggestParent() {
@@ -3740,7 +4154,7 @@ function buildSimpleLineageFromPerson(id) {
       if (!q) return box.innerHTML = "";
       const res = suggestParentForName(q);
       box.innerHTML = res.length
-        ? `<div class="list-box" style="margin-top:10px;">${res.map(r => `<div class="list-item">${r.name}</div>`).join("")}</div>`
+        ? `<div class="list-box" style="margin-top:10px;">${res.map(r => `<div class="list-item">${escapeHtml(r.name)}</div>`).join("")}</div>`
         : `<div class="list-item" style="margin-top:10px;">لا توجد اقتراحات.</div>`;
     }
 
@@ -3786,8 +4200,7 @@ async function markSupabaseRequestDone(id) {
       return;
     }
     alert("تم اعتماد القصة/المعلومة");
-    showAdminPage();
-    switchAdminTab("requests");
+    refreshAdminAfterAction("requests");
     if (currentView === "person" && currentPerson === personId) showPersonPage(personId, false);
     return;
   }
@@ -3907,9 +4320,7 @@ async function markSupabaseRequestDone(id) {
   }
 
   alert("تم اعتماد الطلب");
-  showAdminPage();
-  switchAdminTab("requests");
-  render(currentPerson);
+  refreshAdminAfterAction("requests");
 }
 
 function goRoot() {
@@ -3917,7 +4328,7 @@ function goRoot() {
   historyStack = [rootId];
   currentPerson = rootId;
   document.getElementById("searchInput").value = "";
-  history.pushState({ personId: rootId }, "", "#" + rootId);
+  history.pushState({ personId: rootId }, "", location.pathname + "#" + rootId);
   showTreePage();
   render(rootId);
 }
@@ -3935,7 +4346,7 @@ function renderBreadcrumb() {
     btn.onclick = () => {
       historyStack = historyStack.slice(0, index + 1);
       currentPerson = personId;
-      history.pushState({ personId }, "", "#" + personId);
+      history.pushState({ personId }, "", location.pathname + "#" + personId);
       render(personId);
     };
     b.appendChild(btn);
@@ -3961,54 +4372,69 @@ function renderQuickBranches() {
   });
 }
 
+// ---- أجزاء البطاقة المشتركة بين كل الصفحات ----
+function factRow(label, valueHtml, wide = false) {
+  return `<div class="fact${wide ? " wide" : ""}"><span>${label}</span>${wide ? "" : "<i></i>"}<strong>${valueHtml}</strong></div>`;
+}
+
+function renderCardHead(id, extraHtml = "") {
+  return `
+      <div class="name-row">
+        <div class="name">${escapeHtml(people[id].name)}${appState.settings.showCounts ? ` (${getChildrenCount(id)})` : ""}${extraHtml}</div>
+        ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(id))}</div>` : ""}
+      </div>`;
+}
+
+function renderCardStats(id) {
+  return `
+      <div class="stats">
+        <div><b>${getChildrenCount(id)}</b><span>الأبناء</span></div>
+        <div><b>${getGrandchildren(id).length}</b><span>الأحفاد</span></div>
+        <div><b>${getDescendantsCount(id)}</b><span>الذرية</span></div>
+      </div>`;
+}
+
+function renderCardActions(id) {
+  return `
+      <div class="badges">
+        <div class="small-badge who-badge" role="button" tabindex="0" title="من أكون؟" onclick="event.stopPropagation(); openWhoAmIForPerson('${id}')">من؟</div>
+        <div class="small-badge" role="button" tabindex="0" title="عرض الهرم" onclick="event.stopPropagation(); showHierarchyPage('${id}')">هرم</div>
+        <div class="small-badge" role="button" tabindex="0" title="صلة القرابة" onclick="event.stopPropagation(); openQuickRelationFrom('${id}')">صلة</div>
+        <div class="small-badge" role="button" tabindex="0" title="تسلسل النسب" onclick="event.stopPropagation(); openLineageModal('${id}')">نسب</div>
+        <div class="small-badge" role="button" tabindex="0" title="طلب إضافة اسم" onclick="event.stopPropagation(); openAddRequestModal('${id}')">إضافة</div>
+      </div>`;
+}
+
 function renderInfoBar(id) {
   const node = people[id];
-  const gStats = getGenerationStats();
-  const totalGenerations = Object.keys(gStats).length;
+  const totalGenerations = Object.keys(getGenerationStats()).length;
 
   let html = "";
-  html += "عدد الأبناء المباشرين: <strong>" + getChildrenCount(id) + "</strong><br>";
-  html += "إجمالي الأشخاص تحت هذا الفرع: <strong>" + getDescendantsCount(id) + "</strong><br>";
-  html += "التسلسل: <strong>" + getLineageText(id) + "</strong><br>";
-  html += "عدد الأجيال في الشجرة: <strong>" + totalGenerations + "</strong><br>";
-  if (node.note) html += "ملاحظة: <strong>" + node.note + "</strong><br>";
+  html += factRow("عدد الأبناء المباشرين", getChildrenCount(id));
+  html += factRow("إجمالي الأشخاص تحت هذا الفرع", getDescendantsCount(id));
+  html += factRow("عدد الأجيال في الشجرة", totalGenerations);
+  if (id !== rootId) html += factRow("التسلسل", escapeHtml(getLineageText(id)), true);
+  if (node.note) html += factRow("ملاحظة", escapeHtml(node.note), true);
   document.getElementById("infoBar").innerHTML = html;
 }
 
 function renderCard(id) {
   const child = people[id];
-  const isParent = hasChildren(id);
-  const directChildren = getChildrenCount(id);
-  const totalDesc = getDescendantsCount(id);
-  let grandChildren = 0;
-  (child.children || []).forEach(cid => {
-    grandChildren += getChildrenCount(cid);
-  });
   return `
-    <div class="card ${isParent ? "" : "no-children"}" onclick="handleClick('${id}')">
-      <div class="name-row">
-        <div class="name">${child.name}${appState.settings.showCounts ? ` (${directChildren})` : ""}</div>
-        <div class="badges">
-          ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(id))}</div>` : ""}
-          <div class="small-badge who-badge" onclick="event.stopPropagation(); openWhoAmIForPerson('${id}')">من؟</div>
-          <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${id}')">هرم</div>
-          <div class="small-badge" onclick="event.stopPropagation(); openQuickRelationFrom('${id}')">صلة</div>
-          <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${id}')">نسب</div>
-          <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${id}')">إضافة</div>
-        </div>
-      </div>
-      <div class="meta">
-        عدد الأبناء: ${directChildren}<br>
-        عدد الأحفاد: ${grandChildren}<br>
-        إجمالي الذرية: ${totalDesc}<br>
-        ${child.note ? `ملاحظة: ${child.note}<br>` : ""}
-      </div>
-      
+    <div class="card ${hasChildren(id) ? "" : "no-children"}" onclick="handleClick('${id}')">
+      ${renderCardHead(id)}
+      ${renderCardStats(id)}
+      ${child.note ? `<div class="meta">ملاحظة: ${escapeHtml(child.note)}</div>` : ""}
+      ${appState.settings.showStatuses && getStatus(id) ? `<div class="status-badge">${escapeHtml(getStatus(id))}</div>` : ""}
+      ${renderCardActions(id)}
     </div>
   `;
 }
 
 function render(id) {
+  if (!people[id]) id = rootId;
+  historyStack = historyStack.filter(pid => people[pid]);
+  if (!historyStack.length) historyStack = [rootId];
   showTreePage();
   currentPerson = id;
   scrollToTopVerySlow();
@@ -4020,17 +4446,14 @@ function render(id) {
 
   const content = document.getElementById("content");
   const children = people[id].children || [];
+  content.className = "cards";
+  document.getElementById("mainPage").classList.toggle("is-root", id === rootId);
 
   if (id === rootId) {
-    content.className = "cards";
     content.innerHTML = `
-      <div class="card no-children" style="text-align:center;" onclick="showPersonPage('${rootId}')">
-        <div class="name-row" style="justify-content:center;">
-          <div class="name">محمد بن حميد المجيني</div>
-        </div>
-        <div class="meta">
-          اضغط على البطاقة للدخول إلى الأبناء مباشرة.
-        </div>
+      <div class="card root-card" onclick="showPersonPage('${rootId}')">
+        <div class="name">${escapeHtml(people[rootId].name)}</div>
+        <div class="meta">اضغط على البطاقة للدخول إلى الأبناء مباشرة.</div>
         <div class="tag">دخول إلى الأبناء</div>
       </div>
     `;
@@ -4039,26 +4462,15 @@ function render(id) {
 
   if (!children.length) {
     content.innerHTML = `
-      <div class="card no-children">
-        <div class="name-row">
-          <div class="name">${people[id].name}</div>
-          <div class="badges">
-            <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${id}')">طلب إضافة</div>
-            <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${id}')">نسب</div>
-            <div class="small-badge who-badge" onclick="event.stopPropagation(); openWhoAmIForPerson('${id}')">من؟</div>
-            ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(id))}</div>` : ""}
-          </div>
-        </div>
+      <div class="card no-children" style="cursor:default;">
+        ${renderCardHead(id)}
         <div class="meta">لا توجد أسماء أبناء مسجلة حاليًا لهذا الفرع.</div>
-        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
-          <div class="small-badge" onclick="event.stopPropagation(); showHierarchyPage('${id}')">هرم</div>
-        </div>
+        ${renderCardActions(id)}
       </div>
     `;
     return;
   }
 
-  content.className = "cards";
   content.innerHTML = children.map(childId => renderCard(childId)).join("");
 }
 
@@ -4074,39 +4486,30 @@ function renderSearchResults(keyword) {
   results.sort((a, b) => b.score - a.score);
 
   showTreePage();
+  document.getElementById("mainPage").classList.remove("is-root");
   document.getElementById("title").textContent = "نتائج البحث";
   document.getElementById("breadcrumb").innerHTML = "";
   document.getElementById("quickBranches").innerHTML = "";
   document.getElementById("quickBranches").style.display = "none";
 
-  let top = `عدد النتائج: <strong>${results.length}</strong>`;
-  if (results.length > 0) top += `<br>أقرب نتيجة: <strong>${people[results[0].id].name}</strong>`;
+  let top = factRow("عدد النتائج", results.length);
+  if (results.length > 0) top += factRow("أقرب نتيجة", escapeHtml(buildSimpleLineageFromPerson(results[0].id)), true);
   document.getElementById("infoBar").innerHTML = top;
 
+  // سطر النسب تحت كل نتيجة يفرّق بين الأسماء المتشابهة
   const html = results.length
     ? results.map((r, idx) => `
       <div class="card ${hasChildren(r.id) ? "" : "no-children"}" onclick="${hasChildren(r.id) ? `handleClick('${r.id}')` : `showConfirmModal('${r.id}')`}">
-        <div class="name-row">
-          <div class="name">${people[r.id].name}${idx === 0 ? ' <span style="font-size:12px;color:var(--gold);">• الأقرب</span>' : ''}</div>
-          <div class="badges">
-            <div class="small-badge" onclick="event.stopPropagation(); openAddRequestModal('${r.id}')">طلب إضافة</div>
-            <div class="small-badge" onclick="event.stopPropagation(); openLineageModal('${r.id}')">نسب</div>
-            <div class="small-badge who-badge" onclick="event.stopPropagation(); openWhoAmIForPerson('${r.id}')">من؟</div>
-            ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(r.id))}</div>` : ""}
-          </div>
-        </div>
-        <div class="meta">
-          عدد الأبناء المباشرين: ${getChildrenCount(r.id)}<br>
-          الجيل: ${generationLabelShort(getGeneration(r.id))}
-        </div>
-        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
-          
-        </div>
+        ${renderCardHead(r.id, idx === 0 ? ' <span class="nearest">الأقرب</span>' : '')}
+        <div class="meta">${escapeHtml(buildSimpleLineageFromPerson(r.id))}</div>
+        ${renderCardActions(r.id)}
       </div>
     `).join("")
-    : `<div class="card"><div class="meta">لا توجد نتائج مطابقة.</div></div>`;
+    : `<div class="card no-children" style="cursor:default;"><div class="meta">لا توجد نتائج مطابقة.</div></div>`;
 
-  document.getElementById("content").innerHTML = html;
+  const content = document.getElementById("content");
+  content.className = "cards no-anim";
+  content.innerHTML = html;
 }
 
 
@@ -4122,8 +4525,7 @@ function renderSearchResults(keyword) {
       logChange("تعديل إعدادات العرض");
       alert("تم حفظ الإعدادات");
       render(currentPerson);
-      showAdminPage();
-      switchAdminTab("settings");
+      refreshAdminAfterAction("settings");
     }
 
     function changeAdminPassword() {
@@ -4139,6 +4541,8 @@ function renderSearchResults(keyword) {
     function exportBackup() {
       const payload = {
         appState,
+        approvedInfo: getApprovedPersonInfoStore(),
+        people,
         exportedAt: new Date().toISOString()
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
@@ -4153,14 +4557,6 @@ function renderSearchResults(keyword) {
 
     function ensureTreePickerUI() {
       if (document.getElementById("treePickerModal")) return;
-      const style = document.createElement("style");
-      style.id = "treePickerStyle";
-      style.textContent = `
-        .picker-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px;border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:8px}
-        .picker-actions{display:flex;gap:8px;flex-wrap:wrap}
-        .picker-path{background:#faf5ef;border:1px dashed var(--line);padding:10px;border-radius:12px;line-height:1.9}
-      `;
-      document.head.appendChild(style);
       const modal = document.createElement("div");
       modal.className = "modal";
       modal.id = "treePickerModal";
@@ -4203,13 +4599,13 @@ function renderSearchResults(keyword) {
       document.getElementById("treePickerTitle").textContent = treePickerState.title;
       const lineage = getLineage(currentId).map(id => people[id]?.name || "").filter(Boolean).join(" ← ");
       document.getElementById("treePickerPath").innerHTML = `
-        <strong>الموضع الحالي:</strong><br>${current.name}<br><br>
-        <strong>التسلسل:</strong><br>${lineage}
+        <strong>الموضع الحالي:</strong><br>${escapeHtml(current.name)}<br><br>
+        <strong>التسلسل:</strong><br>${escapeHtml(lineage)}
       `;
       const children = current.children || [];
       const rows = children.length ? children.map(cid => `
         <div class="picker-row">
-          <div>${people[cid].name}</div>
+          <div>${escapeHtml(people[cid].name)}</div>
           <div class="picker-actions">
             <button class="btn-soft" onclick="treePickerOpen('${cid}')">دخول</button>
             <button class="btn-main" onclick="treePickerSelect('${cid}')">اختيار</button>
@@ -4237,7 +4633,7 @@ function renderSearchResults(keyword) {
         const input = document.getElementById(inputId);
         const label = document.getElementById(labelId);
         if (input) input.value = id;
-        if (label) label.innerHTML = `<strong>الاسم المختار:</strong> ${people[id].name}<br><span class="small">${getLineage(id).map(x=>people[x].name).join(" ← ")}</span>`;
+        if (label) label.innerHTML = `<strong>الاسم المختار:</strong> ${escapeHtml(people[id].name)}<br><span class="small">${escapeHtml(getLineage(id).map(x=>people[x].name).join(" ← "))}</span>`;
       });
     }
 
@@ -4249,7 +4645,7 @@ function renderSearchResults(keyword) {
         box.textContent = "اختر الاسم أولًا.";
         return;
       }
-      box.innerHTML = `<strong>التسلسل:</strong><br>${getLineage(id).map(x => people[x].name).join(" ← ")}`;
+      box.innerHTML = `<strong>التسلسل:</strong><br>${escapeHtml(getLineage(id).map(x => people[x].name).join(" ← "))}`;
     }
 
     
@@ -4423,10 +4819,10 @@ function relationBetweenDeep(idA, idB) {
         return;
       }
       const count = (people[a].children || []).length;
-      box.innerHTML = `<strong>معاينة:</strong> سيتم نسخ ${count} من الأبناء المباشرين من <strong>${people[a].name}</strong> إلى <strong>${people[b].name}</strong> بدون حذف أو تكرار.`;
+      box.innerHTML = `<strong>معاينة:</strong> سيتم نسخ ${count} من الأبناء المباشرين من <strong>${escapeHtml(people[a].name)}</strong> إلى <strong>${escapeHtml(people[b].name)}</strong> بدون حذف أو تكرار.`;
     }
 
-    function executeSpouseCopy() {
+    async function executeSpouseCopy() {
       const a = document.getElementById("spouseCopySourceId")?.value;
       const b = document.getElementById("spouseCopyTargetId")?.value;
       if (!a || !b || !people[a] || !people[b]) {
@@ -4447,6 +4843,11 @@ function relationBetweenDeep(idA, idB) {
         cloneBranchForSpouse(childId, b);
         copied += 1;
       });
+      // حفظ الأسماء المنسوخة الجديدة في قاعدة البيانات (كانت تبقى على الجهاز فقط)
+      const copiedNewIds = Object.keys(collectSubtreeSnapshot(b)).filter(id => !targetSnapshot[id]);
+      if (!(await persistPeopleIdsToSupabase(copiedNewIds))) {
+        alert("تم النسخ على هذا الجهاز، لكن تعذر حفظه في قاعدة البيانات.");
+      }
       saveState();
       logChange(`نسخ أبناء بين زوجين: ${people[a].name} ← ${people[b].name}`, {
         actionType: "spouse_copy",
@@ -4457,18 +4858,96 @@ function relationBetweenDeep(idA, idB) {
         snapshot: targetSnapshot
       });
       alert(`تم نسخ الأبناء (${copied}) بدون حذف الأصل.`);
-      showAdminPage();
-      switchAdminTab('add');
+      refreshAdminAfterAction('add');
     }
 
 
-    function exportAllNamesPDF(){ alert("تم إيقاف التصدير مؤقتًا في هذه النسخة النظيفة."); }
+    // التصدير يفتح صفحة طباعة، ومنها "حفظ بصيغة PDF" (يدعم العربية بدون مكتبات)
+    function openPrintWindow(title, bodyHtml) {
+      const w = window.open("", "_blank");
+      if (!w) {
+        alert("اسمح بفتح النوافذ المنبثقة لهذا الموقع لإتمام التصدير.");
+        return;
+      }
+      w.document.open();
+      w.document.write(`<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>${escapeHtml(title)}</title>
+<style>
+  body{font-family:Tahoma,Arial,sans-serif;color:#18232f;margin:24px;line-height:1.9}
+  h1{font-size:20px;margin:0 0 4px;color:#1d3b5c}
+  .sub{font-size:12px;color:#4f5d6b;margin-bottom:14px}
+  ul{list-style:none;margin:0;padding:0 18px 0 0;border-right:1px solid #cbd5df}
+  body > ul{border-right:none;padding:0}
+  li{font-size:13px;break-inside:avoid}
+  li > span{display:inline-block;padding:1px 0}
+  .row{border-bottom:1px solid #e2e9f0;padding:6px 0;font-size:13px}
+  .row small{color:#4f5d6b}
+</style>
+</head>
+<body>
+<h1>${escapeHtml(title)}</h1>
+<div class="sub">تاريخ التصدير: ${escapeHtml(new Date().toLocaleString("ar"))}</div>
+${bodyHtml}
+</body>
+</html>`);
+      w.document.close();
+      w.focus();
+      setTimeout(() => { try { w.print(); } catch (e) {} }, 350);
+    }
 
-    function exportLatestUpdatePDF(){ alert("تم إيقاف التصدير مؤقتًا في هذه النسخة النظيفة."); }
+    function buildNamesTreeHtml(id) {
+      const node = people[id];
+      if (!node) return "";
+      const kids = node.children || [];
+      return `<li><span>${escapeHtml(node.name)}${kids.length ? ` (${kids.length})` : ""}</span>${kids.length ? `<ul>${kids.map(buildNamesTreeHtml).join("")}</ul>` : ""}</li>`;
+    }
 
-    function importBackup(){ alert("تم إيقاف الاستيراد مؤقتًا في هذه النسخة النظيفة."); }
+    function exportAllNamesPDF(){
+      openPrintWindow(
+        "شجرة عائلة محمد بن حميد المجيني — جميع الأسماء (" + totalPeopleCount() + ")",
+        `<ul>${buildNamesTreeHtml(rootId)}</ul>`
+      );
+    }
 
-    if (!history.state) history.replaceState({ personId: rootId }, "", "#" + rootId);
+    function exportLatestUpdatePDF(){
+      const log = appState.changeLog || [];
+      if (!log.length) return alert("لا توجد تحديثات مسجلة بعد.");
+      openPrintWindow(
+        "شجرة عائلة محمد بن حميد المجيني — آخر التحديثات",
+        log.map(item => `<div class="row">${escapeHtml(item.text)}<br><small>${escapeHtml(item.time)} — ${escapeHtml(item.by || "")}</small></div>`).join("")
+      );
+    }
+
+    function importBackup(){
+      const raw = (document.getElementById("backupImport")?.value || "").trim();
+      if (!raw) return alert("الصق محتوى ملف النسخة الاحتياطية أولًا.");
+      let payload;
+      try { payload = JSON.parse(raw); } catch (e) { return alert("النص ليس JSON صالحًا."); }
+      const incoming = payload && typeof payload === "object" && !Array.isArray(payload) ? (payload.appState || payload) : null;
+      if (!incoming || typeof incoming !== "object" || Array.isArray(incoming)
+          || (!incoming.settings && !incoming.statuses && !incoming.changeLog)) {
+        return alert("الملف لا يحتوي نسخة احتياطية معروفة.");
+      }
+      if (!confirm("سيتم استبدال حالات الفروع والأرشيف والإعدادات والمعلومات المعتمدة بمحتوى النسخة. هل تريد المتابعة؟")) return;
+      appState = {
+        ...defaultState(),
+        ...incoming,
+        adminPassword: appState.adminPassword,
+        settings: { ...defaultState().settings, ...(incoming.settings || {}) }
+      };
+      if (payload.approvedInfo && typeof payload.approvedInfo === "object" && !Array.isArray(payload.approvedInfo)) {
+        saveApprovedPersonInfoStore(payload.approvedInfo);
+      }
+      logChange("استيراد نسخة احتياطية");
+      alert("تم الاستيراد.");
+      refreshAdminAfterAction("backup");
+    }
+
+    // لا تُستبدل الروابط العميقة (#person= / #about ...) عند أول فتح
+    if (!history.state && !location.hash && !location.search) history.replaceState({ personId: rootId }, "", "#" + rootId);
 
     window.onpopstate = function() {
       try {
@@ -4502,7 +4981,12 @@ function relationBetweenDeep(idA, idB) {
       lastScrollY = currentY;
     }, { passive: true });
 
-    initApp();
+    // يبدأ التطبيق بعد تحميل كل السكربتات اللاحقة (الصلاحيات، توحيد الأسماء...)
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initApp, { once: true });
+    } else {
+      initApp();
+    }
   </script>
 
 
@@ -4605,7 +5089,7 @@ function showQuickRelationResult(idA, idB){
   const m = document.getElementById('quickRelationModal');
   const first = document.getElementById('quickRelationFirstLabel');
   const box = document.getElementById('quickRelationResult');
-  if(first) first.innerHTML = `<strong>الاسم الأول:</strong> ${getCompactName(idA)}<br><strong>الاسم الثاني:</strong> ${getCompactName(idB)}`;
+  if(first) first.innerHTML = `<strong>الاسم الأول:</strong> ${escapeHtml(getCompactName(idA))}<br><strong>الاسم الثاني:</strong> ${escapeHtml(getCompactName(idB))}`;
   let result = null;
   try{
     if(typeof relationBetweenDeep === 'function'){
@@ -4624,12 +5108,12 @@ function showQuickRelationResult(idA, idB){
     const pathB = (result.pathB || getLineage(idB) || []).map(id => people[id]?.name || '').filter(Boolean).reverse().slice(0,5).join(' ');
     box.innerHTML = `
       <div class="list-item" style="margin-top:10px; line-height:2;">
-        <strong>النتيجة:</strong> ${getCompactName(idB)} هو ${result.label || 'قريبك'} بالنسبة إلى ${getCompactName(idA)}<br>
-        ${result.explanation ? `<strong>الشرح:</strong> ${result.explanation}<br>` : ''}
-        <strong>الأصل المشترك:</strong> ${commonName}<br>
-        ${result.summary ? `<strong>الملخص:</strong> ${result.summary}<br>` : ''}<br>
-        <strong>${getCompactName(idA)}</strong><br>${pathA}<br><br>
-        <strong>${getCompactName(idB)}</strong><br>${pathB}
+        <strong>النتيجة:</strong> ${escapeHtml(getCompactName(idB))} هو ${escapeHtml(result.label || 'قريبك')} بالنسبة إلى ${escapeHtml(getCompactName(idA))}<br>
+        ${result.explanation ? `<strong>الشرح:</strong> ${escapeHtml(result.explanation)}<br>` : ''}
+        <strong>الأصل المشترك:</strong> ${escapeHtml(commonName)}<br>
+        ${result.summary ? `<strong>الملخص:</strong> ${escapeHtml(result.summary)}<br>` : ''}<br>
+        <strong>${escapeHtml(getCompactName(idA))}</strong><br>${escapeHtml(pathA)}<br><br>
+        <strong>${escapeHtml(getCompactName(idB))}</strong><br>${escapeHtml(pathB)}
       </div>`;
   }
   if(m) m.classList.add('active');
@@ -4862,15 +5346,15 @@ function openRequestReadModalByData(_id, r){
   }
   body.innerHTML = `
     <div><strong>النوع:</strong> ${r.children_text === "INFO_SHARE" ? "قصة/معلومة" : "إضافة"}</div>
-    <div><strong>الاسم المرتبط:</strong> ${((people[r.parent_id] ? people[r.parent_id].name : r.parent_id) || "غير معروف")}</div>
-    ${r.sender_name ? `<div><strong>المرسل:</strong> ${r.sender_name}</div>` : ""}
-    ${r.child_name ? `<div><strong>الاسم المستهدف:</strong> ${r.child_name}</div>` : ""}
-    ${src ? `<div><strong>المصدر:</strong> ${src}</div>` : ""}
-    ${r.children_text && r.children_text !== "INFO_SHARE" ? `<div><strong>الأبناء المقترحون:</strong> ${r.children_text}</div>` : ""}
-    ${main ? `<div class="subbox" style="margin-top:10px;white-space:pre-line;max-height:45vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;">${main}</div>` : ""}
+    <div><strong>الاسم المرتبط:</strong> ${escapeHtml((people[r.parent_id] ? people[r.parent_id].name : r.parent_id) || "غير معروف")}</div>
+    ${r.sender_name ? `<div><strong>المرسل:</strong> ${escapeHtml(r.sender_name)}</div>` : ""}
+    ${r.child_name ? `<div><strong>الاسم المستهدف:</strong> ${escapeHtml(r.child_name)}</div>` : ""}
+    ${src ? `<div><strong>المصدر:</strong> ${escapeHtml(src)}</div>` : ""}
+    ${r.children_text && r.children_text !== "INFO_SHARE" ? `<div><strong>الأبناء المقترحون:</strong> ${escapeHtml(r.children_text)}</div>` : ""}
+    ${main ? `<div class="subbox" style="margin-top:10px;white-space:pre-line;max-height:45vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;">${escapeHtml(main)}</div>` : ""}
     <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
-      <button class="btn-ok" onclick="markSupabaseRequestDone(${r.id}); closeRequestReadModal();">${r.children_text === "INFO_SHARE" ? "اعتماد القصة/المعلومة" : "اعتماد"}</button>
-      <button class="btn-danger" onclick="deleteSupabaseRequest(${r.id}); closeRequestReadModal();">حذف</button>
+      <button class="btn-ok" onclick="markSupabaseRequestDone(${jsArg(r.id)}); closeRequestReadModal();">${r.children_text === "INFO_SHARE" ? "اعتماد القصة/المعلومة" : "اعتماد"}</button>
+      <button class="btn-danger" onclick="deleteSupabaseRequest(${jsArg(r.id)}); closeRequestReadModal();">حذف</button>
     </div>
   `;
   const m = document.getElementById('requestReadModal');
@@ -4946,13 +5430,13 @@ function removeSubtreeNodes(rootId){
 }
 
 
-function refreshAdminAfterAction(tabName = "overview") {
-      showAdminPage();
-      switchAdminTab(tabName);
-      render(currentPerson);
-    }
+// يعيد تحميل صفحة الإدارة ثم يفتح نفس التبويب (كان يرجع لصفحة الشجرة وتبويب الرئيسية)
+async function refreshAdminAfterAction(tabName = "overview") {
+  await showAdminPage();
+  if (currentView === "admin") switchAdminTab(tabName);
+}
 
-function undoArchiveAction(entryId){
+async function undoArchiveAction(entryId){
   const idx = (appState.masterArchive || []).findIndex(x => x.id === entryId);
   if(idx === -1){ alert("عملية الأرشيف غير موجودة"); return; }
   const item = appState.masterArchive[idx];
@@ -4962,6 +5446,10 @@ function undoArchiveAction(entryId){
     if(people[item.personId]){
       const currentName = people[item.personId].name;
       people[item.personId].name = item.oldName;
+      if (peopleTableAvailable) {
+        const res = await supabaseClient.from("people").update({ name: item.oldName }).eq("id", item.personId);
+        if (res && res.error) console.warn("Supabase rename undo failed.", res.error);
+      }
       logChange("تراجع عن تعديل اسم: " + currentName + " ← " + item.oldName, {undoable:false});
       saveState();
       alert("تم التراجع عن تعديل الاسم");
@@ -4986,6 +5474,9 @@ function undoArchiveAction(entryId){
 
   if(item.actionType === "confirmed_delete"){
     restoreDeletedSnapshot(item);
+    if (!(await persistPeopleIdsToSupabase(Object.keys(item.snapshot || {})))) {
+      alert("تم الإرجاع على هذا الجهاز، لكن تعذر حفظه في قاعدة البيانات.");
+    }
     logChange("تراجع عن حذف نهائي: " + (item.rootName || item.personId), {undoable:false});
     saveState();
     alert("تم إرجاع المحذوف بعد التراجع");
@@ -4995,6 +5486,8 @@ function undoArchiveAction(entryId){
 
   if(item.actionType === "spouse_copy"){
     if(item.targetRootId && item.snapshot){
+      const copiedIdsToRemove = Object.keys(collectSubtreeSnapshot(item.targetRootId)).filter(id => !item.snapshot[id]);
+      await deletePeopleIdsFromSupabase(copiedIdsToRemove);
       removeSubtreeNodes(item.targetRootId);
       restoreDeletedSnapshot({
         personId: item.targetRootId,
@@ -5079,9 +5572,15 @@ async function confirmPendingDelete(id){
         const { error } = await supabaseClient.from("people").delete().in("id", ids);
         if(error){
           console.error(error);
+          alert("تعذر الحذف من قاعدة البيانات، لم يتم تأكيد الحذف.");
+          return;
         }
       }
-    }catch(e){ console.error(e); }
+    }catch(e){
+      console.error(e);
+      alert("تعذر الحذف من قاعدة البيانات، لم يتم تأكيد الحذف.");
+      return;
+    }
   }
 
   appState.pendingDeleteRequests.splice(idx,1);
@@ -5096,9 +5595,7 @@ async function confirmPendingDelete(id){
   });
   saveState();
   alert("تم تأكيد الحذف نهائيًا");
-  showAdminPage();
-  switchAdminTab("requests");
-  render(currentPerson);
+  refreshAdminAfterAction("requests");
 }
 
 function rejectPendingDelete(id){
@@ -5111,9 +5608,7 @@ function rejectPendingDelete(id){
   logChange("رفض حذف وإرجاع الاسم/الفرع: " + (item.rootName || item.personId));
   saveState();
   alert("تم إرجاع الاسم/الفرع المحذوف");
-  showAdminPage();
-  switchAdminTab("requests");
-  render(currentPerson);
+  refreshAdminAfterAction("requests");
 }
 
 (function(){
@@ -5132,14 +5627,14 @@ function rejectPendingDelete(id){
             pending.length
             ? pending.map(item => `
               <div class="list-item">
-                <strong>${item.rootName || item.personId}</strong><br>
-                <span class="small">الأب: ${item.parentName || "غير معروف"}</span><br>
-                <span class="small">الوقت: ${item.createdAt || ""}</span><br>
-                <span class="small">المنفذ: ${item.by || ""}</span><br>
+                <strong>${escapeHtml(item.rootName || item.personId)}</strong><br>
+                <span class="small">الأب: ${escapeHtml(item.parentName || "غير معروف")}</span><br>
+                <span class="small">الوقت: ${escapeHtml(item.createdAt || "")}</span><br>
+                <span class="small">المنفذ: ${escapeHtml(item.by || "")}</span><br>
                 <span class="small">عدد العناصر في الفرع: ${Object.keys(item.snapshot || {}).length}</span>
                 <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
-                  <button class="btn-ok" onclick="confirmPendingDelete(${item.id})">تأكيد الحذف</button>
-                  <button class="btn-soft" onclick="rejectPendingDelete(${item.id})">إرجاع المحذوف</button>
+                  <button class="btn-ok" onclick="confirmPendingDelete(${Number(item.id)})">تأكيد الحذف</button>
+                  <button class="btn-soft" onclick="rejectPendingDelete(${Number(item.id)})">إرجاع المحذوف</button>
                 </div>
               </div>
             `).join("")
@@ -5172,12 +5667,29 @@ function rejectPendingDelete(id){
     ["btnAdminPwdEnter", () => enterAdmin()],
     ["btnAddReqCancel", () => closeAddRequestModal()],
     ["btnAddReqSubmit", () => submitAddRequest()],
-    ["btnLineageClose", () => closeLineageModal()],
-    ["btnExitAdmin", () => exitAdmin()]
+    ["btnLineageClose", () => closeLineageModal()]
   ];
   bindings.forEach(([id, handler]) => {
     const el = document.getElementById(id);
     if (el) el.addEventListener("click", handler);
+  });
+
+  // Enter في حقل كلمة المرور = زر دخول
+  document.getElementById("adminPasswordInput").addEventListener("keydown", function(e){
+    if (e.key === "Enter") { e.preventDefault(); enterAdmin(); }
+  });
+
+  // أزرار البطاقات الصغيرة تعمل من لوحة المفاتيح أيضًا
+  document.addEventListener("keydown", function(e){
+    if ((e.key === "Enter" || e.key === " ") && e.target.matches && e.target.matches('[role="button"]')) {
+      e.preventDefault();
+      e.target.click();
+    }
+  });
+
+  // زر "خروج من الإدارة" يُنشأ لاحقًا مع صفحة الإدارة، فيُربط بالتفويض (كان لا يعمل)
+  document.addEventListener("click", function(e){
+    if (e.target.closest("#btnExitAdmin")) exitAdmin();
   });
 })();
 </script>
@@ -5286,8 +5798,25 @@ document.addEventListener("click", function(e){
     "اشواق": "أشواق",
     "انور": "أنور",
     "امال": "آمال",
-    "اميره": "أميرة"
+    "اميره": "أميرة",
+    "صالحه": "صالحة",
+    "عاليه": "عالية",
+    "امينه": "أمينة",
+    "نعيمه": "نعيمة"
   };
+
+  // المفاتيح تُوحَّد بنفس طريقة البحث حتى تتطابق كل الصيغ (مثل عائشه / عايشه)
+  const NAME_CANONICAL_LOOKUP = {};
+  Object.keys(NAME_CANONICAL_MAP).forEach(key => {
+    NAME_CANONICAL_LOOKUP[String(key)
+      .replace(/\u0640/g, "")
+      .replace(/[إأآٱ]/g, "ا")
+      .replace(/ى/g, "ي")
+      .replace(/ؤ/g, "و")
+      .replace(/ئ/g, "ي")
+      .replace(/ة/g, "ه")
+      .trim()] = NAME_CANONICAL_MAP[key];
+  });
 
   function normalizeLooseArabic(str){
     return String(str || "")
@@ -5305,7 +5834,7 @@ document.addEventListener("click", function(e){
     const raw = String(word || "").trim();
     if (!raw) return raw;
     const loose = normalizeLooseArabic(raw);
-    return NAME_CANONICAL_MAP[loose] || raw;
+    return NAME_CANONICAL_LOOKUP[loose] || raw;
   }
 
   function canonicalizeNameText(text){
@@ -5459,8 +5988,25 @@ document.addEventListener("click", function(e){
     "اشواق": "أشواق",
     "انور": "أنور",
     "امال": "آمال",
-    "اميره": "أميرة"
+    "اميره": "أميرة",
+    "صالحه": "صالحة",
+    "عاليه": "عالية",
+    "امينه": "أمينة",
+    "نعيمه": "نعيمة"
   };
+
+  // المفاتيح تُوحَّد بنفس طريقة البحث حتى تتطابق كل الصيغ (مثل عائشه / عايشه)
+  const NAME_CANONICAL_LOOKUP = {};
+  Object.keys(NAME_CANONICAL_MAP).forEach(key => {
+    NAME_CANONICAL_LOOKUP[String(key)
+      .replace(/\u0640/g, "")
+      .replace(/[إأآٱ]/g, "ا")
+      .replace(/ى/g, "ي")
+      .replace(/ؤ/g, "و")
+      .replace(/ئ/g, "ي")
+      .replace(/ة/g, "ه")
+      .trim()] = NAME_CANONICAL_MAP[key];
+  });
 
   function normalizeLooseArabic(str){
     return String(str || "")
@@ -5478,7 +6024,7 @@ document.addEventListener("click", function(e){
     const raw = String(word || "").trim();
     if (!raw) return raw;
     const loose = normalizeLooseArabic(raw);
-    return NAME_CANONICAL_MAP[loose] || raw;
+    return NAME_CANONICAL_LOOKUP[loose] || raw;
   }
 
   function canonicalizeNameText(text){
@@ -5570,8 +6116,8 @@ document.addEventListener("click", function(e){
     } catch(e) {}
   }
 
-  normalizeExistingPeopleNames();
-  refreshUIIfPossible();
+  // تُستدعى من initApp بعد كل تحميل للبيانات (محلي ثم Supabase)
+  window.normalizeMujainiExistingNames = normalizeExistingPeopleNames;
 })();
 </script>
 
