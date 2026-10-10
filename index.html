@@ -11,7 +11,18 @@
   <meta property="og:locale" content="ar_OM" />
   <meta property="og:title" content="شجرة عائلة محمد بن حميد المجيني" />
   <meta property="og:description" content="ابحث عن اسمك، تتبّع نسبك، واعرف صلة القرابة بين أفراد العائلة." />
+  <meta property="og:url" content="https://almujaini.vercel.app/" />
+  <meta property="og:image" content="https://almujaini.vercel.app/og-image.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="شعار قبيلة المجيني مع عنوان شجرة العائلة" />
+  <meta name="twitter:card" content="summary_large_image" />
   <link rel="icon" href="emblem.webp" type="image/webp" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="شجرة المجيني" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <!-- الخطوط تُحمَّل بدون تعطيل ظهور الصفحة، وإن تعذّر تحميلها يُستخدم خط الجهاز -->
@@ -361,6 +372,15 @@
   .footer .line0{font-size:13px;color:#a9b8c8}
   .footer .line1{font-family:var(--font-display);font-size:23px;font-weight:700;color:var(--gold-light)}
   .footer .line2{font-family:var(--font-display);font-size:17px;color:var(--on-dark)}
+  .install-btn{
+    margin-top:14px;
+    background:rgba(255,255,255,.08);
+    color:var(--gold-light);
+    border-color:var(--gold-bright);
+    border-radius:999px;
+    padding:10px 20px 7px;
+  }
+  .install-btn:hover{background:rgba(var(--gold-rgb),.22)}
 
   /* ---------- 6) بطاقات الأسماء ---------- */
   .cards{
@@ -411,6 +431,26 @@
     color:var(--text);
   }
   .name .nearest{font-family:var(--font-ui);font-size:12px;font-weight:500;color:var(--gold)}
+  .name-block{flex:1;min-width:0}
+  .name-sub{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:2px;font-size:13px;color:var(--muted)}
+  .mercy{font-family:var(--font-display);font-size:15px;color:var(--gold)}
+  /* صورة الشخص: دائرة بإطار ذهبي */
+  .avatar{
+    flex:none;
+    width:46px;
+    height:46px;
+    border-radius:50%;
+    object-fit:cover;
+    background:var(--tint);
+    box-shadow:0 0 0 2px var(--card), 0 0 0 3px var(--gold-bright);
+  }
+  .avatar-lg{display:block;width:104px;height:104px;margin:4px auto 10px}
+  .person-title .name-sub{justify-content:center;font-family:var(--font-ui)}
+  .photo-row{display:flex;align-items:center;gap:12px}
+  .photo-preview:empty{display:none}
+  .photo-preview .avatar-lg{margin:0;width:76px;height:76px}
+  .photo-fields{flex:1;display:grid;gap:8px;min-width:0}
+  .warn-box{background:var(--accent-soft);border-color:var(--gold-bright)}
   .gen-badge{
     flex-shrink:0;
     margin-top:5px;
@@ -616,6 +656,106 @@
   .hier-card.selected{background:var(--accent-soft);border-color:var(--gold-bright)}
   .hier-card.hier-root{flex:0 1 auto;display:block;text-align:center;font-family:var(--font-display);font-size:21px;font-weight:700;padding:14px 26px}
 
+  /* الشجرة المرسومة */
+  .hero-actions{margin-top:16px;animation:riseIn .6s .4s var(--ease) backwards}
+  .hero-cta{
+    background:rgba(255,255,255,.08);
+    color:var(--gold-light);
+    border-color:var(--gold-bright);
+    border-radius:999px;
+    padding:11px 22px 8px;
+    font-size:15px;
+    font-weight:700;
+  }
+  .hero-cta:hover{background:rgba(var(--gold-rgb),.22)}
+  .tree-page{max-width:none;padding:12px 10px 10px}
+  .tree-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+  .tree-head h2{margin:0;font-family:var(--font-display);font-size:25px;line-height:1.4;color:var(--gold-light)}
+  .tree-tools{display:flex;gap:6px;flex-wrap:wrap}
+  .tree-tools button,
+  .tree-zoom button{
+    background:rgba(255,255,255,.07);
+    color:var(--on-dark);
+    border-color:rgba(var(--gold-rgb),.42);
+    border-radius:999px;
+    padding:8px 13px 5px;
+    font-size:13.5px;
+  }
+  .tree-tools button:hover,
+  .tree-zoom button:hover{background:rgba(255,255,255,.14);color:var(--gold-light)}
+  .tree-canvas{
+    position:relative;
+    height:calc(100vh - 200px);
+    height:calc(100dvh - 200px);
+    min-height:380px;
+    overflow:hidden;
+    border:1px solid rgba(var(--gold-rgb),.5);
+    border-radius:20px;
+    background:
+      radial-gradient(700px 380px at 50% 0%, rgba(var(--gold-rgb),.14), transparent 70%),
+      linear-gradient(180deg, #153559 0%, #0d2540 100%);
+    box-shadow:var(--shadow), inset 0 0 0 5px rgba(8,22,39,.38);
+    touch-action:none;
+    cursor:grab;
+    -webkit-user-select:none;
+    user-select:none;
+  }
+  .tree-canvas.is-dragging{cursor:grabbing}
+  .tree-canvas svg{display:block;width:100%;height:100%}
+  .tlink{fill:none;stroke:var(--gold-bright);stroke-width:1.6;opacity:.8}
+  .tnode{cursor:pointer;outline:none}
+  .tnode rect{fill:var(--card);stroke:var(--accent-line);stroke-width:1.2;transition:fill .18s ease, stroke .18s ease}
+  .tnode > text{
+    font-family:var(--font-display);
+    font-weight:700;
+    fill:var(--text);
+    text-anchor:middle;
+    dominant-baseline:central;
+    direction:rtl;
+    pointer-events:none;
+  }
+  .tnode:hover rect{stroke:var(--gold-bright)}
+  .tnode:focus-visible rect{stroke:var(--gold-light);stroke-width:3}
+  .tnode.is-root rect{fill:var(--main);stroke:var(--gold-bright);stroke-width:2}
+  .tnode.is-root > text{fill:var(--gold-light)}
+  .tnode.is-deceased rect{fill:#ebe4d3}
+  .tnode.is-selected rect{fill:var(--accent-soft);stroke:var(--gold-bright);stroke-width:3}
+  .tnode.is-root.is-selected rect{fill:var(--main2)}
+  .tnode.is-new{animation:fadeIn .4s ease}
+  .tcount circle{fill:var(--main);stroke:var(--gold-bright);stroke-width:1.2}
+  .tcount text{
+    font-family:var(--font-ui);
+    font-size:11.5px;
+    font-weight:700;
+    fill:var(--gold-light);
+    text-anchor:middle;
+    dominant-baseline:central;
+    pointer-events:none;
+  }
+  .tree-hint{position:absolute;top:10px;right:14px;left:60px;font-size:12.5px;color:#a9b8c8;pointer-events:none}
+  .tree-zoom{position:absolute;top:8px;left:10px;display:grid;gap:6px}
+  .tree-zoom button{width:38px;height:38px;padding:0;font-size:20px;line-height:1;background:rgba(9,24,43,.7)}
+  .tree-bar{
+    position:absolute;
+    right:10px;
+    left:10px;
+    bottom:10px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px 12px;
+    flex-wrap:wrap;
+    padding:10px 12px;
+    background:rgba(251,247,238,.97);
+    border:1px solid var(--accent-line);
+    border-top:3px solid var(--gold-bright);
+    border-radius:16px;
+    box-shadow:var(--shadow-soft);
+    cursor:default;
+  }
+  .tree-bar .who{flex:1 1 220px;min-width:0;font-family:var(--font-display);font-weight:700;font-size:18px;line-height:1.6}
+  .tree-bar-actions{display:flex;gap:6px;flex-wrap:wrap}
+
   /* ---------- 10) الإدارة ---------- */
   .admin-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
   .admin-tabs button{background:var(--soft);color:var(--text);border-color:var(--line);border-radius:999px;padding:8px 13px 5px}
@@ -739,7 +879,10 @@
     .brand{justify-content:center;font-size:19px;padding:0 40px}
     .brand::before{width:30px;height:30px}
     .top-actions{justify-content:space-around}
-    .top-actions button{padding:8px 9px 5px;font-size:14px}
+    .top-actions button{padding:8px 7px 5px;font-size:14px}
+    .top-actions .ico{display:none}
+    .tree-head h2{font-size:21px}
+    .tree-canvas{height:calc(100vh - 250px);height:calc(100dvh - 250px)}
     .top-actions .icon-btn{position:absolute;top:7px;left:10px;width:34px;height:34px;font-size:15px;margin:0;padding:0}
     .long-label{display:none}
     .hero{padding:24px 14px 58px;border-radius:22px}
@@ -762,8 +905,9 @@
       <div class="brand">شجرة عائلة محمد بن حميد المجيني</div>
       <div class="top-actions">
         <button id="btnTopRoot">الرئيسية</button>
-        <button id="btnTopAbout">📜 نبذة<span class="long-label"> عن قبيلة المجيني</span></button>
-        <button id="btnTopShareInfo">📝 شاركنا بمعلومة</button>
+        <button id="btnTopTree"><span class="ico">🌳 </span>الشجرة</button>
+        <button id="btnTopAbout"><span class="ico">📜 </span>نبذة<span class="long-label"> عن قبيلة المجيني</span></button>
+        <button id="btnTopShareInfo"><span class="ico">📝 </span>شاركنا<span class="long-label"> بمعلومة</span></button>
         <button id="btnTopWho">من أكون؟</button>
         <button id="btnTopAdmin" class="icon-btn">⚙️</button>
       </div>
@@ -775,6 +919,9 @@
       <div class="hero-emblem"><img src="emblem.webp" alt="شعار قبيلة المجيني، آل جابر" width="148" height="148" /></div>
       <h1>شجرة عائلة محمد بن حميد المجيني</h1>
       <p>واجهة عائلية تفاعلية للبحث والتنقل بين الفروع، مع صفحة نبذة عن القبيلة، وملاحظات ومقترحات، ولوحة إدارة مستقلة.</p>
+      <div class="hero-actions">
+        <button id="btnHeroTree" class="hero-cta">عرض الشجرة المرسومة</button>
+      </div>
       <svg class="hero-sea" viewBox="0 0 1200 48" preserveAspectRatio="none" aria-hidden="true">
         <path class="w2" d="M-300 30 Q-150 14 0 30 T300 30 T600 30 T900 30 T1200 30 T1500 30 T1800 30 T2100 30 T2400 30 V48 H-300 Z" />
         <path class="w1" d="M0 28 Q150 8 300 28 T600 28 T900 28 T1200 28 T1500 28 T1800 28 T2100 28 T2400 28 V48 H0 Z" />
@@ -819,6 +966,7 @@
       <div class="line0">إعداد هذا العمل</div>
       <div class="line1">محمد بن علي بن حسن المجيني</div>
       <div class="line2">اللهم اغفر لأحيائنا وأمواتنا وارحمهم برحمتك الواسعة</div>
+      <button id="btnInstallApp" class="install-btn hidden">تثبيت الشجرة كتطبيق على الجوال</button>
     </div>
   </div>
 
@@ -827,6 +975,7 @@
   <div class="page hidden" id="adminPage"></div>
   <div class="page hidden" id="hierarchyPage"></div>
   <div class="page hidden" id="whoAmIProfilePage"></div>
+  <div class="page hidden tree-page" id="treePage"></div>
 
 
   
@@ -945,7 +1094,12 @@
 const contactNumber = "96896040406";
 const rootId = "p1";
 const STORAGE_KEY = "mujaini_tree_app_v5";
-const DEFAULT_PASSWORD = "Mmujaini34";
+
+// حسابا الإدارة في Supabase Auth. كلمة المرور تُفحص في الخادم فقط: لا تُكتب في الكود ولا تُحفظ في المتصفح.
+const ADMIN_ACCOUNTS = [
+  { role: "master", email: "master@almujaini.vercel.app" },
+  { role: "editor_admin", email: "editor@almujaini.vercel.app" }
+];
 
 const SUPABASE_URL = "https://fjjavswshxsjvocrkjox.supabase.co";
 const SUPABASE_KEY = "sb_publishable_RnfnO_UOIrny2cjCPvLoyg__pTvE9Ge";
@@ -960,7 +1114,7 @@ function createOfflineSupabaseStub() {
     },
     apply() { return chain; }
   });
-  return { from: () => chain };
+  return { from: () => chain, rpc: () => chain, storage: { from: () => chain }, auth: null };
 }
 
 // مهلة للطلبات حتى لا تبقى الصفحة معلّقة إذا تأخر الخادم
@@ -971,7 +1125,11 @@ function supabaseFetchWithTimeout(input, init) {
 }
 
 const supabaseClient = (window.supabase && typeof window.supabase.createClient === "function")
-  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { global: { fetch: supabaseFetchWithTimeout } })
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+      // الجلسة في الذاكرة فقط: تحديث الصفحة يخرجك من الإدارة كما كان
+      auth: { persistSession: false, autoRefreshToken: true, detectSessionInUrl: false },
+      global: { fetch: supabaseFetchWithTimeout }
+    })
   : createOfflineSupabaseStub();
 
 // ---- أدوات حماية النصوص قبل إدخالها في الصفحة ----
@@ -2116,7 +2274,8 @@ let people = {
           name: node.name || "",
           note: node.note || "",
           parent_id: parentId,
-          sort_order: sortOrder
+          sort_order: sortOrder,
+          ...personDetailColumns(node)
         });
         (node.children || []).forEach((childId, index) => walk(childId, id, index));
       }
@@ -2139,12 +2298,67 @@ async function syncPeopleToSupabase() {
 
   return true;
 }
+    const PEOPLE_COLUMNS = "id,name,note,parent_id,sort_order,gender,deceased,birth_year,photo_path";
+    const PEOPLE_CACHE_KEY = "mujaini_people_cache_v1";
+
+    // تفاصيل الشخص الاختيارية: الجنس، الوفاة، سنة الميلاد، الصورة
+    function readPersonDetails(node, row) {
+      if (row.gender === "m" || row.gender === "f") node.gender = row.gender;
+      if (row.deceased === true) node.deceased = true;
+      const birthYear = Number(row.birth_year);
+      if (Number.isInteger(birthYear) && birthYear >= 1000 && birthYear <= 2200) node.birthYear = birthYear;
+      if (typeof row.photo_path === "string" && /^[A-Za-z0-9_.\/-]{1,200}$/.test(row.photo_path)) node.photo = row.photo_path;
+      return node;
+    }
+
+    function personDetailColumns(node) {
+      return {
+        gender: node.gender || null,
+        deceased: !!node.deceased,
+        birth_year: node.birthYear || null,
+        photo_path: node.photo || null
+      };
+    }
+
+    function applyPersonFields(id, fields) {
+      const node = people[id];
+      if (!node || !fields) return;
+      node.name = fields.name;
+      if (fields.gender) node.gender = fields.gender; else delete node.gender;
+      if (fields.deceased) node.deceased = true; else delete node.deceased;
+      if (fields.birthYear) node.birthYear = fields.birthYear; else delete node.birthYear;
+      if (fields.photo) node.photo = fields.photo; else delete node.photo;
+    }
+
+    function photoUrl(path) {
+      return SUPABASE_URL + "/storage/v1/object/public/photos/" + path;
+    }
+
+    // آخر نسخة وصلت من قاعدة البيانات تُحفظ في الجهاز: تظهر فورًا عند الفتح وتعمل بدون إنترنت
+    function savePeopleCache(rows) {
+      try { localStorage.setItem(PEOPLE_CACHE_KEY, JSON.stringify({ savedAt: Date.now(), rows })); } catch (e) {}
+    }
+
+    function loadPeopleCache() {
+      try {
+        const cached = JSON.parse(localStorage.getItem(PEOPLE_CACHE_KEY) || "null");
+        if (!cached || !Array.isArray(cached.rows) || !cached.rows.length) return false;
+        const built = buildPeopleFromSupabaseRows(cached.rows);
+        if (!built[rootId]) return false;
+        people = built;
+        peopleSource = "cache";
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
     function buildPeopleFromSupabaseRows(rows) {
       const map = {};
       const order = {};
       rows.forEach(row => {
         if (!row || !isSafeId(row.id)) return;
-        map[row.id] = { name: cleanPersonText(row.name), note: cleanPersonText(row.note), children: [] };
+        map[row.id] = readPersonDetails({ name: cleanPersonText(row.name), note: cleanPersonText(row.note), children: [] }, row);
         order[row.id] = Number(row.sort_order) || 0;
       });
       rows.forEach(row => {
@@ -2164,6 +2378,7 @@ async function syncPeopleToSupabase() {
       if (!built[rootId]) return false;
       people = built;
       peopleSource = "supabase";
+      savePeopleCache(rows);
       return true;
     }
 
@@ -2171,7 +2386,7 @@ async function syncPeopleToSupabase() {
       try {
         const { data, error } = await supabaseClient
           .from("people")
-          .select("id,name,note,parent_id,sort_order")
+          .select(PEOPLE_COLUMNS)
           .order("sort_order", { ascending: true });
 
         if (error) {
@@ -2190,7 +2405,7 @@ async function syncPeopleToSupabase() {
           }
           const reload = await supabaseClient
             .from("people")
-            .select("id,name,note,parent_id,sort_order")
+            .select(PEOPLE_COLUMNS)
             .order("sort_order", { ascending: true });
           if (reload.error || !reload.data || !reload.data.length) return false;
           return adoptPeopleFromSupabaseRows(reload.data);
@@ -2243,7 +2458,8 @@ async function syncPeopleToSupabase() {
           name: node.name || "",
           note: node.note || "",
           parent_id: parentId,
-          sort_order: parentId ? Math.max((people[parentId].children || []).indexOf(id), 0) : 0
+          sort_order: parentId ? Math.max((people[parentId].children || []).indexOf(id), 0) : 0,
+          ...personDetailColumns(node)
         });
       });
       return rows;
@@ -2295,7 +2511,10 @@ async function syncPeopleToSupabase() {
       return {
         changeLog: appState.changeLog || [],
         masterArchive: appState.masterArchive || [],
-        pendingDeleteRequests: appState.pendingDeleteRequests || []
+        pendingDeleteRequests: appState.pendingDeleteRequests || [],
+        editorTabs: Array.isArray(appState.editorTabs) ? appState.editorTabs : null,
+        passwordChangedAt: appState.passwordChangedAt || null,
+        editorPasswordChangedAt: appState.editorPasswordChangedAt || null
       };
     }
 
@@ -2392,6 +2611,11 @@ async function syncPeopleToSupabase() {
             if (Array.isArray(v.changeLog)) appState.changeLog = v.changeLog;
             if (Array.isArray(v.masterArchive)) appState.masterArchive = v.masterArchive;
             if (Array.isArray(v.pendingDeleteRequests)) appState.pendingDeleteRequests = v.pendingDeleteRequests;
+          }
+          if (v) {
+            if (Array.isArray(v.editorTabs)) appState.editorTabs = v.editorTabs;
+            if (v.passwordChangedAt) appState.passwordChangedAt = v.passwordChangedAt;
+            if (v.editorPasswordChangedAt) appState.editorPasswordChangedAt = v.editorPasswordChangedAt;
           }
           sharedHiddenIds = null; // داخل الإدارة: طلبات الحذف الكاملة هي المرجع
         }
@@ -2529,6 +2753,10 @@ async function syncPeopleToSupabase() {
           hierarchyTrail = hierarchyTrail.filter(id => people[id]);
           if (!hierarchyTrail.length) hierarchyTrail = [rootId];
           renderHierarchyPage();
+        } else if (currentView === "diagram") {
+          diagramState.expanded = new Set([...diagramState.expanded].filter(id => people[id]));
+          diagramState.expanded.add(rootId);
+          renderDiagramSvg();
         }
         document.querySelectorAll(".cards, .hierarchy-cards").forEach(el => el.classList.add("no-anim"));
       } finally {
@@ -2537,7 +2765,8 @@ async function syncPeopleToSupabase() {
     }
 
     async function initApp() {
-      // 1) عرض فوري من البيانات المحلية حتى لا تبقى الصفحة فارغة بانتظار الخادم
+      // 1) عرض فوري من آخر نسخة محفوظة في الجهاز (أو من بيانات الملف) حتى لا تبقى الصفحة فارغة بانتظار الخادم
+      loadPeopleCache();
       prepareLoadedPeople();
       const beforeSignature = peopleSignature();
       const targetId = getUrlTargetId();
@@ -2561,7 +2790,6 @@ async function syncPeopleToSupabase() {
 
     function defaultState() {
       return {
-        adminPassword: DEFAULT_PASSWORD,
         messages: [],
         requests: [],
         changeLog: [],
@@ -2578,7 +2806,9 @@ async function syncPeopleToSupabase() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return defaultState();
-        return { ...defaultState(), ...JSON.parse(raw) };
+        const stored = { ...defaultState(), ...JSON.parse(raw) };
+        delete stored.adminPassword; // نسخ قديمة كانت تحفظ كلمة المرور في المتصفح
+        return stored;
       } catch (e) {
         return defaultState();
       }
@@ -2814,6 +3044,7 @@ async function syncPeopleToSupabase() {
       document.getElementById("adminPage").classList.add("hidden");
       document.getElementById("hierarchyPage").classList.add("hidden");
       document.getElementById("whoAmIProfilePage").classList.add("hidden");
+      document.getElementById("treePage").classList.add("hidden");
     }
 
     function showTreePage() {
@@ -2825,6 +3056,7 @@ async function syncPeopleToSupabase() {
     function exitAdmin() {
       try { window.__adminLocked = false; } catch(e) {}
       try { window.currentAdminRole = "guest"; } catch (e) {}
+      try { if (supabaseClient.auth) supabaseClient.auth.signOut({ scope: "local" }).catch(() => {}); } catch (e) {}
       currentView = "tree";
       hideAllPages();
       document.getElementById("mainPage").classList.remove("hidden");
@@ -2857,6 +3089,11 @@ if (!h) {
         if (people[id]) showHierarchyPage(id, false);
         else { showTreePage(); render(rootId); }
         return;
+      }
+      if (h === "tree") return showTreeDiagram(rootId, false);
+      if (h.startsWith("tree=")) {
+        const id = h.split("=")[1];
+        return showTreeDiagram(people[id] ? id : rootId, false);
       }
       if (h === "about") return showAbout(false);
       if (h === "whoami") return showWhoAmI(false);
@@ -2891,6 +3128,7 @@ if (!h) {
       if (currentView === "about") url = base + "#about";
       if (currentView === "whoami") url = base + "#whoami";
       if (currentView === "whoami-profile") url = base + "#whoami-person=" + currentPerson;
+      if (currentView === "diagram") url = base + (diagramState.selected === rootId ? "#tree" : "#tree=" + diagramState.selected);
       if (currentView === "hierarchy") url = base + "#hierarchy=" + hierarchyTrail[hierarchyTrail.length - 1];
       copyToClipboard(url)
         .then(() => alert("تم نسخ الرابط"))
@@ -3147,6 +3385,8 @@ if (!h) {
     );
 
     function inferGender(id) {
+      const stored = people[id]?.gender;
+      if (stored === "m" || stored === "f") return stored;
       const name = (people[id]?.name || "").trim();
       if (name.includes("بنت")) return "f";
       const first = normalizeArabic(name.split(" ")[0]);
@@ -3481,7 +3721,11 @@ function buildSimpleLineageFromPerson(id) {
       page.innerHTML = `
         ${renderPageNavControls()}
         <div class="person-page">
-          <div class="title">${escapeHtml(person.name)}</div>
+          <div class="title person-title">
+            ${renderAvatar(id, "avatar avatar-lg")}
+            <div>${escapeHtml(person.name)}</div>
+            ${renderPersonSub(id)}
+          </div>
           ${renderApprovedInfoBox(id)}
           ${
             children.length
@@ -3496,6 +3740,315 @@ function buildSimpleLineageFromPerson(id) {
       `;
 
       if (pushHash) history.pushState({ personPage:id }, "", location.pathname + "?person=" + id);
+    }
+
+    // ================= الشجرة المرسومة: تحريك وتكبير وفتح الفروع =================
+    const DIAGRAM = { nodeW: 140, nodeH: 46, gapX: 14, gapY: 58, minScale: 0.12, maxScale: 2.2 };
+    let diagramState = {
+      expanded: new Set([rootId]),
+      selected: rootId,
+      scale: 1,
+      tx: 0,
+      ty: 0,
+      positions: {},
+      width: 0,
+      height: 0,
+      shown: new Set()
+    };
+
+    function diagramVisibleChildren(id) {
+      return diagramState.expanded.has(id) ? (people[id]?.children || []).filter(cid => people[cid]) : [];
+    }
+
+    // كل أب يتوسط أبناءه، والأبناء من اليمين لليسار بترتيبهم في الشجرة
+    function layoutDiagram() {
+      const { nodeW, nodeH, gapX, gapY } = DIAGRAM;
+      const widths = {};
+      (function measure(id) {
+        let total = 0;
+        diagramVisibleChildren(id).forEach((cid, i) => { total += measure(cid) + (i ? gapX : 0); });
+        widths[id] = Math.max(nodeW, total);
+        return widths[id];
+      })(rootId);
+
+      const positions = {};
+      let maxDepth = 0;
+      (function place(id, left, depth) {
+        const kids = diagramVisibleChildren(id);
+        positions[id] = { x: left + (widths[id] - nodeW) / 2, y: depth * (nodeH + gapY) };
+        maxDepth = Math.max(maxDepth, depth);
+        const kidsTotal = kids.reduce((sum, cid, i) => sum + widths[cid] + (i ? gapX : 0), 0);
+        let cursor = left + (widths[id] - kidsTotal) / 2 + kidsTotal;
+        kids.forEach(cid => {
+          cursor -= widths[cid];
+          place(cid, cursor, depth + 1);
+          cursor -= gapX;
+        });
+      })(rootId, 0, 0);
+
+      diagramState.positions = positions;
+      diagramState.width = widths[rootId];
+      diagramState.height = (maxDepth + 1) * nodeH + maxDepth * gapY;
+    }
+
+    function renderDiagramSvg() {
+      const viewport = document.getElementById("treeViewport");
+      if (!viewport) return;
+      if (!people[diagramState.selected]) diagramState.selected = rootId;
+      layoutDiagram();
+
+      const { nodeW, nodeH } = DIAGRAM;
+      const pos = diagramState.positions;
+      const previouslyShown = diagramState.shown;
+      const nowShown = new Set();
+      const links = [];
+      const nodes = [];
+
+      Object.keys(pos).forEach(id => {
+        const p = pos[id];
+        const node = people[id];
+        nowShown.add(id);
+
+        diagramVisibleChildren(id).forEach(cid => {
+          const c = pos[cid];
+          const x1 = p.x + nodeW / 2, y1 = p.y + nodeH, x2 = c.x + nodeW / 2, y2 = c.y, my = (y1 + y2) / 2;
+          links.push(`<path class="tlink" d="M${x1} ${y1} C${x1} ${my} ${x2} ${my} ${x2} ${y2}" />`);
+        });
+
+        const kidsCount = (node.children || []).filter(cid => people[cid]).length;
+        const open = diagramState.expanded.has(id);
+        const fullName = String(node.name || "");
+        const label = fullName.length > 22 ? fullName.slice(0, 21) + "…" : fullName;
+        const fontSize = label.length > 17 ? 13.5 : (label.length > 13 ? 15 : 17);
+        const cls = [
+          "tnode",
+          id === rootId ? "is-root" : "",
+          id === diagramState.selected ? "is-selected" : "",
+          node.deceased ? "is-deceased" : "",
+          previouslyShown.size && !previouslyShown.has(id) ? "is-new" : ""
+        ].filter(Boolean).join(" ");
+
+        nodes.push(`<g class="${cls}" data-id="${id}" role="button" tabindex="0" transform="translate(${p.x} ${p.y})">
+          <title>${escapeHtml(fullName)}</title>
+          <rect width="${nodeW}" height="${nodeH}" rx="13" />
+          <text x="${nodeW / 2}" y="${nodeH / 2}" font-size="${fontSize}">${escapeHtml(label)}</text>
+          ${kidsCount ? `<g class="tcount" transform="translate(${nodeW / 2} ${nodeH})"><circle r="11" /><text y="1">${open ? "−" : kidsCount}</text></g>` : ""}
+        </g>`);
+      });
+
+      diagramState.shown = nowShown;
+      viewport.innerHTML = links.join("") + nodes.join("");
+      applyDiagramTransform();
+      renderDiagramBar();
+    }
+
+    function applyDiagramTransform() {
+      const viewport = document.getElementById("treeViewport");
+      if (viewport) viewport.setAttribute("transform", `translate(${diagramState.tx} ${diagramState.ty}) scale(${diagramState.scale})`);
+    }
+
+    function diagramCanvasSize() {
+      const el = document.getElementById("treeCanvas");
+      return el ? { w: el.clientWidth, h: el.clientHeight } : { w: 0, h: 0 };
+    }
+
+    function fitDiagram() {
+      const { w, h } = diagramCanvasSize();
+      if (!w) return;
+      const scale = Math.max(DIAGRAM.minScale, Math.min(1.1, (w - 32) / diagramState.width, (h - 120) / diagramState.height));
+      diagramState.scale = scale;
+      diagramState.tx = (w - diagramState.width * scale) / 2;
+      diagramState.ty = 30;
+      applyDiagramTransform();
+    }
+
+    function centerDiagramOn(id) {
+      const p = diagramState.positions[id];
+      const { w, h } = diagramCanvasSize();
+      if (!p || !w) return;
+      diagramState.tx = w / 2 - (p.x + DIAGRAM.nodeW / 2) * diagramState.scale;
+      diagramState.ty = Math.min(h * 0.3, 140) - p.y * diagramState.scale;
+      applyDiagramTransform();
+    }
+
+    function zoomDiagram(factor, cx, cy) {
+      const { w, h } = diagramCanvasSize();
+      const px = typeof cx === "number" ? cx : w / 2;
+      const py = typeof cy === "number" ? cy : h / 2;
+      const next = Math.max(DIAGRAM.minScale, Math.min(DIAGRAM.maxScale, diagramState.scale * factor));
+      const k = next / diagramState.scale;
+      diagramState.tx = px - (px - diagramState.tx) * k;
+      diagramState.ty = py - (py - diagramState.ty) * k;
+      diagramState.scale = next;
+      applyDiagramTransform();
+    }
+
+    // الضغط على اسم يحدده ويفتح أبناءه أو يطويهم، والاسم يبقى في مكانه على الشاشة
+    function toggleDiagramNode(id) {
+      if (!people[id]) return;
+      const before = diagramState.positions[id];
+      diagramState.selected = id;
+      if ((people[id].children || []).length) {
+        if (diagramState.expanded.has(id) && id !== rootId) diagramState.expanded.delete(id);
+        else diagramState.expanded.add(id);
+      }
+      renderDiagramSvg();
+      const after = diagramState.positions[id];
+      if (before && after) {
+        diagramState.tx += (before.x - after.x) * diagramState.scale;
+        diagramState.ty += (before.y - after.y) * diagramState.scale;
+        applyDiagramTransform();
+      }
+    }
+
+    function expandAllDiagram() {
+      diagramState.expanded = new Set(Object.keys(people).filter(id => (people[id].children || []).length));
+      diagramState.expanded.add(rootId);
+      renderDiagramSvg();
+      centerDiagramOn(diagramState.selected);
+    }
+
+    function collapseAllDiagram() {
+      diagramState.expanded = new Set([rootId]);
+      diagramState.selected = rootId;
+      renderDiagramSvg();
+      centerDiagramOn(rootId);
+    }
+
+    function renderDiagramBar() {
+      const bar = document.getElementById("treeBar");
+      const id = diagramState.selected;
+      if (!bar || !people[id]) return;
+      bar.innerHTML = `
+        <div class="who">${escapeHtml(buildSimpleLineageFromPerson(id))}${people[id].deceased ? ` <span class="mercy">${mercyPhrase(id)}</span>` : ""}</div>
+        <div class="tree-bar-actions">
+          <button class="btn-main" onclick="showPersonPage('${id}')">فتح الصفحة</button>
+          <button class="btn-soft" onclick="openLineageModal('${id}')">النسب</button>
+          <button class="btn-soft" onclick="openWhoAmIForPerson('${id}')">من؟</button>
+        </div>
+      `;
+    }
+
+    function bindDiagramGestures() {
+      const canvas = document.getElementById("treeCanvas");
+      if (!canvas) return;
+      const pointers = new Map();
+      let start = null;
+      let moved = false;
+      let downTarget = null;
+      let pinchDistance = 0;
+      const local = e => {
+        const rect = canvas.getBoundingClientRect();
+        return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      };
+
+      canvas.addEventListener("pointerdown", e => {
+        if (e.target.closest(".tree-bar, .tree-zoom")) return;
+        try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+        pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (pointers.size === 1) {
+          start = { x: e.clientX, y: e.clientY };
+          moved = false;
+          downTarget = e.target;
+        } else if (pointers.size === 2) {
+          const [a, b] = [...pointers.values()];
+          pinchDistance = Math.hypot(a.x - b.x, a.y - b.y);
+          moved = true;
+        }
+      });
+
+      canvas.addEventListener("pointermove", e => {
+        const prev = pointers.get(e.pointerId);
+        if (!prev) return;
+        const cur = { x: e.clientX, y: e.clientY };
+        pointers.set(e.pointerId, cur);
+
+        if (pointers.size === 1) {
+          if (!moved && start && Math.hypot(cur.x - start.x, cur.y - start.y) < 6) return;
+          moved = true;
+          canvas.classList.add("is-dragging");
+          diagramState.tx += cur.x - prev.x;
+          diagramState.ty += cur.y - prev.y;
+          applyDiagramTransform();
+        } else if (pointers.size === 2) {
+          const [a, b] = [...pointers.values()];
+          const distance = Math.hypot(a.x - b.x, a.y - b.y);
+          if (pinchDistance > 0 && distance > 0) {
+            const rect = canvas.getBoundingClientRect();
+            zoomDiagram(distance / pinchDistance, (a.x + b.x) / 2 - rect.left, (a.y + b.y) / 2 - rect.top);
+          }
+          pinchDistance = distance;
+        }
+      });
+
+      const release = e => {
+        if (!pointers.has(e.pointerId)) return;
+        pointers.delete(e.pointerId);
+        if (pointers.size) return;
+        canvas.classList.remove("is-dragging");
+        if (!moved && e.type === "pointerup" && downTarget && downTarget.closest) {
+          const nodeEl = downTarget.closest(".tnode");
+          if (nodeEl) toggleDiagramNode(nodeEl.getAttribute("data-id"));
+        }
+        downTarget = null;
+      };
+      canvas.addEventListener("pointerup", release);
+      canvas.addEventListener("pointercancel", release);
+
+      // ضغطة لوحة المفاتيح (Enter) تصل كحدث click بدون مؤشر
+      canvas.addEventListener("click", e => {
+        if (e.detail !== 0) return;
+        const nodeEl = e.target.closest && e.target.closest(".tnode");
+        if (nodeEl) toggleDiagramNode(nodeEl.getAttribute("data-id"));
+      });
+
+      canvas.addEventListener("wheel", e => {
+        e.preventDefault();
+        const p = local(e);
+        zoomDiagram(e.deltaY < 0 ? 1.12 : 1 / 1.12, p.x, p.y);
+      }, { passive: false });
+    }
+
+    function showTreeDiagram(focusId = rootId, pushHash = true) {
+      if (!people[focusId]) focusId = rootId;
+      currentView = "diagram";
+      hideAllPages();
+      scrollToTopInstant();
+      const page = document.getElementById("treePage");
+      page.classList.remove("hidden");
+      page.innerHTML = `
+        <div class="tree-head">
+          <h2>الشجرة المرسومة</h2>
+          <div class="tree-tools">
+            <button onclick="goRoot()">الرئيسية</button>
+            <button onclick="expandAllDiagram()">فتح كل الفروع</button>
+            <button onclick="collapseAllDiagram()">طي الكل</button>
+            <button onclick="fitDiagram()">ملاءمة الشاشة</button>
+          </div>
+        </div>
+        <div class="tree-canvas" id="treeCanvas">
+          <svg id="treeSvg" role="group" aria-label="شجرة العائلة المرسومة"><g id="treeViewport"></g></svg>
+          <div class="tree-hint">اسحب للتحريك، قرّب بإصبعين، واضغط على الاسم لفتح أبنائه.</div>
+          <div class="tree-zoom">
+            <button aria-label="تكبير" onclick="zoomDiagram(1.25)">+</button>
+            <button aria-label="تصغير" onclick="zoomDiagram(0.8)">−</button>
+          </div>
+          <div class="tree-bar" id="treeBar"></div>
+        </div>
+      `;
+
+      // افتح الطريق من الجد إلى الاسم المطلوب، ثم أبناء الاسم نفسه
+      const path = getLineage(focusId);
+      diagramState.expanded = new Set(path);
+      diagramState.expanded.add(rootId);
+      diagramState.selected = focusId;
+      diagramState.shown = new Set();
+      diagramState.scale = window.innerWidth < 700 ? 0.8 : 1;
+      renderDiagramSvg();
+      bindDiagramGestures();
+      centerDiagramOn(focusId);
+
+      if (pushHash) history.pushState({ diagram: focusId }, "", location.pathname + (focusId === rootId ? "#tree" : "#tree=" + focusId));
     }
 
     function showHierarchyPage(startId = rootId, pushHash = true) {
@@ -3535,6 +4088,7 @@ function buildSimpleLineageFromPerson(id) {
             <button class="btn-main" onclick="showHierarchyPage(rootId)">الرجوع لأصل الهرم</button>
             <button class="btn-soft" onclick="showTreePage(); render('${selected}')">فتح داخل الشجرة</button>
             <button class="btn-soft" onclick="openLineageModal('${selected}')">عرض النسب الفردي</button>
+            <button class="btn-soft" onclick="showTreeDiagram('${selected}')">الشجرة المرسومة</button>
           </div>
       `;
 
@@ -3603,14 +4157,37 @@ function buildSimpleLineageFromPerson(id) {
       document.getElementById("adminPasswordModal").classList.remove("active");
     }
 
-    function enterAdmin() {
-      const pwd = document.getElementById("adminPasswordInput").value.trim();
-      if (pwd !== DEFAULT_PASSWORD) {
-        alert("كلمة المرور غير صحيحة");
-        return;
+    // الدخول: نجرّب كلمة المرور على حساب الماستر ثم حساب الأدمن، والخادم هو الذي يقرر
+    async function enterAdmin() {
+      const pwd = (document.getElementById("adminPasswordInput")?.value || "").trim();
+      if (!pwd) return alert("اكتب كلمة المرور");
+      if (!supabaseClient.auth) return alert("تعذر الاتصال بالخادم. تأكد من الإنترنت ثم حاول مجددًا.");
+
+      const enterBtn = document.getElementById("btnAdminPwdEnter");
+      if (enterBtn) enterBtn.disabled = true;
+      try {
+        let connectionProblem = false;
+        for (const account of ADMIN_ACCOUNTS) {
+          let result;
+          try {
+            result = await supabaseClient.auth.signInWithPassword({ email: account.email, password: pwd });
+          } catch (e) {
+            connectionProblem = true;
+            continue;
+          }
+          if (!result.error && result.data && result.data.session) {
+            window.currentAdminRole = account.role;
+            closeAdminPassword();
+            await showAdminPage();
+            return;
+          }
+          const status = result.error && result.error.status;
+          if (status !== 400 && status !== 401 && status !== 422) connectionProblem = true;
+        }
+        alert(connectionProblem ? "تعذر الاتصال بالخادم. حاول مجددًا." : "كلمة المرور غير صحيحة");
+      } finally {
+        if (enterBtn) enterBtn.disabled = false;
       }
-      closeAdminPassword();
-      showAdminPage();
     }
 
     async function showAdminPage() {
@@ -3671,6 +4248,15 @@ function buildSimpleLineageFromPerson(id) {
 
       return `
         <div class="admin-section" id="admin-overview">
+          ${window.currentAdminRole === "master" && (!appState.passwordChangedAt || !appState.editorPasswordChangedAt) ? `
+          <div class="subbox warn-box" style="margin-bottom:14px;">
+            <h3>غيّر كلمات السر</h3>
+            <div class="meta">الدخول صار محميًا من الخادم، لكن الكلمات القديمة كانت مكتوبة داخل كود الموقع المنشور على GitHub وما زالت في سجله. الحماية لا تكتمل إلا بتغييرها.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+              ${!appState.passwordChangedAt ? `<button class="btn-main" onclick="switchAdminTab('settings')">تغيير كلمة الماستر</button>` : ""}
+              ${!appState.editorPasswordChangedAt ? `<button class="btn-soft" onclick="openAdminRoleManageModal()">تغيير كلمة الأدمن</button>` : ""}
+            </div>
+          </div>` : ""}
           <div class="admin-grid">
             <div class="subbox">
               <h3>ملخص سريع</h3>
@@ -3757,13 +4343,27 @@ function buildSimpleLineageFromPerson(id) {
               </div>
             </div>
 <div class="subbox" style="margin-top:14px;">
-  <h3>تعديل اسم موجود</h3>
+  <h3>تعديل بيانات اسم</h3>
   <div class="note-form">
     <input type="hidden" id="adminEditPersonSelect" />
     <div id="adminEditPersonSelectLabel" class="top-note">لم يتم اختيار الاسم بعد.</div>
-    <button class="btn-soft" onclick="openTreePickerForField('adminEditPersonSelect','adminEditPersonSelectLabel','اختر الاسم المراد تعديله')">اختيار الاسم من الشجرة</button>
-    <input class="field" id="adminEditPersonName" placeholder="الاسم الجديد" />
-    <button class="btn-main" onclick="adminRenamePerson()">حفظ التعديل</button>
+    <button class="btn-soft" onclick="pickPersonForEdit()">اختيار الاسم من الشجرة</button>
+    <input class="field" id="adminEditPersonName" placeholder="الاسم" />
+    <select class="field" id="adminEditGender">
+      <option value="">الجنس: يُحدَّد تلقائيًا من الاسم</option>
+      <option value="m">ذكر</option>
+      <option value="f">أنثى</option>
+    </select>
+    <input class="field" id="adminEditBirthYear" type="number" inputmode="numeric" min="1000" max="2200" placeholder="سنة الميلاد (اختياري)" />
+    <label><input type="checkbox" id="adminEditDeceased"> متوفى (تظهر "رحمه الله" مع الاسم)</label>
+    <div class="photo-row">
+      <div id="adminEditPhotoPreview" class="photo-preview"></div>
+      <div class="photo-fields">
+        <input class="field" type="file" id="adminEditPhotoFile" accept="image/*" />
+        <label><input type="checkbox" id="adminEditPhotoRemove"> حذف الصورة الحالية</label>
+      </div>
+    </div>
+    <button class="btn-main" id="btnSavePersonDetails" onclick="adminSavePersonDetails()">حفظ التعديل</button>
   </div>
 </div>
 <div class="subbox" style="margin-top:14px;">
@@ -3940,10 +4540,22 @@ function buildSimpleLineageFromPerson(id) {
             </div>
 
             <div class="subbox">
-              <h3>كلمة المرور</h3>
+              <h3>كلمة مرور الماستر</h3>
               <div class="note-form">
-                <input class="field" type="password" id="newAdminPassword" placeholder="كلمة المرور الجديدة" />
+                <input class="field" type="password" id="newAdminPassword" autocomplete="new-password" placeholder="كلمة المرور الجديدة (8 أحرف أو أكثر)" />
                 <button class="btn-main" onclick="changeAdminPassword()">تغيير كلمة المرور</button>
+                <div class="top-note">كلمة سر الأدمن الثاني تتغير من "إدارة الأدمن" في تبويب الرئيسية.</div>
+              </div>
+            </div>
+
+            <div class="subbox">
+              <h3>تنبيهات الجوال</h3>
+              <div class="top-note">يصلك تنبيه على جوالك عند كل طلب إضافة أو رسالة جديدة. نزّل تطبيق ntfy (مجاني) ثم اشترك في اسم الموضوع أدناه. لا تشارك الاسم مع أحد.</div>
+              <div id="notifyTopicBox" class="picker-path">اضغط "إظهار اسم الموضوع".</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+                <button class="btn-soft" onclick="loadNotifyTopic()">إظهار اسم الموضوع</button>
+                <button class="btn-soft" onclick="copyNotifyTopic()">نسخ الاسم</button>
+                <button class="btn-main" onclick="sendTestNotification()">إرسال تنبيه تجريبي</button>
               </div>
             </div>
           </div>
@@ -4017,45 +4629,124 @@ function buildSimpleLineageFromPerson(id) {
         : "تمت الإضافة على هذا الجهاز فقط، وتعذر حفظها في قاعدة البيانات. ستختفي بعد تحديث الصفحة.");
       refreshAdminAfterAction("add");
     }
-    async function adminRenamePerson() {
-  const personId = document.getElementById("adminEditPersonSelect").value;
-  const newName = cleanPersonText(document.getElementById("adminEditPersonName").value);
-
-  if (!personId || !newName) {
-    alert("اختر الاسم واكتب الاسم الجديد");
-    return;
-  }
-
-  if (!people[personId]) {
-    alert("الاسم غير موجود");
-    return;
-  }
-
-  const oldName = people[personId].name;
-  people[personId].name = newName;
-
-  if (peopleTableAvailable) {
-    const { error } = await supabaseClient
-      .from("people")
-      .update({ name: newName })
-      .eq("id", personId);
-
-    if (error) {
-      console.error(error);
-      alert("تم التعديل محليًا لكن تعذر تحديث Supabase");
-      return;
+    function pickPersonForEdit() {
+      openTreePicker("اختر الاسم المراد تعديله", function(id) {
+        const node = people[id];
+        document.getElementById("adminEditPersonSelect").value = id;
+        document.getElementById("adminEditPersonSelectLabel").innerHTML =
+          `<strong>الاسم المختار:</strong> ${escapeHtml(node.name)}<br><span class="small">${escapeHtml(getLineage(id).map(x => people[x].name).join(" ← "))}</span>`;
+        document.getElementById("adminEditPersonName").value = node.name;
+        document.getElementById("adminEditGender").value = node.gender || "";
+        document.getElementById("adminEditBirthYear").value = node.birthYear || "";
+        document.getElementById("adminEditDeceased").checked = !!node.deceased;
+        document.getElementById("adminEditPhotoFile").value = "";
+        document.getElementById("adminEditPhotoRemove").checked = false;
+        document.getElementById("adminEditPhotoPreview").innerHTML = renderAvatar(id, "avatar avatar-lg");
+      });
     }
-  }
 
-  logChange("تعديل اسم: " + oldName + " ← " + newName, {
-    actionType: "rename",
-    undoable: true,
-    personId,
-    oldName,
-    newName
-  });
-  alert("تم تعديل الاسم");
-  refreshAdminAfterAction("add");
+    // تصغير الصورة في المتصفح إلى مربع صغير قبل الرفع (أسرع في العرض وأخف على التخزين)
+    function resizeImageToJpeg(file, maxSize = 480) {
+      return new Promise(resolve => {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const side = Math.min(img.naturalWidth, img.naturalHeight);
+            const out = Math.min(maxSize, side);
+            const canvas = document.createElement("canvas");
+            canvas.width = out;
+            canvas.height = out;
+            canvas.getContext("2d").drawImage(
+              img,
+              (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side,
+              0, 0, out, out
+            );
+            canvas.toBlob(blob => { URL.revokeObjectURL(url); resolve(blob); }, "image/jpeg", 0.85);
+          } catch (e) {
+            URL.revokeObjectURL(url);
+            resolve(null);
+          }
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+        img.src = url;
+      });
+    }
+
+    async function adminSavePersonDetails() {
+      const personId = document.getElementById("adminEditPersonSelect").value;
+      if (!personId || !people[personId]) return alert("اختر الاسم من الشجرة أولًا");
+      const node = people[personId];
+
+      const newName = cleanPersonText(document.getElementById("adminEditPersonName").value);
+      if (!newName) return alert("اكتب الاسم");
+
+      const genderValue = document.getElementById("adminEditGender").value;
+      const gender = genderValue === "m" || genderValue === "f" ? genderValue : null;
+
+      const birthRaw = String(document.getElementById("adminEditBirthYear").value || "").trim();
+      let birthYear = null;
+      if (birthRaw) {
+        birthYear = Number(birthRaw);
+        if (!Number.isInteger(birthYear) || birthYear < 1000 || birthYear > new Date().getFullYear()) {
+          return alert("اكتب سنة ميلاد صحيحة بالأرقام، مثل 1975");
+        }
+      }
+      const deceased = document.getElementById("adminEditDeceased").checked;
+      const file = document.getElementById("adminEditPhotoFile").files[0] || null;
+      const removePhoto = document.getElementById("adminEditPhotoRemove").checked;
+
+      if (!peopleTableAvailable) return alert("قاعدة البيانات غير متاحة الآن، لا يمكن حفظ التعديل. حاول بعد قليل.");
+
+      const saveBtn = document.getElementById("btnSavePersonDetails");
+      if (saveBtn) saveBtn.disabled = true;
+      try {
+        let photo = node.photo || null;
+        if (file) {
+          const blob = await resizeImageToJpeg(file, 480);
+          if (!blob) return alert("تعذر قراءة الصورة. اختر صورة أخرى.");
+          const path = personId + "-" + Date.now() + ".jpg";
+          const upload = await supabaseClient.storage.from("photos").upload(path, blob, {
+            contentType: "image/jpeg",
+            cacheControl: "31536000",
+            upsert: false
+          });
+          if (upload.error) {
+            console.error(upload.error);
+            return alert("تعذر رفع الصورة");
+          }
+          photo = path;
+        } else if (removePhoto) {
+          photo = null;
+        }
+
+        const before = { name: node.name, gender: node.gender || null, deceased: !!node.deceased, birthYear: node.birthYear || null, photo: node.photo || null };
+        const after = { name: newName, gender, deceased, birthYear, photo };
+        if (JSON.stringify(before) === JSON.stringify(after)) return alert("لا يوجد تغيير للحفظ");
+
+        const { error } = await supabaseClient
+          .from("people")
+          .update({ name: newName, gender, deceased, birth_year: birthYear, photo_path: photo })
+          .eq("id", personId);
+        if (error) {
+          console.error(error);
+          return alert("تعذر حفظ التعديل في قاعدة البيانات");
+        }
+
+        applyPersonFields(personId, after);
+        // الصورة القديمة تبقى في التخزين حتى يعمل التراجع من الأرشيف
+        logChange("تعديل بيانات: " + before.name + (before.name !== after.name ? " ← " + after.name : ""), {
+          actionType: "details",
+          undoable: true,
+          personId,
+          before,
+          after
+        });
+        alert("تم حفظ التعديل");
+        refreshAdminAfterAction("add");
+      } finally {
+        if (saveBtn) saveBtn.disabled = false;
+      }
     }
     
     async function adminDeletePerson() {
@@ -4377,10 +5068,31 @@ function factRow(label, valueHtml, wide = false) {
   return `<div class="fact${wide ? " wide" : ""}"><span>${label}</span>${wide ? "" : "<i></i>"}<strong>${valueHtml}</strong></div>`;
 }
 
+function mercyPhrase(id) {
+  return people[id]?.deceased ? (inferGender(id) === "f" ? "رحمها الله" : "رحمه الله") : "";
+}
+
+function renderAvatar(id, className = "avatar") {
+  const path = people[id]?.photo;
+  return path ? `<img class="${className}" src="${escapeHtml(photoUrl(path))}" alt="" loading="lazy" crossorigin="anonymous" onerror="this.remove()" />` : "";
+}
+
+function renderPersonSub(id) {
+  const node = people[id];
+  const parts = [];
+  if (node.deceased) parts.push(`<span class="mercy">${mercyPhrase(id)}</span>`);
+  if (node.birthYear) parts.push(`<span>مواليد ${Number(node.birthYear)}</span>`);
+  return parts.length ? `<div class="name-sub">${parts.join("")}</div>` : "";
+}
+
 function renderCardHead(id, extraHtml = "") {
   return `
       <div class="name-row">
-        <div class="name">${escapeHtml(people[id].name)}${appState.settings.showCounts ? ` (${getChildrenCount(id)})` : ""}${extraHtml}</div>
+        ${renderAvatar(id)}
+        <div class="name-block">
+          <div class="name">${escapeHtml(people[id].name)}${appState.settings.showCounts ? ` (${getChildrenCount(id)})` : ""}${extraHtml}</div>
+          ${renderPersonSub(id)}
+        </div>
         ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(id))}</div>` : ""}
       </div>`;
 }
@@ -4528,14 +5240,51 @@ function renderSearchResults(keyword) {
       refreshAdminAfterAction("settings");
     }
 
-    function changeAdminPassword() {
-      const p = document.getElementById("newAdminPassword").value.trim();
+    async function changeAdminPassword() {
+      const input = document.getElementById("newAdminPassword");
+      const p = (input.value || "").trim();
       if (!p) return alert("اكتب كلمة المرور الجديدة");
-      appState.adminPassword = p;
-      saveState();
-      logChange("تغيير كلمة مرور الإدارة");
-      alert("تم تغيير كلمة المرور");
-      document.getElementById("newAdminPassword").value = "";
+      if (p.length < 8) return alert("كلمة المرور يجب ألا تقل عن 8 أحرف");
+      if (window.currentAdminRole !== "master" || !supabaseClient.auth) return alert("تغيير كلمة المرور متاح للماستر فقط");
+      const { error } = await supabaseClient.auth.updateUser({ password: p });
+      if (error) {
+        console.error(error);
+        return alert(error.code === "same_password"
+          ? "اكتب كلمة مرور مختلفة عن الحالية"
+          : "تعذر تغيير كلمة المرور. حاول مجددًا.");
+      }
+      appState.passwordChangedAt = new Date().toISOString();
+      logChange("تغيير كلمة مرور الماستر");
+      input.value = "";
+      alert("تم تغيير كلمة المرور. استخدم الكلمة الجديدة في الدخول القادم.");
+      refreshAdminAfterAction("settings");
+    }
+
+    // ---- تنبيهات الجوال (ntfy) ----
+    let notifyTopicValue = "";
+
+    async function loadNotifyTopic() {
+      const box = document.getElementById("notifyTopicBox");
+      if (!box) return;
+      const { data, error } = await supabaseClient.rpc("get_notify_topic");
+      if (error || !data || !/^[A-Za-z0-9_-]{8,64}$/.test(String(data))) {
+        box.textContent = "تعذر قراءة اسم الموضوع.";
+        return;
+      }
+      notifyTopicValue = String(data);
+      box.innerHTML = `<strong>اسم الموضوع:</strong> <span dir="ltr">${escapeHtml(notifyTopicValue)}</span><br>
+        <a href="https://ntfy.sh/${escapeHtml(notifyTopicValue)}" target="_blank" rel="noopener">فتح صفحة الاشتراك</a>`;
+    }
+
+    async function copyNotifyTopic() {
+      if (!notifyTopicValue) await loadNotifyTopic();
+      if (!notifyTopicValue) return;
+      copyText(notifyTopicValue);
+    }
+
+    async function sendTestNotification() {
+      const { error } = await supabaseClient.rpc("send_test_notification");
+      alert(error ? "تعذر إرسال التنبيه التجريبي" : "تم إرسال تنبيه تجريبي. يصل خلال ثوانٍ إذا كنت مشتركًا في الموضوع.");
     }
 
     function exportBackup() {
@@ -4932,10 +5681,10 @@ ${bodyHtml}
         return alert("الملف لا يحتوي نسخة احتياطية معروفة.");
       }
       if (!confirm("سيتم استبدال حالات الفروع والأرشيف والإعدادات والمعلومات المعتمدة بمحتوى النسخة. هل تريد المتابعة؟")) return;
+      delete incoming.adminPassword;
       appState = {
         ...defaultState(),
         ...incoming,
-        adminPassword: appState.adminPassword,
         settings: { ...defaultState().settings, ...(incoming.settings || {}) }
       };
       if (payload.approvedInfo && typeof payload.approvedInfo === "object" && !Array.isArray(payload.approvedInfo)) {
@@ -5025,8 +5774,8 @@ ${bodyHtml}
       <div class="modal-title">إدارة الأدمن</div>
       <div class="top-note">هذه النافذة للماستر فقط.</div>
       <div class="note-form">
-        <label class="top-note" for="secondaryAdminPasswordInput">تغيير كلمة سر الأدمن</label>
-        <input class="field" id="secondaryAdminPasswordInput" placeholder="كلمة السر الجديدة للأدمن" />
+        <label class="top-note" for="secondaryAdminPasswordInput">تغيير كلمة سر الأدمن (اتركه فارغًا إذا لا تريد تغييرها)</label>
+        <input class="field" id="secondaryAdminPasswordInput" autocomplete="off" placeholder="كلمة السر الجديدة للأدمن (8 أحرف أو أكثر)" />
         <div class="subbox">
           <h4 style="margin:0 0 10px;color:var(--main);">الصلاحيات</h4>
           <label><input type="checkbox" id="perm_overview"> الرئيسية</label><br>
@@ -5132,7 +5881,6 @@ function openQuickRelationFrom(id){
 
 
 window.currentAdminRole = "guest";
-window.SECONDARY_ADMIN_PASSWORD = "Mujaini3";
 window.ALLOWED_ADMIN_TABS_SECONDARY = ["overview","requests","add","info"];
 
 function getCurrentAdminPermissions(){
@@ -5171,26 +5919,8 @@ function canAccessAdminTab(name){
 
 
 (function(){
-  const _enterAdmin = window.enterAdmin;
   const _showAdminPage = window.showAdminPage;
   const _switchAdminTab = window.switchAdminTab;
-
-  window.enterAdmin = function() {
-    const pwd = (document.getElementById("adminPasswordInput")?.value || "").trim();
-    if (pwd === "Mmujaini34") {
-      window.currentAdminRole = "master";
-      closeAdminPassword();
-      showAdminPage();
-      return;
-    }
-    if (pwd === window.SECONDARY_ADMIN_PASSWORD) {
-      window.currentAdminRole = "editor_admin";
-      closeAdminPassword();
-      showAdminPage();
-      return;
-    }
-    alert("كلمة المرور غير صحيحة");
-  };
 
   window.showAdminPage = async function() {
     await _showAdminPage();
@@ -5304,21 +6034,24 @@ function canAccessAdminTab(name){
   };
 })();
 
-window.SECONDARY_ADMIN_SETTINGS_KEY = "mujaini_secondary_admin_settings_v1";
+// صلاحيات الأدمن الثاني محفوظة مع حالة الإدارة المشتركة (كانت في جهاز الماستر فقط)
+const DEFAULT_EDITOR_TABS = ["overview","requests","add","info"];
+const LEGACY_EDITOR_SETTINGS_KEY = "mujaini_secondary_admin_settings_v1";
+
+(function migrateLegacyEditorSettings(){
+  try{
+    const raw = JSON.parse(localStorage.getItem(LEGACY_EDITOR_SETTINGS_KEY) || "null");
+    if(!raw) return;
+    if(Array.isArray(raw.tabs) && !Array.isArray(appState.editorTabs)) appState.editorTabs = raw.tabs;
+    // النسخة القديمة كانت تحفظ كلمة سر الأدمن نصًا في المتصفح: تُحذف
+    localStorage.removeItem(LEGACY_EDITOR_SETTINGS_KEY);
+  }catch(e){}
+})();
 
 function getSecondaryAdminSettings(){
-  try{
-    const raw = JSON.parse(localStorage.getItem(window.SECONDARY_ADMIN_SETTINGS_KEY) || "{}");
-    return {
-      password: raw.password || "Mujaini3",
-      tabs: Array.isArray(raw.tabs) ? raw.tabs : ["overview","requests","add","info"]
-    };
-  }catch(e){
-    return {password:"Mujaini3", tabs:["overview","requests","add","info"]};
-  }
-}
-function saveSecondaryAdminSettingsStore(data){
-  localStorage.setItem(window.SECONDARY_ADMIN_SETTINGS_KEY, JSON.stringify(data||{}));
+  return {
+    tabs: Array.isArray(appState.editorTabs) && appState.editorTabs.length ? appState.editorTabs : DEFAULT_EDITOR_TABS
+  };
 }
 function closeRequestReadModal(){
   const m = document.getElementById('requestReadModal');
@@ -5362,7 +6095,7 @@ function openRequestReadModalByData(_id, r){
 }
 function openAdminRoleManageModal(){
   const settings = getSecondaryAdminSettings();
-  document.getElementById('secondaryAdminPasswordInput').value = settings.password || 'Mujaini3';
+  document.getElementById('secondaryAdminPasswordInput').value = '';
   ['overview','requests','add','info','messages','duplicates'].forEach(k=>{
     const el = document.getElementById('perm_'+k);
     if(el) el.checked = (settings.tabs||[]).includes(k);
@@ -5374,30 +6107,36 @@ function closeAdminRoleManageModal(){
   const m = document.getElementById('adminRoleManageModal');
   if(m) m.classList.remove('active');
 }
-function saveSecondaryAdminSettings(){
+async function saveSecondaryAdminSettings(){
+  if (window.currentAdminRole !== "master") return alert("هذه النافذة للماستر فقط");
   const tabs = ['overview','requests','add','info','messages','duplicates'].filter(k => document.getElementById('perm_'+k)?.checked);
-  const password = (document.getElementById('secondaryAdminPasswordInput')?.value || 'Mujaini3').trim() || 'Mujaini3';
-  const settings = {password, tabs: tabs.length ? tabs : ['overview']};
-  saveSecondaryAdminSettingsStore(settings);
-  window.SECONDARY_ADMIN_PASSWORD = settings.password;
-  window.ALLOWED_ADMIN_TABS_SECONDARY = settings.tabs;
-  alert('تم حفظ إعدادات الأدمن');
+  const password = (document.getElementById('secondaryAdminPasswordInput')?.value || '').trim();
+  if (password && password.length < 8) return alert("كلمة سر الأدمن يجب ألا تقل عن 8 أحرف");
+
+  appState.editorTabs = tabs.length ? tabs : ['overview'];
+  window.ALLOWED_ADMIN_TABS_SECONDARY = appState.editorTabs;
+
+  if (password) {
+    // التغيير يتم في الخادم بدالة لا يستطيع تنفيذها إلا الماستر
+    const { error } = await supabaseClient.rpc("set_editor_password", { new_password: password });
+    if (error) {
+      console.error(error);
+      saveState();
+      return alert("تم حفظ الصلاحيات، لكن تعذر تغيير كلمة سر الأدمن");
+    }
+    appState.editorPasswordChangedAt = new Date().toISOString();
+    logChange("تغيير كلمة سر الأدمن");
+  }
+  saveState();
+  alert(password ? "تم حفظ الصلاحيات وتغيير كلمة سر الأدمن" : "تم حفظ صلاحيات الأدمن");
   closeAdminRoleManageModal();
+  refreshAdminAfterAction("overview");
 }
 (function(){
-  const existingEnter = window.enterAdmin;
-  window.enterAdmin = function(){
-    const settings = getSecondaryAdminSettings();
-    window.SECONDARY_ADMIN_PASSWORD = settings.password;
-    window.ALLOWED_ADMIN_TABS_SECONDARY = settings.tabs;
-    return existingEnter();
-  };
   const prevApply = window.applyCurrentAdminRoleUI;
   if(prevApply){
     window.applyCurrentAdminRoleUI = function(){
-      const settings = getSecondaryAdminSettings();
-      window.SECONDARY_ADMIN_PASSWORD = settings.password;
-      window.ALLOWED_ADMIN_TABS_SECONDARY = settings.tabs;
+      window.ALLOWED_ADMIN_TABS_SECONDARY = getSecondaryAdminSettings().tabs;
       prevApply();
     }
   }
@@ -5457,6 +6196,29 @@ async function undoArchiveAction(entryId){
       return;
     }
     alert("لا يمكن التراجع لأن الاسم لم يعد موجودًا");
+    return;
+  }
+
+  if(item.actionType === "details"){
+    if(!people[item.personId] || !item.before){
+      alert("لا يمكن التراجع لأن الاسم لم يعد موجودًا");
+      return;
+    }
+    if (peopleTableAvailable) {
+      const b = item.before;
+      const res = await supabaseClient.from("people")
+        .update({ name: b.name, gender: b.gender || null, deceased: !!b.deceased, birth_year: b.birthYear || null, photo_path: b.photo || null })
+        .eq("id", item.personId);
+      if (res && res.error) {
+        console.warn("Supabase details undo failed.", res.error);
+        alert("تعذر التراجع في قاعدة البيانات");
+        return;
+      }
+    }
+    applyPersonFields(item.personId, item.before);
+    logChange("تراجع عن تعديل بيانات: " + item.before.name, {undoable:false});
+    alert("تم التراجع عن تعديل البيانات");
+    refreshAdminAfterAction("archive");
     return;
   }
 
@@ -5657,6 +6419,8 @@ function rejectPendingDelete(id){
     ["btnTopAbout", () => showAbout()],
     ["btnTopShareInfo", () => openShareInfoModal()],
     ["btnTopWho", () => showWhoAmI()],
+    ["btnTopTree", () => showTreeDiagram()],
+    ["btnHeroTree", () => showTreeDiagram()],
     ["btnTopAdmin", () => openAdminPassword()],
     ["btnToolbarRoot", () => goRoot()],
     ["btnToolbarBack", () => goBack()],
@@ -5674,6 +6438,48 @@ function rejectPendingDelete(id){
     if (el) el.addEventListener("click", handler);
   });
 
+  // ---- التثبيت كتطبيق والعمل بدون إنترنت ----
+  (function(){
+    const installBtn = document.getElementById("btnInstallApp");
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    let deferredInstallPrompt = null;
+
+    window.addEventListener("beforeinstallprompt", function(e){
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      if (installBtn && !isStandalone) installBtn.classList.remove("hidden");
+    });
+    // آيفون لا يعرض نافذة تثبيت: نشرح الخطوتين
+    if (installBtn && isIos && !isStandalone) installBtn.classList.remove("hidden");
+
+    if (installBtn) installBtn.addEventListener("click", async function(){
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        try { await deferredInstallPrompt.userChoice; } catch (e) {}
+        deferredInstallPrompt = null;
+        installBtn.classList.add("hidden");
+        return;
+      }
+      alert("في سفاري: اضغط زر المشاركة ثم اختر «إضافة إلى الشاشة الرئيسية».");
+    });
+    window.addEventListener("appinstalled", function(){
+      if (installBtn) installBtn.classList.add("hidden");
+    });
+
+    window.addEventListener("offline", function(){
+      alert("أنت بدون إنترنت الآن. الشجرة تعمل من آخر نسخة محفوظة في جهازك.");
+    });
+
+    if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+      window.addEventListener("load", function(){
+        navigator.serviceWorker.register("sw.js").catch(function(err){
+          console.warn("Service worker was not registered.", err);
+        });
+      });
+    }
+  })();
+
   // Enter في حقل كلمة المرور = زر دخول
   document.getElementById("adminPasswordInput").addEventListener("keydown", function(e){
     if (e.key === "Enter") { e.preventDefault(); enterAdmin(); }
@@ -5683,7 +6489,8 @@ function rejectPendingDelete(id){
   document.addEventListener("keydown", function(e){
     if ((e.key === "Enter" || e.key === " ") && e.target.matches && e.target.matches('[role="button"]')) {
       e.preventDefault();
-      e.target.click();
+      if (typeof e.target.click === "function") e.target.click();
+      else e.target.dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 0 }));
     }
   });
 
