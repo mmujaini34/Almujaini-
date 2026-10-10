@@ -639,6 +639,12 @@
     color:var(--text);
   }
   .whoami-results button:hover{border-color:var(--gold-bright);background:var(--accent-soft)}
+  .whoami-results .who-line{display:block;line-height:1.7}
+  .whoami-results .who-meta{display:block;margin-top:2px;font-family:var(--font-ui);font-size:12.5px;font-weight:400;color:var(--muted)}
+  /* الأسماء التي طابقت البحث */
+  mark{background:var(--accent-soft);color:inherit;border-radius:5px;padding:0 3px;box-shadow:inset 0 -2px 0 var(--gold-bright)}
+  .lineage-line{font-family:var(--font-display);font-size:17px;line-height:1.8;color:var(--text)}
+  input[type="search"]::-webkit-search-cancel-button{cursor:pointer}
 
   /* ---------- 9) الهرم ---------- */
   .hierarchy-box{padding:18px}
@@ -929,7 +935,7 @@
     </div>
 
     <div class="search-box">
-      <input id="searchInput" type="text" placeholder="ابحث عن اسم ثلاثي أو رباعي أو خماسي..." />
+      <input id="searchInput" type="search" enterkeyhint="search" autocomplete="off" placeholder="ابحث بالاسم ثم اسم الأب، مثل: محمد علي حسن" />
     </div>
 
     <div class="toolbar">
@@ -2220,6 +2226,7 @@ let people = {
     let peopleSource = "local";
     let hierarchyTrail = [rootId];
     let suppressAutoScroll = false;
+    let trackedScrollY = 0; // آخر موضع تمرير رآه المستخدم، يُحفظ مع الصفحة عند مغادرتها
 
     // توحيد إملاء الأسماء (update19) يحتاج الوصول إلى الشجرة من window
     Object.defineProperty(window, "people", {
@@ -2732,6 +2739,7 @@ async function syncPeopleToSupabase() {
       const q = params.get("person") || params.get("hierarchy");
       if (q) return q;
       const h = location.hash.replace("#", "");
+      if (h.startsWith("search=") || h.startsWith("whoami=")) return "";
       if (h.includes("=")) return h.split("=")[1];
       return h;
     }
@@ -3055,6 +3063,12 @@ async function syncPeopleToSupabase() {
 
     function exitAdmin() {
       try { window.__adminLocked = false; } catch(e) {}
+      try {
+        if (history.state && history.state.adminGuard && !history.state.modalLayer) {
+          ignoreNextPop();
+          history.back();
+        }
+      } catch (e) {}
       try { window.currentAdminRole = "guest"; } catch (e) {}
       try { if (supabaseClient.auth) supabaseClient.auth.signOut({ scope: "local" }).catch(() => {}); } catch (e) {}
       currentView = "tree";
@@ -3073,7 +3087,19 @@ const h = params.get("person") ? "person=" + params.get("person")
   : params.get("hierarchy") ? "hierarchy=" + params.get("hierarchy")
   : location.hash.replace("#", "");
 
-if (!h) {
+const searchBox = document.getElementById("searchInput");
+      if (h.startsWith("search=")) {
+        let keyword = "";
+        try { keyword = decodeURIComponent(h.slice(7)).trim(); } catch (e) {}
+        if (keyword) {
+          searchBox.value = keyword;
+          renderSearchResults(keyword);
+          return;
+        }
+      }
+      if (searchBox) searchBox.value = "";
+
+if (!h || h.startsWith("search=")) {
         showTreePage();
         render(rootId);
         return;
@@ -3097,6 +3123,11 @@ if (!h) {
       }
       if (h === "about") return showAbout(false);
       if (h === "whoami") return showWhoAmI(false);
+      if (h.startsWith("whoami=")) {
+        let query = "";
+        try { query = decodeURIComponent(h.slice(7)); } catch (e) {}
+        return showWhoAmI(false, query);
+      }
       if (h.startsWith("whoami-person=")) {
         const id = h.split("=")[1];
         if (people[id]) showWhoAmIProfile(id, false);
@@ -3152,14 +3183,12 @@ if (!h) {
       document.getElementById("confirmText").innerHTML =
         "لا توجد بيانات كافية لهذا الاسم حاليًا.<br>هل تريد فتح واتساب لإضافة أو تعديل البيانات؟";
       document.getElementById("confirmModal").classList.add("active");
-      history.pushState({ modal:true, personId: currentPerson }, "", "#modal");
     }
 
     function closeConfirmModal(fromPop = false) {
       document.getElementById("confirmModal").classList.remove("active");
       pendingWhatsAppId = null;
       modalOpen = false;
-      if (!fromPop && location.hash === "#modal") history.back();
     }
 
     function confirmWhatsApp() {
@@ -3515,7 +3544,7 @@ function buildSimpleLineageFromPerson(id) {
         </div>
       `;
       typeWriterText(document.getElementById("whoAmITypedText"), buildWhoAmIText(id), 14);
-      if (pushHash) history.pushState({ whoamiPerson:id }, "", location.pathname + `#whoami-person=${id}`);
+      if (pushHash) pushView({ whoamiPerson:id }, location.pathname + `#whoami-person=${id}`);
     }
 
 
@@ -3662,10 +3691,170 @@ function buildSimpleLineageFromPerson(id) {
           </div>
         </div>
       `;
-      if (pushHash) history.pushState({ about: true }, "", location.pathname + "#about");
+      if (pushHash) pushView({ about: true }, location.pathname + "#about");
     }
 
-    function showWhoAmI(pushHash = true) {
+    // ================= البحث بالاسم والنسب =================
+    // الكلمة الأولى تطابق اسم الشخص، والتي بعدها اسم أبيه ثم جده... مع تسامح في الإملاء.
+    const SEARCH_SKIP_WORDS = new Set(["بن", "ابن", "بنت", "ابنه", "ال"]);
+    const SEARCH_FAMILY_WORDS = new Set(["المجيني", "المجينيه", "المجيني."]);
+    const SEARCH_COMPOUND_PREFIXES = new Set(["عبد", "مال", "ابو", "ام", "نور", "سيف", "جار"]);
+
+    // كلمات الاسم بعد توحيد الإملاء وحذف (بن/بنت) ودمج الأسماء المركبة: عبد الله = عبدالله
+    function nameSearchWords(text) {
+      const raw = normalizeArabic(text).replace(/[^\u0621-\u064A\s]/g, " ").split(/\s+/).filter(Boolean);
+      const out = [];
+      for (let i = 0; i < raw.length; i++) {
+        let word = raw[i];
+        if (SEARCH_SKIP_WORDS.has(word)) continue;
+        if (SEARCH_COMPOUND_PREFIXES.has(word) && raw[i + 1] && raw[i + 1].startsWith("ال") && raw[i + 1].length > 2) {
+          word += raw[i + 1];
+          i += 1;
+        }
+        out.push(word);
+      }
+      return out;
+    }
+
+    function buildSearchIndex() {
+      const index = [];
+      (function walk(id, ancestors, depth) {
+        const node = people[id];
+        if (!node) return;
+        const words = nameSearchWords(node.name);
+        const first = words[0] || "";
+        // الجذر: بقية اسمه (حميد، المجيني) تكمل السلسلة. غيره: الكلمات الزائدة في اسمه (اسم مركب أو اسم أب غير موجود في الشجرة)
+        const up = id === rootId ? words.slice(1) : ancestors;
+        const extra = id === rootId ? [] : words.slice(1).filter(w => w !== ancestors[0]);
+        const chain = [first, ...up];
+        index.push({ id, chain, extra, depth, order: index.length });
+        (node.children || []).forEach(cid => walk(cid, chain, depth + 1));
+      })(rootId, [], 1);
+      return index;
+    }
+
+    function editDistanceWithin(a, b, max) {
+      if (Math.abs(a.length - b.length) > max) return max + 1;
+      let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+      for (let i = 1; i <= a.length; i++) {
+        const cur = [i];
+        let rowMin = i;
+        for (let j = 1; j <= b.length; j++) {
+          cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+          if (cur[j] < rowMin) rowMin = cur[j];
+        }
+        if (rowMin > max) return max + 1;
+        prev = cur;
+      }
+      return prev[b.length];
+    }
+
+    // درجة تطابق كلمة مكتوبة مع اسم: 100 مطابق، ثم بداية الاسم (أثناء الكتابة)، ثم جزء منه، ثم خطأ إملائي بسيط
+    function matchSearchWord(token, word, isLastToken, tolerant) {
+      if (!token || !word) return 0;
+      if (word === token) return 100;
+      if (word.startsWith(token) && (isLastToken || token.length >= 3)) return 64;
+      if (token.length >= 4 && word.includes(token)) return 44;
+      if (tolerant) {
+        const allowed = token.length >= 8 ? 2 : (token.length >= 3 ? 1 : 0);
+        if (allowed) {
+          const distance = editDistanceWithin(token, word, allowed);
+          if (distance <= allowed) return 50 - distance * 8;
+        }
+      }
+      return 0;
+    }
+
+    function scoreSearchEntry(entry, tokens, tolerant) {
+      const single = tokens.length === 1;
+      const first = matchSearchWord(tokens[0], entry.chain[0], single, tolerant);
+      if (!first) return null;
+      let score = first * 1.5;
+      let position = 0;
+      let skipped = 0;
+      const matched = [0];
+      const usedExtra = new Set();
+
+      for (let i = 1; i < tokens.length; i++) {
+        const isLast = i === tokens.length - 1;
+        let best = 0;
+        let bestPosition = -1;
+        // يُسمح بتجاوز جدّ أو جدّين إذا لم يكتبهما الباحث
+        for (let j = position + 1; j <= Math.min(position + 3, entry.chain.length - 1); j++) {
+          const value = matchSearchWord(tokens[i], entry.chain[j], isLast, tolerant);
+          const adjusted = value - (j - position - 1) * 22;
+          if (value && adjusted > best) { best = adjusted; bestPosition = j; }
+        }
+        let bestExtra = 0;
+        let bestExtraIndex = -1;
+        entry.extra.forEach((word, k) => {
+          if (usedExtra.has(k)) return;
+          const value = matchSearchWord(tokens[i], word, isLast, tolerant) * 0.9;
+          if (value > bestExtra) { bestExtra = value; bestExtraIndex = k; }
+        });
+
+        if (bestExtraIndex !== -1 && bestExtra > best) {
+          usedExtra.add(bestExtraIndex);
+          score += bestExtra;
+        } else if (bestPosition !== -1) {
+          skipped += bestPosition - position - 1;
+          position = bestPosition;
+          matched.push(bestPosition);
+          score += best;
+        } else {
+          return null;
+        }
+      }
+      return { id: entry.id, score, matched, skipped, depth: entry.depth, order: entry.order };
+    }
+
+    function runPeopleSearch(tokens, index) {
+      let results = [];
+      // المرور الأول بالأسماء كما كُتبت، والثاني يتسامح مع خطأ إملائي إذا لم يُوجد شيء
+      for (const tolerant of [false, true]) {
+        index.forEach(entry => {
+          const hit = scoreSearchEntry(entry, tokens, tolerant);
+          if (hit) results.push(hit);
+        });
+        if (results.length) break;
+      }
+      results.sort((x, y) => (y.score - x.score) || (x.skipped - y.skipped) || (x.depth - y.depth) || (x.order - y.order));
+      return results;
+    }
+
+    // يعيد { results, approximate }: إذا لم يوجد تطابق كامل نحذف آخر الأسماء المكتوبة ونعرض الأقرب
+    function searchPeople(query) {
+      let tokens = nameSearchWords(query);
+      const withoutFamily = tokens.filter(t => !SEARCH_FAMILY_WORDS.has(t));
+      if (withoutFamily.length) tokens = withoutFamily;
+      if (!tokens.length) return { results: [], approximate: false };
+      const index = buildSearchIndex();
+      let results = runPeopleSearch(tokens, index);
+      let approximate = false;
+      while (!results.length && tokens.length > 1) {
+        tokens = tokens.slice(0, -1);
+        results = runPeopleSearch(tokens, index);
+        approximate = true;
+      }
+      return { results, approximate };
+    }
+
+    // النسب كاملًا مع إبراز الأسماء التي طابقت البحث
+    function renderLineageHighlighted(id, matchedPositions = []) {
+      const path = getLineage(id).slice().reverse();
+      const matched = new Set(matchedPositions);
+      let html = "";
+      path.forEach((pid, i) => {
+        const full = (people[pid]?.name || "").trim();
+        const ownCompound = i === 0 && !/(^|\s)(بن|بنت)(\s|$)/.test(full);
+        const label = escapeHtml(ownCompound ? full : (full.split(" ")[0] || full));
+        if (i > 0) html += inferGender(path[i - 1]) === "f" ? " بنت " : " بن ";
+        html += matched.has(i) ? `<mark>${label}</mark>` : label;
+      });
+      return html;
+    }
+
+    function showWhoAmI(pushHash = true, initialQuery = "") {
       currentView = "whoami";
       hideAllPages();
       scrollToTopVerySlow();
@@ -3676,35 +3865,59 @@ function buildSimpleLineageFromPerson(id) {
         <div class="about-wrap">
           <div class="about-box">
             <h2>من أكون؟</h2>
-            <div class="top-note">ابحث عن الاسم، ثم اضغط على النتيجة لفتح البطاقة التعريفية التفاعلية.</div>
+            <div class="top-note">اكتب اسمك ثم اسم أبيك وجدك، وكل اسم تزيده يقرّب النتيجة. لا تحتاج كتابة «بن».</div>
             <div class="note-form">
-              <input class="field" id="whoInput" placeholder="ابحث عن الاسم..." />
+              <input class="field" id="whoInput" type="search" enterkeyhint="search" autocomplete="off" placeholder="مثل: محمد علي حسن" />
+              <div id="whoCount" class="top-note" style="margin:0;"></div>
               <div id="whoResult" class="whoami-results"></div>
             </div>
           </div>
         </div>
       `;
       const input = document.getElementById("whoInput");
-      input.addEventListener("input", runWhoAmI);
-      if (pushHash) history.pushState({ whoami:true }, "", location.pathname + "#whoami");
+      input.value = initialQuery || "";
+      input.addEventListener("input", function() {
+        runWhoAmI();
+        // الاسم المكتوب يُحفظ في الرابط حتى يرجع زر الرجوع إلى نفس النتائج
+        const q = input.value.trim();
+        replaceViewUrl(location.pathname + (q ? "#whoami=" + encodeURIComponent(q) : "#whoami"));
+      });
+      input.addEventListener("keydown", function(e) {
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+        const first = document.querySelector("#whoResult button");
+        if (first) first.click();
+      });
+      if (pushHash) pushView({ whoami:true }, location.pathname + "#whoami");
+      if (initialQuery) runWhoAmI();
+      else if (pushHash && window.matchMedia("(hover: hover)").matches) input.focus();
     }
 
     function runWhoAmI() {
       const q = document.getElementById("whoInput").value.trim();
       const out = document.getElementById("whoResult");
+      const count = document.getElementById("whoCount");
       if (!q) {
         out.innerHTML = "";
+        count.textContent = "";
         return;
       }
-      const results = [];
-      for (const id in people) {
-        const score = scoreNameOnlySearch(q, people[id].name);
-        if (score >= 60) results.push({ id, score });
+      const { results, approximate } = searchPeople(q);
+      if (!results.length) {
+        count.textContent = "";
+        out.innerHTML = `<div class="list-item">لم نجد هذا الاسم. جرّب الاسم الأول وحده، أو تأكد من ترتيب الأسماء: اسمك ثم اسم أبيك.</div>`;
+        return;
       }
-      results.sort((a,b)=>b.score-a.score);
-      out.innerHTML = results.length
-        ? results.slice(0, 20).map(r => `<button onclick="showWhoAmIProfile('${r.id}')">${escapeHtml(people[r.id].name)}</button>`).join("")
-        : `<div class="list-item">لا توجد نتائج مطابقة.</div>`;
+      const shown = results.slice(0, 40);
+      count.textContent = (approximate ? "لا يوجد تطابق كامل، وهذه أقرب الأسماء: " : "عدد النتائج: ")
+        + results.length + (results.length > shown.length ? " (تظهر أول " + shown.length + "، أضف اسم الأب لتقليلها)" : "");
+      out.innerHTML = shown.map(r => {
+        const kids = getChildrenCount(r.id);
+        return `<button onclick="showWhoAmIProfile('${r.id}')">
+          <span class="who-line">${renderLineageHighlighted(r.id, r.matched)}</span>
+          <span class="who-meta">${generationLabelShort(getGeneration(r.id))}${kids ? "، عدد الأبناء " + kids : ""}${people[r.id].deceased ? "، " + mercyPhrase(r.id) : ""}</span>
+        </button>`;
+      }).join("");
     }
 
     function showPersonPage(id, pushHash = true) {
@@ -3730,16 +3943,19 @@ function buildSimpleLineageFromPerson(id) {
           ${
             children.length
               ? `<div class="cards">${children.map(cid => renderCard(cid)).join("")}</div>`
-              : `<div class="card no-children">
-                  <div class="name-row">
-                    <div class="name">لا توجد أسماء أبناء مسجلة لهذا الشخص.</div>
+              : `<div class="card no-children" style="cursor:default;">
+                  <div class="meta lineage-line">${renderLineageHighlighted(id)}</div>
+                  <div class="meta">لا توجد أسماء أبناء مسجلة لهذا الشخص.</div>
+                  <div style="margin:10px 0 12px;">
+                    <button class="btn-soft" onclick="showConfirmModal('${id}')">طلب إضافة أو تعديل عبر واتساب</button>
                   </div>
+                  ${renderCardActions(id)}
                 </div>`
           }
         </div>
       `;
 
-      if (pushHash) history.pushState({ personPage:id }, "", location.pathname + "?person=" + id);
+      if (pushHash) pushView({ personPage:id }, location.pathname + "?person=" + id);
     }
 
     // ================= الشجرة المرسومة: تحريك وتكبير وفتح الفروع =================
@@ -4048,7 +4264,7 @@ function buildSimpleLineageFromPerson(id) {
       bindDiagramGestures();
       centerDiagramOn(focusId);
 
-      if (pushHash) history.pushState({ diagram: focusId }, "", location.pathname + (focusId === rootId ? "#tree" : "#tree=" + focusId));
+      if (pushHash) pushView({ diagram: focusId }, location.pathname + (focusId === rootId ? "#tree" : "#tree=" + focusId));
     }
 
     function showHierarchyPage(startId = rootId, pushHash = true) {
@@ -4061,7 +4277,7 @@ function buildSimpleLineageFromPerson(id) {
       hierarchyTrail = buildTrailForHierarchy(startId);
       renderHierarchyPage();
 
-      if (pushHash) history.pushState({ hierarchy:startId }, "", location.pathname + "#hierarchy=" + startId);
+      if (pushHash) pushView({ hierarchy:startId }, location.pathname + "#hierarchy=" + startId);
     }
 
     function buildTrailForHierarchy(id) {
@@ -4178,6 +4394,7 @@ function buildSimpleLineageFromPerson(id) {
           if (!result.error && result.data && result.data.session) {
             window.currentAdminRole = account.role;
             closeAdminPassword();
+            await whenHistorySettled();
             await showAdminPage();
             return;
           }
@@ -4191,7 +4408,11 @@ function buildSimpleLineageFromPerson(id) {
     }
 
     async function showAdminPage() {
-      try { window.__adminLocked = true; } catch(e) {}
+      try {
+        // خانة خاصة بالإدارة في السجل: زر الرجوع يبقيك داخلها بدل أن يخرجك من الموقع
+        if (!window.__adminLocked) pushView({ adminGuard: true }, location.href);
+        window.__adminLocked = true;
+      } catch(e) {}
       currentView = "admin";
       hideAllPages();
       const page = document.getElementById("adminPage");
@@ -5019,13 +5240,40 @@ function goRoot() {
   historyStack = [rootId];
   currentPerson = rootId;
   document.getElementById("searchInput").value = "";
-  history.pushState({ personId: rootId }, "", location.pathname + "#" + rootId);
+  pushView({ personId: rootId }, location.pathname + "#" + rootId);
   showTreePage();
   render(rootId);
 }
 
+// كل انتقال بين الصفحات يحفظ موضع التمرير في الصفحة الحالية ويعدّ عمق التصفح داخل الموقع
+function pushView(state, url) {
+  const leavingScrollY = typeof trackedScrollY === "number" ? trackedScrollY : window.scrollY;
+  try { history.replaceState({ ...(history.state || {}), scrollY: leavingScrollY }, ""); } catch (e) {}
+  history.pushState({ ...state, idx: ((history.state && history.state.idx) || 0) + 1 }, "", url);
+}
+
+function replaceViewUrl(url) {
+  try { history.replaceState({ ...(history.state || {}) }, "", url); } catch (e) {}
+}
+
 function goBack() {
-  history.back();
+  if (history.state && history.state.idx > 0) {
+    history.back();
+    return;
+  }
+  // الموقع فُتح من رابط مباشر ولا توجد صفحة سابقة داخله: نصعد للأب ثم للرئيسية
+  if (currentView === "person" && currentPerson !== rootId && people[currentPerson]) {
+    const parentId = getParentId(currentPerson) || rootId;
+    showPersonPage(parentId, false);
+    replaceViewUrl(location.pathname + "?person=" + parentId);
+    scrollToTopInstant();
+    return;
+  }
+  if (currentView === "tree" && currentPerson === rootId && !(document.getElementById("searchInput").value || "").trim()) return;
+  document.getElementById("searchInput").value = "";
+  showTreePage();
+  render(rootId);
+  replaceViewUrl(location.pathname + "#" + rootId);
 }
 
 function renderBreadcrumb() {
@@ -5037,7 +5285,7 @@ function renderBreadcrumb() {
     btn.onclick = () => {
       historyStack = historyStack.slice(0, index + 1);
       currentPerson = personId;
-      history.pushState({ personId }, "", location.pathname + "#" + personId);
+      pushView({ personId }, location.pathname + "#" + personId);
       render(personId);
     };
     b.appendChild(btn);
@@ -5187,16 +5435,9 @@ function render(id) {
 }
 
 function renderSearchResults(keyword) {
-  const results = [];
+  const { results, approximate } = searchPeople(keyword);
 
-  for (const key in people) {
-    const person = people[key];
-    const score = scoreNameOnlySearch(keyword, person.name);
-    if (score >= 60) results.push({ id: key, score });
-  }
-
-  results.sort((a, b) => b.score - a.score);
-
+  currentView = "tree";
   showTreePage();
   document.getElementById("mainPage").classList.remove("is-root");
   document.getElementById("title").textContent = "نتائج البحث";
@@ -5204,16 +5445,17 @@ function renderSearchResults(keyword) {
   document.getElementById("quickBranches").innerHTML = "";
   document.getElementById("quickBranches").style.display = "none";
 
-  let top = factRow("عدد النتائج", results.length);
-  if (results.length > 0) top += factRow("أقرب نتيجة", escapeHtml(buildSimpleLineageFromPerson(results[0].id)), true);
+  let top = factRow(approximate ? "لا يوجد تطابق كامل، أقرب الأسماء" : "عدد النتائج", results.length);
+  if (results.length > 0) top += factRow("أقرب نتيجة", renderLineageHighlighted(results[0].id, results[0].matched), true);
+  else top += `<div class="top-note" style="margin:6px 0 0;">جرّب الاسم الأول وحده، أو اكتب اسمك ثم اسم أبيك بدون «بن».</div>`;
   document.getElementById("infoBar").innerHTML = top;
 
   // سطر النسب تحت كل نتيجة يفرّق بين الأسماء المتشابهة
   const html = results.length
-    ? results.map((r, idx) => `
-      <div class="card ${hasChildren(r.id) ? "" : "no-children"}" onclick="${hasChildren(r.id) ? `handleClick('${r.id}')` : `showConfirmModal('${r.id}')`}">
+    ? results.slice(0, 80).map((r, idx) => `
+      <div class="card ${hasChildren(r.id) ? "" : "no-children"}" onclick="handleClick('${r.id}')">
         ${renderCardHead(r.id, idx === 0 ? ' <span class="nearest">الأقرب</span>' : '')}
-        <div class="meta">${escapeHtml(buildSimpleLineageFromPerson(r.id))}</div>
+        <div class="meta lineage-line">${renderLineageHighlighted(r.id, r.matched)}</div>
         ${renderCardActions(r.id)}
       </div>
     `).join("")
@@ -5698,23 +5940,112 @@ ${bodyHtml}
     // لا تُستبدل الروابط العميقة (#person= / #about ...) عند أول فتح
     if (!history.state && !location.hash && !location.search) history.replaceState({ personId: rootId }, "", "#" + rootId);
 
-    window.onpopstate = function() {
+    try { history.scrollRestoration = "manual"; } catch (e) {}
+    window.addEventListener("scroll", function() { trackedScrollY = window.scrollY; }, { passive: true });
+    if (!history.state || typeof history.state.idx !== "number") {
+      try { history.replaceState({ ...(history.state || {}), idx: 0 }, ""); } catch (e) {}
+    }
+
+    // ---- زر الرجوع يغلق النافذة المفتوحة أولًا، ثم يرجع صفحة ----
+    const MODAL_CLOSERS = {
+      confirmModal: () => closeConfirmModal(true),
+      adminPasswordModal: () => closeAdminPassword(),
+      addRequestModal: () => closeAddRequestModal(),
+      lineageModal: () => closeLineageModal(),
+      shareInfoModal: () => closeShareInfoModal(),
+      shareInfoFormModal: () => closeShareInfoFormModal(),
+      requestReadModal: () => closeRequestReadModal(),
+      adminInfoEditModal: () => closeAdminInfoEditModal(),
+      adminRoleManageModal: () => closeAdminRoleManageModal(),
+      treePickerModal: () => closeTreePicker(),
+      quickRelationModal: () => closeQuickRelationModal()
+    };
+    let modalHistoryDepth = 0;   // عدد خانات السجل المحجوزة للنوافذ المفتوحة
+    let ignoredPops = 0;         // رجوع نفّذناه نحن ولا يعني تنقلًا
+    let ignoredPopsDeadline = 0;
+
+    function ignoreNextPop() {
+      ignoredPops += 1;
+      ignoredPopsDeadline = Date.now() + 1200;
+    }
+
+    function whenHistorySettled() {
+      return new Promise(resolve => {
+        setTimeout(function check(tries) {
+          if (ignoredPops > 0 && Date.now() < ignoredPopsDeadline && (tries || 0) < 40) {
+            setTimeout(() => check((tries || 0) + 1), 20);
+            return;
+          }
+          resolve();
+        }, 0);
+      });
+    }
+
+    function closeTopModalFromBack() {
+      const open = [...document.querySelectorAll(".modal.active")];
+      if (!open.length) return false;
+      const z = el => Number(getComputedStyle(el).zIndex) || 0;
+      const top = open.reduce((a, b) => (z(b) >= z(a) ? b : a));
+      modalHistoryDepth = Math.max(0, modalHistoryDepth - 1);
+      try { (MODAL_CLOSERS[top.id] || (() => {}))(); } catch (e) { console.error(e); }
+      top.classList.remove("active");
+      return true;
+    }
+
+    // كل نافذة تُفتح تحجز خانة في السجل، وإغلاقها بزرّها يحرر الخانة
+    new MutationObserver(function() {
+      const open = document.querySelectorAll(".modal.active").length;
+      if (open > modalHistoryDepth) {
+        while (modalHistoryDepth < open) {
+          modalHistoryDepth += 1;
+          history.pushState({ ...(history.state || {}), modalLayer: modalHistoryDepth }, "");
+        }
+      } else if (open < modalHistoryDepth) {
+        const steps = modalHistoryDepth - open;
+        modalHistoryDepth = open;
+        ignoreNextPop();
+        history.go(-steps);
+      }
+    }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ["class"] });
+
+    window.onpopstate = function(e) {
+      if (ignoredPops > 0 && Date.now() < ignoredPopsDeadline) {
+        ignoredPops -= 1;
+        return;
+      }
+      ignoredPops = 0;
+
+      if (closeTopModalFromBack()) return;
+
       try {
         if (window.__adminLocked && !document.getElementById("adminPage").classList.contains("hidden")) {
-          try { history.pushState({mujainiAdminLock:true}, "", location.href); } catch(e) {}
+          // نبقى داخل الإدارة بدون العبث بالسجل، ونوضح طريقة الخروج
+          ignoreNextPop();
+          history.go(1);
+          alert("أنت داخل الإدارة. للخروج اضغط زر «خروج من الإدارة».");
           return;
         }
-      } catch (e) {}
-      routeToHash();
+      } catch (err) {}
+
+      suppressAutoScroll = true;
+      try { routeToHash(); } finally { suppressAutoScroll = false; }
+      const y = e && e.state && typeof e.state.scrollY === "number" ? e.state.scrollY : 0;
+      // الرجوع يعيدك لنفس الموضع مباشرة بدون حركة تمرير
+      requestAnimationFrame(() => {
+        try { window.scrollTo({ top: y, left: 0, behavior: "instant" }); } catch (err) { window.scrollTo(0, y); }
+      });
     };
 
     document.getElementById("searchInput").addEventListener("input", function() {
       const keyword = this.value.trim();
       if (!keyword) {
         render(currentPerson);
+        replaceViewUrl(location.pathname + "#" + currentPerson);
         return;
       }
       renderSearchResults(keyword);
+      // البحث يُحفظ في الرابط حتى يرجع زر الرجوع إلى نفس النتائج
+      replaceViewUrl(location.pathname + "#search=" + encodeURIComponent(keyword));
     });
 
     let lastScrollY = window.scrollY;
