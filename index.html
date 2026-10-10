@@ -432,6 +432,24 @@
   }
   .name .nearest{font-family:var(--font-ui);font-size:12px;font-weight:500;color:var(--gold)}
   .name-block{flex:1;min-width:0}
+  .card-side{flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+  /* زر تعديل الاسم: يطلب كلمة المرور */
+  .edit-chip{
+    padding:3px 11px 1px;
+    border:1px dashed var(--gold-bright);
+    border-radius:999px;
+    font-family:var(--font-ui);
+    font-size:12px;
+    font-weight:500;
+    line-height:1.6;
+    color:var(--gold);
+    cursor:pointer;
+    transition:background-color .18s ease;
+  }
+  .edit-chip:hover{background:var(--accent-soft)}
+  .person-title .edit-chip{display:inline-block;margin-top:8px}
+  .inline-add{display:flex;gap:8px}
+  .inline-add .field{flex:1;min-width:0}
   .name-sub{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:2px;font-size:13px;color:var(--muted)}
   .mercy{font-family:var(--font-display);font-size:15px;color:var(--gold)}
   /* صورة الشخص: دائرة بإطار ذهبي */
@@ -1042,11 +1060,57 @@
   <div class="modal" id="adminPasswordModal">
     <div class="modal-box">
       <div class="modal-title">دخول الإدارة</div>
-      <div class="modal-text">أدخل كلمة المرور لفتح صفحة الإدارة.</div>
+      <div class="modal-text" id="adminPasswordText">أدخل كلمة المرور لفتح صفحة الإدارة.</div>
       <input class="field" type="password" id="adminPasswordInput" placeholder="كلمة المرور" />
       <div class="modal-actions" style="margin-top:12px;">
         <button id="btnAdminPwdCancel" class="btn-soft">إلغاء</button>
         <button id="btnAdminPwdEnter" class="btn-main">دخول</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="personEditModal">
+    <div class="modal-box" style="max-width:560px;">
+      <div class="modal-title" id="personEditTitle">تعديل</div>
+      <div class="top-note lineage-line" id="personEditLineage"></div>
+
+      <div class="note-form">
+        <input class="field" id="peName" placeholder="الاسم" autocomplete="off" />
+        <select class="field" id="peGender">
+          <option value="">الجنس: يُحدَّد تلقائيًا من الاسم</option>
+          <option value="m">ذكر</option>
+          <option value="f">أنثى</option>
+        </select>
+        <input class="field" id="peBirthYear" type="number" inputmode="numeric" min="1000" max="2200" placeholder="سنة الميلاد (اختياري)" />
+        <label><input type="checkbox" id="peDeceased"> متوفى (تظهر "رحمه الله" مع الاسم)</label>
+        <div class="photo-row">
+          <div id="pePhotoPreview" class="photo-preview"></div>
+          <div class="photo-fields">
+            <input class="field" type="file" id="pePhotoFile" accept="image/*" />
+            <label><input type="checkbox" id="pePhotoRemove"> حذف الصورة الحالية</label>
+          </div>
+        </div>
+        <button class="btn-main" id="peSave" onclick="savePersonEditor()">حفظ التعديل</button>
+      </div>
+
+      <div class="subbox" style="margin-top:14px;">
+        <h4>إضافة ابن أو ابنة</h4>
+        <div class="inline-add">
+          <input class="field" id="peChildName" placeholder="اسم الابن أو الابنة" autocomplete="off" />
+          <button class="btn-main" id="peAddChild" onclick="addChildFromEditor()">إضافة</button>
+        </div>
+        <div class="top-note" id="peChildren" style="margin:10px 0 0;"></div>
+      </div>
+
+      <div class="subbox" id="peDeleteBox" style="margin-top:14px;">
+        <h4>حذف الاسم</h4>
+        <div class="top-note" id="peDeleteNote"></div>
+        <button class="btn-danger" id="peDelete" onclick="deleteFromEditor()">حذف هذا الاسم</button>
+      </div>
+
+      <div class="modal-actions" style="margin-top:14px;">
+        <button class="btn-soft" onclick="signOutFromEditor()">تسجيل الخروج</button>
+        <button class="btn-main" onclick="closePersonEditor()">إغلاق</button>
       </div>
     </div>
   </div>
@@ -3938,6 +4002,7 @@ function buildSimpleLineageFromPerson(id) {
             ${renderAvatar(id, "avatar avatar-lg")}
             <div>${escapeHtml(person.name)}</div>
             ${renderPersonSub(id)}
+            <div class="edit-chip" role="button" tabindex="0" title="تعديل هذا الاسم (بكلمة المرور)" onclick="requestPersonEdit('${id}')">تعديل</div>
           </div>
           ${renderApprovedInfoBox(id)}
           ${
@@ -4141,6 +4206,7 @@ function buildSimpleLineageFromPerson(id) {
           <button class="btn-main" onclick="showPersonPage('${id}')">فتح الصفحة</button>
           <button class="btn-soft" onclick="openLineageModal('${id}')">النسب</button>
           <button class="btn-soft" onclick="openWhoAmIForPerson('${id}')">من؟</button>
+          <button class="btn-soft" onclick="requestPersonEdit('${id}')">تعديل</button>
         </div>
       `;
     }
@@ -4363,7 +4429,10 @@ function buildSimpleLineageFromPerson(id) {
       }
     }
 
-    function openAdminPassword() {
+    function openAdminPassword(reasonText) {
+      // بدون سبب = الدخول المعتاد لصفحة الإدارة
+      if (!reasonText) pendingAfterLogin = null;
+      document.getElementById("adminPasswordText").textContent = reasonText || "أدخل كلمة المرور لفتح صفحة الإدارة.";
       document.getElementById("adminPasswordInput").value = "";
       document.getElementById("adminPasswordModal").classList.add("active");
       setTimeout(() => document.getElementById("adminPasswordInput").focus(), 60);
@@ -4371,6 +4440,168 @@ function buildSimpleLineageFromPerson(id) {
 
     function closeAdminPassword() {
       document.getElementById("adminPasswordModal").classList.remove("active");
+    }
+
+    // ================= تعديل سريع من بطاقة الاسم =================
+    let pendingAfterLogin = null; // ما يُنفَّذ بعد نجاح كلمة المرور بدل فتح صفحة الإدارة
+    let personEditorId = null;
+
+    function requestPersonEdit(id) {
+      if (!people[id]) return;
+      if (isAdminSession()) { openPersonEditor(id); return; }
+      pendingAfterLogin = () => openPersonEditor(id);
+      openAdminPassword("أدخل كلمة المرور لتعديل «" + people[id].name + "».");
+    }
+
+    function fillPersonEditor() {
+      const id = personEditorId;
+      const node = people[id];
+      if (!node) return;
+      document.getElementById("personEditTitle").textContent = "تعديل: " + node.name;
+      document.getElementById("personEditLineage").innerHTML = renderLineageHighlighted(id);
+      document.getElementById("peName").value = node.name;
+      document.getElementById("peGender").value = node.gender || "";
+      document.getElementById("peBirthYear").value = node.birthYear || "";
+      document.getElementById("peDeceased").checked = !!node.deceased;
+      document.getElementById("pePhotoFile").value = "";
+      document.getElementById("pePhotoRemove").checked = false;
+      document.getElementById("pePhotoPreview").innerHTML = renderAvatar(id, "avatar avatar-lg");
+      document.getElementById("peChildName").value = "";
+      const kids = (node.children || []).filter(cid => people[cid]);
+      document.getElementById("peChildren").textContent = kids.length
+        ? "الأبناء المسجلون (" + kids.length + "): " + kids.map(cid => people[cid].name).join("، ")
+        : "لا يوجد أبناء مسجلون.";
+      const isRoot = id === rootId;
+      document.getElementById("peDeleteBox").style.display = isRoot ? "none" : "";
+      document.getElementById("peDeleteNote").textContent = window.currentAdminRole === "master"
+        ? "يُحذف الاسم مع كل ذريته المسجلة. يمكن التراجع من أرشيف الإدارة."
+        : "يختفي الاسم وذريته من الشجرة، ويبقى الحذف بانتظار تأكيد الماستر.";
+    }
+
+    function openPersonEditor(id) {
+      if (!people[id]) { alert("الاسم غير موجود"); return; }
+      window.ALLOWED_ADMIN_TABS_SECONDARY = getSecondaryAdminSettings().tabs;
+      if (!canAccessAdminTab("add")) { alert("صلاحيتك لا تسمح بتعديل الأسماء"); return; }
+      personEditorId = id;
+      fillPersonEditor();
+      document.getElementById("personEditModal").classList.add("active");
+    }
+
+    function closePersonEditor() {
+      document.getElementById("personEditModal").classList.remove("active");
+      personEditorId = null;
+    }
+
+    // بعد أي تعديل: أعد رسم الصفحة المفتوحة في مكانها
+    function refreshVisibleViewAfterEdit() {
+      if (currentView === "admin") return;
+      if (currentView === "whoami-profile") {
+        if (people[currentPerson]) return;
+        currentPerson = rootId;
+        showTreePage();
+        render(rootId);
+        replaceViewUrl(location.pathname + "#" + rootId);
+        return;
+      }
+      refreshCurrentViewAfterDataLoad();
+      if (currentView === "whoami" && document.getElementById("whoInput")) runWhoAmI();
+    }
+
+    async function savePersonEditor() {
+      const id = personEditorId;
+      const btn = document.getElementById("peSave");
+      btn.disabled = true;
+      try {
+        const ok = await savePersonDetailsCore(id, {
+          name: document.getElementById("peName").value,
+          gender: document.getElementById("peGender").value,
+          birthYear: document.getElementById("peBirthYear").value,
+          deceased: document.getElementById("peDeceased").checked,
+          file: document.getElementById("pePhotoFile").files[0] || null,
+          removePhoto: document.getElementById("pePhotoRemove").checked
+        });
+        if (ok) {
+          alert("تم حفظ التعديل");
+          if (personEditorId === id) fillPersonEditor();
+          refreshVisibleViewAfterEdit();
+        }
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function addChildFromEditor() {
+      const id = personEditorId;
+      if (!id || !people[id]) return;
+      const input = document.getElementById("peChildName");
+      const name = cleanPersonText(input.value);
+      if (!name) return alert("اكتب اسم الابن أو الابنة");
+      if (!peopleTableAvailable) return alert("قاعدة البيانات غير متاحة الآن، لا يمكن حفظ الإضافة. حاول بعد قليل.");
+      const btn = document.getElementById("peAddChild");
+      btn.disabled = true;
+      try {
+        const newId = await addPersonPersist(id, name, "");
+        if (lastPersonPersistFailed) {
+          // لم يُحفظ في قاعدة البيانات: لا نُبقي اسمًا يختفي بعد التحديث
+          people[id].children = (people[id].children || []).filter(cid => cid !== newId);
+          delete people[newId];
+          return alert("تعذر حفظ الإضافة في قاعدة البيانات. سجّل الدخول من جديد ثم حاول.");
+        }
+        logChange("إضافة اسم جديد: " + people[newId].name + " تحت " + people[id].name);
+        alert("تمت إضافة " + people[newId].name);
+        if (personEditorId === id) fillPersonEditor();
+        refreshVisibleViewAfterEdit();
+        input.focus();
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function deleteFromEditor() {
+      const id = personEditorId;
+      if (!id || !people[id]) return;
+      if (id === rootId) return alert("لا يمكن حذف الجذر");
+      const name = people[id].name;
+      const descendants = getDescendantsCount(id);
+      const isMaster = window.currentAdminRole === "master";
+      const question = "حذف «" + name + "»" + (descendants ? " مع " + descendants + " من ذريته المسجلة" : "") + "؟";
+      if (!confirm(question)) return;
+
+      const parentId = getParentId(id) || rootId;
+      const pendingId = createPendingDelete(id);
+      if (!pendingId) return;
+
+      let message = "تم الحذف، وهو بانتظار تأكيد الماستر.";
+      if (isMaster) {
+        const done = await confirmPendingDeleteCore(pendingId);
+        if (!done) {
+          // الخادم رفض: نرجّع الاسم كما كان
+          const item = (appState.pendingDeleteRequests || []).find(x => x.id === pendingId);
+          if (item) restoreDeletedSnapshot(item);
+          appState.pendingDeleteRequests = (appState.pendingDeleteRequests || []).filter(x => x.id !== pendingId);
+          saveState();
+          refreshVisibleViewAfterEdit();
+          return;
+        }
+        message = "تم حذف " + name + ".";
+      }
+
+      closePersonEditor();
+      await whenHistorySettled(); // خانة النافذة في السجل تتحرر أولًا، ثم نصحح رابط الصفحة
+      if (!people[currentPerson]) {
+        currentPerson = parentId;
+        if (currentView === "person") replaceViewUrl(location.pathname + "?person=" + parentId);
+      }
+      alert(message);
+      refreshVisibleViewAfterEdit();
+    }
+
+    function signOutFromEditor() {
+      closePersonEditor();
+      try { window.__adminLocked = false; } catch (e) {}
+      window.currentAdminRole = "guest";
+      try { if (supabaseClient.auth) supabaseClient.auth.signOut({ scope: "local" }).catch(() => {}); } catch (e) {}
+      alert("تم تسجيل الخروج. أي تعديل قادم يطلب كلمة المرور.");
     }
 
     // الدخول: نجرّب كلمة المرور على حساب الماستر ثم حساب الأدمن، والخادم هو الذي يقرر
@@ -4393,9 +4624,18 @@ function buildSimpleLineageFromPerson(id) {
           }
           if (!result.error && result.data && result.data.session) {
             window.currentAdminRole = account.role;
+            const afterLogin = pendingAfterLogin;
+            pendingAfterLogin = null;
             closeAdminPassword();
             await whenHistorySettled();
-            await showAdminPage();
+            if (afterLogin) {
+              // دخول من زر "تعديل" على اسم: نحدّث البيانات ثم نفتح نافذة التعديل بدون صفحة الإدارة
+              await syncSharedStateOnAdminEntry();
+              refreshCurrentViewAfterDataLoad();
+              afterLogin();
+            } else {
+              await showAdminPage();
+            }
             return;
           }
           const status = result.error && result.error.status;
@@ -4894,160 +5134,150 @@ function buildSimpleLineageFromPerson(id) {
       });
     }
 
-    async function adminSavePersonDetails() {
-      const personId = document.getElementById("adminEditPersonSelect").value;
-      if (!personId || !people[personId]) return alert("اختر الاسم من الشجرة أولًا");
+    // حفظ بيانات شخص: الاسم، الجنس، الوفاة، سنة الميلاد، الصورة. تعيد true عند النجاح.
+    async function savePersonDetailsCore(personId, input) {
+      if (!personId || !people[personId]) { alert("اختر الاسم من الشجرة أولًا"); return false; }
       const node = people[personId];
 
-      const newName = cleanPersonText(document.getElementById("adminEditPersonName").value);
-      if (!newName) return alert("اكتب الاسم");
+      const newName = cleanPersonText(input.name);
+      if (!newName) { alert("اكتب الاسم"); return false; }
 
-      const genderValue = document.getElementById("adminEditGender").value;
-      const gender = genderValue === "m" || genderValue === "f" ? genderValue : null;
+      const gender = input.gender === "m" || input.gender === "f" ? input.gender : null;
 
-      const birthRaw = String(document.getElementById("adminEditBirthYear").value || "").trim();
+      const birthRaw = String(input.birthYear || "").trim();
       let birthYear = null;
       if (birthRaw) {
         birthYear = Number(birthRaw);
         if (!Number.isInteger(birthYear) || birthYear < 1000 || birthYear > new Date().getFullYear()) {
-          return alert("اكتب سنة ميلاد صحيحة بالأرقام، مثل 1975");
+          alert("اكتب سنة ميلاد صحيحة بالأرقام، مثل 1975");
+          return false;
         }
       }
-      const deceased = document.getElementById("adminEditDeceased").checked;
-      const file = document.getElementById("adminEditPhotoFile").files[0] || null;
-      const removePhoto = document.getElementById("adminEditPhotoRemove").checked;
+      const deceased = !!input.deceased;
 
-      if (!peopleTableAvailable) return alert("قاعدة البيانات غير متاحة الآن، لا يمكن حفظ التعديل. حاول بعد قليل.");
+      if (!peopleTableAvailable) {
+        alert("قاعدة البيانات غير متاحة الآن، لا يمكن حفظ التعديل. حاول بعد قليل.");
+        return false;
+      }
 
+      let photo = node.photo || null;
+      if (input.file) {
+        const blob = await resizeImageToJpeg(input.file, 480);
+        if (!blob) { alert("تعذر قراءة الصورة. اختر صورة أخرى."); return false; }
+        const path = personId + "-" + Date.now() + ".jpg";
+        const upload = await supabaseClient.storage.from("photos").upload(path, blob, {
+          contentType: "image/jpeg",
+          cacheControl: "31536000",
+          upsert: false
+        });
+        if (upload.error) {
+          console.error(upload.error);
+          alert("تعذر رفع الصورة");
+          return false;
+        }
+        photo = path;
+      } else if (input.removePhoto) {
+        photo = null;
+      }
+
+      const before = { name: node.name, gender: node.gender || null, deceased: !!node.deceased, birthYear: node.birthYear || null, photo: node.photo || null };
+      const after = { name: newName, gender, deceased, birthYear, photo };
+      if (JSON.stringify(before) === JSON.stringify(after)) { alert("لا يوجد تغيير للحفظ"); return false; }
+
+      // نطلب الصف بعد التعديل: إذا لم يرجع شيء فالخادم رفض الحفظ (جلسة منتهية أو بلا صلاحية)
+      const { data, error } = await supabaseClient
+        .from("people")
+        .update({ name: newName, gender, deceased, birth_year: birthYear, photo_path: photo })
+        .eq("id", personId)
+        .select("id");
+      if (error || !Array.isArray(data) || !data.length) {
+        if (error) console.error(error);
+        alert("تعذر حفظ التعديل في قاعدة البيانات. سجّل الدخول من جديد ثم حاول.");
+        return false;
+      }
+
+      applyPersonFields(personId, after);
+      // الصورة القديمة تبقى في التخزين حتى يعمل التراجع من الأرشيف
+      logChange("تعديل بيانات: " + before.name + (before.name !== after.name ? " ← " + after.name : ""), {
+        actionType: "details",
+        undoable: true,
+        personId,
+        before,
+        after
+      });
+      return true;
+    }
+
+    async function adminSavePersonDetails() {
       const saveBtn = document.getElementById("btnSavePersonDetails");
       if (saveBtn) saveBtn.disabled = true;
       try {
-        let photo = node.photo || null;
-        if (file) {
-          const blob = await resizeImageToJpeg(file, 480);
-          if (!blob) return alert("تعذر قراءة الصورة. اختر صورة أخرى.");
-          const path = personId + "-" + Date.now() + ".jpg";
-          const upload = await supabaseClient.storage.from("photos").upload(path, blob, {
-            contentType: "image/jpeg",
-            cacheControl: "31536000",
-            upsert: false
-          });
-          if (upload.error) {
-            console.error(upload.error);
-            return alert("تعذر رفع الصورة");
-          }
-          photo = path;
-        } else if (removePhoto) {
-          photo = null;
-        }
-
-        const before = { name: node.name, gender: node.gender || null, deceased: !!node.deceased, birthYear: node.birthYear || null, photo: node.photo || null };
-        const after = { name: newName, gender, deceased, birthYear, photo };
-        if (JSON.stringify(before) === JSON.stringify(after)) return alert("لا يوجد تغيير للحفظ");
-
-        const { error } = await supabaseClient
-          .from("people")
-          .update({ name: newName, gender, deceased, birth_year: birthYear, photo_path: photo })
-          .eq("id", personId);
-        if (error) {
-          console.error(error);
-          return alert("تعذر حفظ التعديل في قاعدة البيانات");
-        }
-
-        applyPersonFields(personId, after);
-        // الصورة القديمة تبقى في التخزين حتى يعمل التراجع من الأرشيف
-        logChange("تعديل بيانات: " + before.name + (before.name !== after.name ? " ← " + after.name : ""), {
-          actionType: "details",
-          undoable: true,
-          personId,
-          before,
-          after
+        const ok = await savePersonDetailsCore(document.getElementById("adminEditPersonSelect").value, {
+          name: document.getElementById("adminEditPersonName").value,
+          gender: document.getElementById("adminEditGender").value,
+          birthYear: document.getElementById("adminEditBirthYear").value,
+          deceased: document.getElementById("adminEditDeceased").checked,
+          file: document.getElementById("adminEditPhotoFile").files[0] || null,
+          removePhoto: document.getElementById("adminEditPhotoRemove").checked
         });
-        alert("تم حفظ التعديل");
-        refreshAdminAfterAction("add");
+        if (ok) {
+          alert("تم حفظ التعديل");
+          refreshAdminAfterAction("add");
+        }
       } finally {
         if (saveBtn) saveBtn.disabled = false;
       }
     }
     
+    // يخفي الاسم وفرعه ويسجل طلب حذف (يحتاج تأكيد الماستر). يعيد رقم الطلب أو null.
+    function createPendingDelete(personId) {
+      if (!personId) { alert("اختر الاسم أولًا"); return null; }
+      if (personId === rootId) { alert("لا يمكن حذف الجذر"); return null; }
+      if (!people[personId]) { alert("الاسم غير موجود"); return null; }
+      const parentId = getParentId(personId);
+      if (!parentId || !people[parentId]) { alert("تعذر العثور على الأب"); return null; }
+
+      const deletedName = people[personId].name;
+      const parentChildren = people[parentId].children || [];
+      const insertIndex = parentChildren.indexOf(personId);
+      const snapshot = collectSubtreeSnapshot(personId);
+
+      people[parentId].children = parentChildren.filter(id => id !== personId);
+      Object.keys(snapshot).forEach(id => { delete people[id]; });
+
+      if (!Array.isArray(appState.pendingDeleteRequests)) appState.pendingDeleteRequests = [];
+      const pendingId = Date.now();
+      appState.pendingDeleteRequests.unshift({
+        id: pendingId,
+        personId,
+        rootName: deletedName,
+        parentId,
+        parentName: people[parentId] ? people[parentId].name : "",
+        insertIndex,
+        snapshot,
+        createdAt: new Date().toLocaleString("ar"),
+        by: window.currentAdminRole === "master" ? "الماستر" : "الأدمن"
+      });
+
+      logChange("طلب حذف بانتظار مراجعة الماستر: " + deletedName, {
+        actionType: "pending_delete",
+        undoable: true,
+        pendingDeleteId: pendingId,
+        personId,
+        rootName: deletedName,
+        parentId,
+        insertIndex,
+        snapshot
+      });
+      saveState();
+      return pendingId;
+    }
+
     async function adminDeletePerson() {
-  const personId = document.getElementById("adminDeletePersonSelect").value;
-
-  if (!personId) {
-    alert("اختر الاسم أولًا");
-    return;
-  }
-
-  if (personId === rootId) {
-    alert("لا يمكن حذف الجذر");
-    return;
-  }
-
-  if (!people[personId]) {
-    alert("الاسم غير موجود");
-    return;
-  }
-
-  const parentId = getParentId(personId);
-  if (!parentId || !people[parentId]) {
-    alert("تعذر العثور على الأب");
-    return;
-  }
-
-  function collectSubtree(rootId) {
-    const nodes = {};
-    function walk(id){
-      if(!people[id]) return;
-      nodes[id] = JSON.parse(JSON.stringify(people[id]));
-      (people[id].children || []).forEach(walk);
-    }
-    walk(rootId);
-    return nodes;
-  }
-
-  function removeSubtree(rootId) {
-    function walk(id){
-      const kids = people[id] ? [...(people[id].children || [])] : [];
-      kids.forEach(walk);
-      delete people[id];
-    }
-    walk(rootId);
-  }
-
-  const deletedName = people[personId].name;
-  const parentChildren = people[parentId].children || [];
-  const insertIndex = parentChildren.indexOf(personId);
-  const snapshot = collectSubtree(personId);
-
-  people[parentId].children = parentChildren.filter(id => id !== personId);
-  removeSubtree(personId);
-
-  if (!Array.isArray(appState.pendingDeleteRequests)) appState.pendingDeleteRequests = [];
-  appState.pendingDeleteRequests.unshift({
-    id: Date.now(),
-    personId,
-    rootName: deletedName,
-    parentId,
-    parentName: people[parentId] ? people[parentId].name : "",
-    insertIndex,
-    snapshot,
-    createdAt: new Date().toLocaleString("ar"),
-    by: window.currentAdminRole === "master" ? "الماستر" : "الأدمن"
-  });
-
-  logChange("طلب حذف بانتظار مراجعة الماستر: " + deletedName, {
-    actionType: "pending_delete",
-    undoable: true,
-    pendingDeleteId: appState.pendingDeleteRequests[0].id,
-    personId,
-    rootName: deletedName,
-    parentId,
-    insertIndex,
-    snapshot
-  });
-  saveState();
-  alert("تم الحذف وهو الآن قيد المراجعة من قبل الماستر");
-  refreshAdminAfterAction("requests");
+      const pendingId = createPendingDelete(document.getElementById("adminDeletePersonSelect").value);
+      if (!pendingId) return;
+      alert("تم الحذف وهو الآن قيد المراجعة من قبل الماستر");
+      refreshAdminAfterAction("requests");
     }
 
     function adminSetStatus() {
@@ -5341,7 +5571,10 @@ function renderCardHead(id, extraHtml = "") {
           <div class="name">${escapeHtml(people[id].name)}${appState.settings.showCounts ? ` (${getChildrenCount(id)})` : ""}${extraHtml}</div>
           ${renderPersonSub(id)}
         </div>
-        ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(id))}</div>` : ""}
+        <div class="card-side">
+          ${appState.settings.showGeneration ? `<div class="gen-badge">${generationLabelShort(getGeneration(id))}</div>` : ""}
+          <div class="edit-chip" role="button" tabindex="0" title="تعديل هذا الاسم (بكلمة المرور)" onclick="event.stopPropagation(); requestPersonEdit('${id}')">تعديل</div>
+        </div>
       </div>`;
 }
 
@@ -5958,7 +6191,8 @@ ${bodyHtml}
       adminInfoEditModal: () => closeAdminInfoEditModal(),
       adminRoleManageModal: () => closeAdminRoleManageModal(),
       treePickerModal: () => closeTreePicker(),
-      quickRelationModal: () => closeQuickRelationModal()
+      quickRelationModal: () => closeQuickRelationModal(),
+      personEditModal: () => closePersonEditor()
     };
     let modalHistoryDepth = 0;   // عدد خانات السجل المحجوزة للنوافذ المفتوحة
     let ignoredPops = 0;         // رجوع نفّذناه نحن ولا يعني تنقلًا
@@ -6651,28 +6885,29 @@ function restoreDeletedSnapshot(item){
   return true;
 }
 
-async function confirmPendingDelete(id){
+// الحذف النهائي من قاعدة البيانات (للماستر). يعيد true عند النجاح.
+async function confirmPendingDeleteCore(id){
   ensurePendingDeleteDefaults();
   const idx = appState.pendingDeleteRequests.findIndex(x => x.id === id);
-  if(idx === -1){ alert("طلب الحذف غير موجود"); return; }
+  if(idx === -1){ alert("طلب الحذف غير موجود"); return false; }
   const item = appState.pendingDeleteRequests[idx];
 
-  // حذف نهائي من Supabase إن وجد
   if (peopleTableAvailable) {
     try{
       const ids = Object.keys(item.snapshot || {});
       if(ids.length){
-        const { error } = await supabaseClient.from("people").delete().in("id", ids);
-        if(error){
-          console.error(error);
+        // نطلب الصفوف المحذوفة: إذا لم يرجع شيء فالخادم لم يحذف (بلا صلاحية أو جلسة منتهية)
+        const { data, error } = await supabaseClient.from("people").delete().in("id", ids).select("id");
+        if(error || !Array.isArray(data) || !data.length){
+          if (error) console.error(error);
           alert("تعذر الحذف من قاعدة البيانات، لم يتم تأكيد الحذف.");
-          return;
+          return false;
         }
       }
     }catch(e){
       console.error(e);
       alert("تعذر الحذف من قاعدة البيانات، لم يتم تأكيد الحذف.");
-      return;
+      return false;
     }
   }
 
@@ -6687,8 +6922,14 @@ async function confirmPendingDelete(id){
     snapshot: item.snapshot
   });
   saveState();
-  alert("تم تأكيد الحذف نهائيًا");
-  refreshAdminAfterAction("requests");
+  return true;
+}
+
+async function confirmPendingDelete(id){
+  if (await confirmPendingDeleteCore(id)) {
+    alert("تم تأكيد الحذف نهائيًا");
+    refreshAdminAfterAction("requests");
+  }
 }
 
 function rejectPendingDelete(id){
@@ -6810,6 +7051,11 @@ function rejectPendingDelete(id){
       });
     }
   })();
+
+  // Enter في حقل اسم الابن = زر إضافة
+  document.getElementById("peChildName").addEventListener("keydown", function(e){
+    if (e.key === "Enter") { e.preventDefault(); addChildFromEditor(); }
+  });
 
   // Enter في حقل كلمة المرور = زر دخول
   document.getElementById("adminPasswordInput").addEventListener("keydown", function(e){
